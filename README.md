@@ -116,4 +116,27 @@ jobs:
       dockerfile: apps/${{ fromJSON(toJSON(matrix)).target }}/Dockerfile
       imageName: ${{ fromJSON(toJSON(matrix)).target }}
       platforms: 'linux/amd64,linux/arm64'
-```
+
+### Update Go version
+
+Automatically create a PR to update a project's required Go version to the latest
+
+Example:
+
+```yaml
+name: update-go-version
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: "0 0 * * MON"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-go-version:
+    uses: GeoNet/Actions/.github/workflows/reusable-update-go-version.yml@main
+    with:
+      modfile: go.mod
