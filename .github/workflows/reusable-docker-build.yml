@@ -1,0 +1,130 @@
+name: Reusable Docker build
+
+on:
+  workflow_call:
+    inputs:
+      context:
+        required: true
+        type: string
+        default: .
+        description: |
+          path to image source.
+      imageName:
+        required: true
+        type: string
+        description: |
+          the short name for image builds.
+          e.g: nginx
+      registryOverride:
+        required: false
+        type: string
+        description: |
+          a container registry to use instead of ghcr.io.
+          e.g:
+            - quay.io
+            - registry.gitlab.com/somecoolproject
+            - ghcr.io/somecoolproject/thing
+      dockerfile:
+        required: true
+        type: string
+        default: ./Dockerfile
+        description: |
+          path to the image dockerfile.
+      tag:
+        required: false
+        type: string
+        default: latest
+        description: |
+          the tag to set image as.
+      platforms:
+        required: false
+        type: string
+        default: 'linux/amd64'
+        description: |
+          comma-separated list of platforms to build with.
+          e.g: linux/amd64,linux/arm64
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: mikefarah/yq@master
+      - uses: actions/setup-go@v4
+      - uses: sigstore/cosign-installer@main
+      - uses: imjasonh/setup-crane@v0.1
+      - uses: actions/checkout@v3
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Login to quay.io
+        uses: docker/login-action@v2
+        env:
+          quay-robot-token: ${{ secrets.QUAY_ROBOT_TOKEN }}
+          quay-username: ${{ secrets.QUAY_USERNAME }}
+        if: ${{ env.quay-robot-token != null && env.quay-username != null }}
+        with:
+          # TODO use Quay.io https://github.com/docker/login-action#quayio
+          registry: quay.io
+          username: ${{ secrets.QUAY_USERNAME }}
+          password: ${{ secrets.QUAY_ROBOT_TOKEN }}
+      - name: Login to ghcr.io
+        uses: docker/login-action@v2
+        with:
+          # TODO use Quay.io https://github.com/docker/login-action#quayio
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: run-info
+        name: collect job run info
+        env:
+          GHCR_DOCKER_REPO: ghcr.io/${{ github.repository }}
+        run: |
+          TAG="${{ inputs.tag }}"
+          TAG="${TAG:-latest}"
+          if [ -n "${{ inputs.registryOverride }}" ]; then
+            echo "image-with-tag=${{ inputs.registryOverride }}/${{ inputs.imageName }}:$TAG" >> $GITHUB_OUTPUT
+          else
+            echo "image-with-tag=${GHCR_DOCKER_REPO,,}/${{ inputs.imageName }}:$TAG" >> $GITHUB_OUTPUT
+          fi
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          push: true
+          tags: ${{ steps.run-info.outputs.image-with-tag }}
+          context: ${{ inputs.context }}
+          platforms: ${{ inputs.platforms }}
+          labels: |
+            org.opencontainers.image.name=${{ inputs.imageName }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.source=${{ github.repositoryUrl }}
+      - name: get-digests
+        id: get-digests
+        env:
+          DESTINATION: ${{ steps.run-info.outputs.image-with-tag }}
+        run: |
+          DESTINATION_DIGEST="$(crane digest "${DESTINATION}" || true)"
+          (
+            echo "DESTINATION_DIGEST"
+            echo "${DESTINATION_DIGEST}"
+          ) | column -t
+          echo "destination=${DESTINATION_DIGEST}" >> $GITHUB_OUTPUT
+      - name: Sign image
+        env:
+          COSIGN_YES: "true"
+        run: |
+          cosign sign ${{ steps.run-info.outputs.image-with-tag }}@${{ steps.get-digests.outputs.destination }} -y
+      - uses: anchore/sbom-action@v0
+        with:
+          image: ${{ steps.run-info.outputs.image-with-tag }}@${{ steps.get-digests.outputs.destination }}
+          artifact-name: sbom-spdx.json
+          output-file: /tmp/sbom-spdx.json
+      - name: publish sbom blob as blob
+        env:
+          COSIGN_YES: "true"
+        run: |
+          cosign attest --predicate /tmp/sbom-spdx.json ${{ steps.run-info.outputs.image-with-tag }}@${{ steps.get-digests.outputs.destination }}
+      - name: image result
+        id: result
+        run: |
+          echo "Build, pushed and signed: ${{ steps.run-info.outputs.image-with-tag }}@${{ steps.get-digests.outputs.destination }}"
