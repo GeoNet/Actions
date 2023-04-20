@@ -1,0 +1,60 @@
+name: Reusable Ko build
+
+on:
+  workflow_call:
+    inputs:
+      paths:
+        required: false
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: configure system
+      run: |
+        git config user.name 'github-actions[bot]'
+        git config user.email 'github-actions[bot]@users.noreply.github.com'
+        gh auth login --with-token < <(echo ${{ secrets.GITHUB_TOKEN }})
+        gh auth status
+    - uses: sigstore/cosign-installer@main
+    - id: run-info
+      name: collect job run info
+      env:
+        KO_DOCKER_REPO: ghcr.io/${{ github.repository }}
+      run: |
+        echo "go-version=$(go list -f {{.GoVersion}} -m)" >> $GITHUB_OUTPUT
+        echo "ko-docker-repo=${KO_DOCKER_REPO,,}" >> $GITHUB_OUTPUT
+        if [ -n "${{ inputs.paths }}" ]; then
+          echo "paths="${{ inputs.paths }}"" >> $GITHUB_OUTPUT
+        else
+          PATHS="$(grep -r 'package main' | sort | cut -d ':' -f1 | grep '.go$' | xargs -n 1 dirname | sort | uniq | grep -v vendor | xargs -i echo './{}' | xargs)"
+          echo "paths="$PATHS"" >> $GITHUB_OUTPUT
+        fi
+    - uses: actions/setup-go@v4
+      with:
+        go-version: ${{ steps.run-info.outputs.go-version }}
+        cache-dependency-path: go.sum
+    - uses: ko-build/setup-ko@v0.6
+    - id: build
+      env:
+        KO_DOCKER_REPO: ${{ steps.run-info.outputs.ko-docker-repo }}
+        IMAGES_PATH: ${{ steps.run-info.outputs.paths }}
+      run: |
+        IMAGES="$(ko build --base-import-paths $IMAGES_PATH)"
+        echo "images=$(echo $IMAGES | tr ' ' ',')" >> $GITHUB_OUTPUT
+    - id: sign-images-and-attest-sbom
+      env:
+        COSIGN_YES: "true"
+        IMAGE: ${{ steps.build.outputs.images }}
+      run: |
+        for IMAGE in $(echo ${{ steps.build.outputs.images }} | tr ',' ' '); do
+          cosign sign $IMAGE -y
+          cosign download sbom $IMAGE > /tmp/sbom-spdx.json
+          cosign attest --predicate /tmp/sbom-spdx.json $IMAGE -y
+        done
+    - name: image result
+      id: result
+      run: |
+        echo "Build, pushed and signed: $(echo ${{ steps.build.outputs.images }} | tr ',' ' ')"
