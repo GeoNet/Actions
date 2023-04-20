@@ -110,7 +110,7 @@ jobs:
     strategy:
       matrix:
         include: ${{ fromJSON(needs.prepare.outputs.matrix) }}
-    uses: BobyMCbobs/sample-docker-monorepo/.github/workflows/reusable-build.yml@main
+    uses: GeoNet/Actions/.github/workflows/reusable-build.yml@main
     with:
       context: apps/${{ fromJSON(toJSON(matrix)).target }}
       dockerfile: apps/${{ fromJSON(toJSON(matrix)).target }}/Dockerfile
