@@ -31,24 +31,28 @@ jobs:
       - name: edit Go version to latest
         run: |
           go mod edit -go=${{ steps.run-info.outputs.go-version }} ${{ inputs.modfile }}
-      - name: commit and push if there are changes
+      - name: determine changes
+        id: determine-changes
         run: |
-          if { git ls-files --others --exclude-standard ; git diff-index --name-only --diff-filter=d HEAD ; } | grep ${{ inputs.modfile }}; then
-              echo changes detected
-            else
-              exit 0
+          if git diff --name-only --diff-filter=ACMRT | grep ${{ inputs.modfile }}; then
+            echo "changes=true" >> $GITHUB_OUTPUT
           fi
+      - name: determine if there is an existing PR
+        id: existing-pr
+        if: ${{ steps.determine-changes.outputs.changes == 'true' }}
+        run: |
           EXISTING_PR="$(gh pr list --json title,labels,body --jq '.' --label update-go-version --search "Update Go version to ${{ steps.run-info.outputs.go-version }}" | jq -r .[].title)"
           if [ "${EXISTING_PR}" = "Update Go version to ${{ steps.run-info.outputs.go-version }}" ]; then
-            echo "PR already exists"
-            exit 0
+            echo "exists=true" >> $GITHUB_OUTPUT
           fi
-
+      - name: create PR
+        if: ${{ steps.determine-changes.outputs.changes == 'true' && steps.existing-pr.outputs.exists != 'true' }}
+        run: |
           TIMESTAMP="$(date +%Y-%m-%d-%H-%M)"
           NEW_BRANCH="update-go-version-to-${{ steps.run-info-outputs.go-version }}-${TIMESTAMP}"
           git add ${{ inputs.modfile }}
           git branch "${NEW_BRANCH}"
           git checkout "${NEW_BRANCH}"
-          git commit -s -m "update Go version to ${{ steps.run-info.outputs.go-version }}"
+          git commit -s -m "update Go version to ${{ steps.run-info.outputs.go-version }} for ${{ inputs.modfile }}"
           git push origin "${NEW_BRANCH}"
-          gh pr create --title "Update Go version to ${{ steps.run-info.outputs.go-version }}" --body "Updates the base version of Go required for this project to ${{ steps.run-info.outputs.go-version }}" --label update-go-version
+          gh pr create --title "Update Go version to ${{ steps.run-info.outputs.go-version }} in ${{ inputs.modfile }}" --body "Updates the base version of Go required for this project to ${{ steps.run-info.outputs.go-version }} for ${{ inputs.modfile }}" --label update-go-version
