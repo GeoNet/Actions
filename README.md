@@ -116,6 +116,7 @@ jobs:
       dockerfile: apps/${{ fromJSON(toJSON(matrix)).target }}/Dockerfile
       imageName: ${{ fromJSON(toJSON(matrix)).target }}
       platforms: 'linux/amd64,linux/arm64'
+```
 
 ### Update Go version
 
@@ -140,3 +141,25 @@ jobs:
     uses: GeoNet/Actions/.github/workflows/reusable-update-go-version.yml@main
     with:
       modfile: go.mod
+```
+
+### Terraform management
+
+Trigger a `terraform plan` (and optionally `terraform apply`) against Terraform located in the repo, starting at the repo root.
+
+Example:
+```yaml
+name: terraform
+
+on:
+  pull_request: {}
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    uses: GeoNet/Actions/.github/workflows/reusable-terraform.yml@main
+    # with:
+    #   allowApply: true
+```
+
+for Terraform Cloud, set `TF_API_TOKEN` in the repo's Actions Secrets
