@@ -27,4 +27,13 @@ permissions:
 jobs:
   build:
     uses: GeoNet/Actions/.github/workflows/reusable-ko-build.yml@main
+    # with:
+    #   paths: ./cmd/coolapp
 ```
+
+Features
+- dynamic build of images based on entrypoints (where there is a `package main`), unless if _inputs.paths_ is set
+- sign with Cosign
+  - image
+  - SBOM
+- fast!
