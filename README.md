@@ -190,6 +190,18 @@ for Terraform Cloud, set `TF_API_TOKEN` in the repo's Actions Secrets
 
 for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-terraform-management.yml](.github/workflows/reusable-terraform-management.yml).
 
+### GitHub repo fork sync
+
+Declaratively and automatically synchronise forked GitHub repositories inside the org.
+Configuration is managed in [config/fork-sync.yaml](./config/fork-sync.yml), in a format like
+
+```yaml
+repos:
+  - name: GeoNet/<NAME>
+```
+
+The sync functionality is reusable through [.github/workflows/reusable-github-repo-fork-sync.yml](./.github/workflows/reusable-github-repo-fork-sync.yml)
+
 ## Other documentation
 
 ### Container image signing
@@ -212,3 +224,4 @@ cosign verify IMAGE_REF --certificate-identity a --certificate-oidc-issuer b
 ```
 
 for more information, see https://docs.sigstore.dev
+
