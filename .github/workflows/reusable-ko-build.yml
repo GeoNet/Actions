@@ -2,10 +2,22 @@ name: Reusable Ko build
 
 on:
   workflow_call:
+    registryOverride:
+      required: false
+      type: string
+      description: |
+        a container registry to use instead of ghcr.io.
+        e.g:
+          - quay.io
+          - registry.gitlab.com/somecoolproject
+          - ghcr.io/somecoolproject/thing
     inputs:
       paths:
         required: false
         type: string
+        description: |
+          the Go entrypoint paths for applications, where there they have `package main`
+          e.g: ./cmd/thing1 ./cmd/thing2
 
 jobs:
   build:
@@ -25,6 +37,9 @@ jobs:
         KO_DOCKER_REPO: ghcr.io/${{ github.repository }}
       run: |
         echo "go-version=$(go list -f {{.GoVersion}} -m)" >> $GITHUB_OUTPUT
+        if [ -n "${{ inputs.registryOverride }}" ]; then
+          KO_DOCKER_REPO="${{ inputs.registryOverride }}"
+        fi
         echo "ko-docker-repo=${KO_DOCKER_REPO,,}" >> $GITHUB_OUTPUT
         if [ -n "${{ inputs.paths }}" ]; then
           echo "paths="${{ inputs.paths }}"" >> $GITHUB_OUTPUT

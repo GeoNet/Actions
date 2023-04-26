@@ -7,10 +7,20 @@ on:
         type: string
         default: go.mod
         required: false
+        description: |
+          the reference to the Go mod file in the local path.
+          e.g:
+            - ./go.mod
+            - ./app/go.mod
+            - ./cmd/app/go.mod
+
+          please note: it is recommended to only have one go.mod per repo, so this field shouldn't need to be changed.
       autoMerge:
         type: boolean
         default: false
         required: false
+        description: |
+          by default, the action will only create a PR based on the out of date version. when autoMerge is set to `true`, it will also merge the PR which is generated after it is created. Affectively ensuring a project is always using the latest stable Go.
 
 jobs:
   update-go-version:
