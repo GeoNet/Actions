@@ -16,7 +16,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - id: sync
-      if: ${{ inputs.repo != '' }}
+      if: ${{ inputs.name != '' }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN || github.token }}
       run: |
