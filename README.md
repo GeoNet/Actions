@@ -217,13 +217,13 @@ cosign tree IMAGE_REF
 cosign tree registry.k8s.io/pause:3.9
 ```
 
-Verify a signed image
+Verify a signed image:
 
 ```yaml
 cosign verify IMAGE_REF --certificate-identity-regexp "https://github.com/GeoNet/Actions/.github/workflows/reusable-(docker|ko-)([-])?build.yml@refs/heads/main" --certificate-oidc-issuer "https://token.actions.githubusercontent.com"
 ```
 
-View the SPXD-JSON formatted SBOM
+View the SPXD-JSON formatted SBOM:
 
 ```yaml
 cosign verify-attestation IMAGE_REF --certificate-identity-regexp "https://github.com/GeoNet/Actions/.github/workflows/reusable-(docker|ko|)([-])?build.yml@refs/heads/main" --certificate-oidc-issuer "https://token.actions.githubusercontent.com" | jq -r .payload | base64 -d | jq -r .predicate.Data
