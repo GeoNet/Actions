@@ -2,17 +2,8 @@
 repos:
   # ko build
   - name: GeoNet/setup-ko
-  - name: GeoNet/cosign-installer
   # docker build
-  - name: GeoNet/sbom-action
-  - name: GeoNet/build-push-action
-  - name: GeoNet/login-action
-  - name: GeoNet/setup-buildx-action
-  - name: GeoNet/setup-qemu-action
   - name: GeoNet/setup-crane
   - name: GeoNet/yq
   # terraform management
-  - name: GeoNet/setup-terraform
   # docker-foundry
-  - name: GeoNet/trivy-action
-  - name: GeoNet/upload-sarif
