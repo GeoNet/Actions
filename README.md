@@ -37,6 +37,16 @@ jobs:
   - SBOM
 - fast!
 
+for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-ko-build.yml](.github/workflows/reusable-ko-build.yml).
+
+#### Ko build container image signing
+
+see [container image signing](#container-image-signing).
+
+#### Pushing to quay.io
+
+this has not been implemented yet and only supports pushing to ghcr.io (GitHub Container Registry), see internal discussion [here](https://github.com/GeoNet/tickets/issues/12418).
+
 ### Docker build
 
 Generic container image build with Docker and signing container images and SBOMs with [cosign](https://docs.sigstore.dev/cosign/overview/)
@@ -118,6 +128,16 @@ jobs:
       platforms: 'linux/amd64,linux/arm64'
 ```
 
+for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-docker-build.yml](.github/workflows/reusable-docker-build.yml).
+
+#### Docker build container image signing
+
+see [container image signing](#container-image-signing).
+
+#### Pushing to quay.io
+
+in the target repo, set the actions secrets (repo -> Settings -> Security -> Secrets and variables -> Actions) `QUAY_USERNAME` and `QUAY_ROBOT_TOKEN`, then set the input (under `with`) for `registryOverride` to `quay.io/geonet`
+
 ### Update Go version
 
 Automatically create a PR to update a project's required Go version to the latest
@@ -143,6 +163,10 @@ jobs:
       modfile: go.mod
 ```
 
+for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-update-go-version.yml](.github/workflows/reusable-update-go-version.yml).
+
+Works great along side [reusable ko build](#ko-build).
+
 ### Terraform management
 
 Trigger a `terraform plan` (and optionally `terraform apply`) against Terraform located in the repo, starting at the repo root.
@@ -157,9 +181,34 @@ on:
 
 jobs:
   build:
-    uses: GeoNet/Actions/.github/workflows/reusable-terraform.yml@main
+    uses: GeoNet/Actions/.github/workflows/reusable-terraform-management.yml@main
     # with:
     #   allowApply: true
 ```
 
 for Terraform Cloud, set `TF_API_TOKEN` in the repo's Actions Secrets
+
+for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-terraform-management.yml](.github/workflows/reusable-terraform-management.yml).
+
+## Other documentation
+
+### Container image signing
+
+Container images and their SBOMs are signed to prove and verify that they were built in a trusted environment by us.
+
+See security supply chain related artifacts for an image:
+
+```yaml
+cosign tree IMAGE_REF
+
+# e.g:
+cosign tree registry.k8s.io/pause:3.9
+```
+
+Verify a signed image
+
+```yaml
+cosign verify IMAGE_REF --certificate-identity a --certificate-oidc-issuer b
+```
+
+for more information, see https://docs.sigstore.dev
