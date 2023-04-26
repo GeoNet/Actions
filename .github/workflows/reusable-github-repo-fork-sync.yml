@@ -20,4 +20,4 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN || github.token }}
       run: |
-        gh repo sync --force ${{ inputs.repo }}
+        gh repo sync --force ${{ inputs.name }}
