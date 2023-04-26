@@ -51,7 +51,7 @@ jobs:
       with:
         go-version: ${{ steps.run-info.outputs.go-version }}
         cache-dependency-path: go.sum
-    - uses: GeoNet/setup-ko@f3c6980
+    - uses: GeoNet/setup-ko@f3c6980bb213dc8bb4856f52598a9230d910d06f
     - id: build
       env:
         KO_DOCKER_REPO: ${{ steps.run-info.outputs.ko-docker-repo }}
