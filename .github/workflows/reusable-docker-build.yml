@@ -48,10 +48,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: GeoNet/yq@master
+      - uses: GeoNet/yq@bbe3055
       - uses: actions/setup-go@v4
       - uses: sigstore/cosign-installer@main
-      - uses: GeoNet/setup-crane@v0.1
+      - uses: GeoNet/setup-crane@00c9e93
       - uses: actions/checkout@v3
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
