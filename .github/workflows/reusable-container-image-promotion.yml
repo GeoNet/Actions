@@ -61,7 +61,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TRANSFORM_EXPRESSION: |
-        .[] | . as $version | .name as $name | .dmap|keys |.[] | . as $digest | $version.dmap[$digest] as $tags | $tags[]|{"name":$name,"digest":$digest,"tag":.}
+        .[] | . as $version | .name as $name | .dmap | keys | .[] | . as $digest | $version.dmap[$digest] as $tags | $tags[] | {"name": $name, "digest":$digest, "tag":.}
     outputs:
       matrix: ${{ steps.set.outputs.matrix }}
     steps:
