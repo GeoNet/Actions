@@ -1,0 +1,138 @@
+name: reusable container image promotion
+
+on:
+  workflow_call:
+    inputs:
+      registryOverride:
+        required: false
+        type: string
+        description: |
+          an alterative container registry to push to.
+          e.g:
+            - quay.io
+            - ghcr.io/GeoNet
+
+      configLiteral:
+        required: false
+        type: string
+        description: |
+          in-line configuration for image promotion.
+
+          e.g:
+          - name: coolest-serverless-app
+            dmap:
+              "sha256:8246383b7fd0ca87cbac28e6b99d84cda5487f0e80d2c93f16c2f42366160a40": ["v1", "v2"]
+          - name: mission-critical-service
+            dmap:
+              "sha256:a479f33cb7f5fe7d5149de44848bcbc38d5f107d7b47a962df7749259eef49eb": ["v1"]
+          - name: webthingy
+            dmap:
+              "sha256:efdb4ab576f4028e8319733890af8e7c49eed7f43bfe33e078052a1d0763ef89": ["v1"]
+
+      configPath:
+        required: false
+        type: string
+        default: ./images/config.yaml
+        description: |
+          the local relative path to a promotion config.
+          e.g: ./images/config.yaml
+
+          the format of the file must be
+
+          type Image struct {
+            Name string              `json:"name"`
+            Dmap map[string][]string `json:"dmap"`
+          }
+
+          example like
+
+          - name: coolest-serverless-app
+            dmap:
+              "sha256:8246383b7fd0ca87cbac28e6b99d84cda5487f0e80d2c93f16c2f42366160a40": ["v1", "v2"]
+          - name: mission-critical-service
+            dmap:
+              "sha256:a479f33cb7f5fe7d5149de44848bcbc38d5f107d7b47a962df7749259eef49eb": ["v1"]
+          - name: webthingy
+            dmap:
+              "sha256:efdb4ab576f4028e8319733890af8e7c49eed7f43bfe33e078052a1d0763ef89": ["v1"]
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    env:
+      TRANSFORM_EXPRESSION: |
+        .[] | . as $version | .name as $name | .dmap|keys |.[] | . as $digest | $version.dmap[$digest] as $tags | $tags[]|{"name":$name,"digest":$digest,"tag":.}
+    outputs:
+      matrix: ${{ steps.set.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: mikefarah/yq@master
+      - id: set
+        run: |
+          if [ -n "${{ inputs.configLiteral }}" ]; then
+            echo "matrix=$(jq -rcMs <<< "$(yq e --expression "$TRANSFORM_EXPRESSION" -P -o json <<< $(echo -e '${{ inputs.configLiteral }}'))")" >> $GITHUB_OUTPUT
+          else
+            echo "matrix=$(jq -rcMs <<< "$(yq e --expression "$TRANSFORM_EXPRESSION" -P ${{ inputs.configPath }} -o json)")" >> $GITHUB_OUTPUT
+          fi
+      - name: check output
+        run: |
+          jq . <<< '${{ steps.set.outputs.matrix }}'
+
+  promote:
+    if: ${{ fromJSON(needs.prepare.outputs.matrix) != null }}
+    needs: prepare
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include: ${{ fromJSON(needs.prepare.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+      - uses: GeoNet/setup-crane@00c9e93efa4e1138c9a7a5c594acd6c75a2fbf0c
+      - name: Login to quay.io
+        uses: docker/login-action@v2
+        env:
+          quay-robot-token: ${{ secrets.QUAY_ROBOT_TOKEN }}
+          quay-username: ${{ secrets.QUAY_USERNAME }}
+        if: ${{ env.quay-robot-token != null && env.quay-username != null }}
+        with:
+          registry: quay.io
+          username: ${{ secrets.QUAY_USERNAME }}
+          password: ${{ secrets.QUAY_ROBOT_TOKEN }}
+      - id: run-info
+        name: collect job run info
+        env:
+          GHCR_DOCKER_REPO: ghcr.io/${{ github.repository }}
+        run: |
+          if [ -n "${{ inputs.registryOverride }}" ]; then
+            REGISTRY="${REGISTRY,,}"
+          else
+            REGISTRY="${GHCR_DOCKER_REPO,,}"
+          fi
+          SOURCE="$REGISTRY/${{ fromJSON(toJSON(matrix)).name }}@${{ fromJSON(toJSON(matrix)).digest }}"
+          DESTINATION="$REGISTRY/${{ fromJSON(toJSON(matrix)).name }}:${{ fromJSON(toJSON(matrix)).tag }}"
+
+          echo "container-registry=${REGISTRY,,}" >> $GITHUB_OUTPUT
+          echo "source=${SOURCE}" >> $GITHUB_OUTPUT
+          echo "destination=${DESTINATION}" >> $GITHUB_OUTPUT
+      - name: get-digests
+        id: get-digests
+        env:
+          SOURCE: ${{ steps.run-info.outputs.source }}
+          DESTINATION: ${{ steps.run-info.outputs.destination }}
+        run: |
+          SOURCE_DIGEST="$(crane digest "${SOURCE}")"
+          DESTINATION_DIGEST="$(crane digest "${DESTINATION}" || true)"
+          (
+            echo "SOURCE-DIGEST DESTINATION-DIGEST"
+            echo "${SOURCE_DIGEST} ${DESTINATION_DIGEST}"
+          ) | column -t
+          echo "source=${SOURCE_DIGEST}" >> $GITHUB_OUTPUT
+          echo "destination=${DESTINATION_DIGEST}" >> $GITHUB_OUTPUT
+      - name: copy
+        if: ${{ steps.get-digests.outputs.source != steps.get-digests.outputs.destination || steps.get-digests.outputs.destination == null }}
+        env:
+          SOURCE: ${{ steps.run-info.outputs.source }}
+          DESTINATION: ${{ steps.run-info.outputs.destination }}
+        run: |
+          crane cp $SOURCE $DESTINATION
