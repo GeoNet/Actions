@@ -188,6 +188,8 @@ for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-c
 
 for more information, read the [versioning for container images info](#versioning-for-container-images)
 
+format implementation inspired by [Kubernetes sig-release promotion tools](https://github.com/kubernetes-sigs/promo-tools).
+
 #### Pushing to quay.io
 
 in the target repo, set the actions secrets (repo -> Settings -> Security -> Secrets and variables -> Actions) `QUAY_USERNAME` and `QUAY_ROBOT_TOKEN`, then set the input (under `with`) for `registryOverride` to `quay.io/geonet`
