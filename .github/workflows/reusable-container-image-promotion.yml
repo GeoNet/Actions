@@ -40,8 +40,8 @@ on:
           the format of the file must be
 
           type Image struct {
-            Name string              `json:"name"`
-            Dmap map[string][]string `json:"dmap"`
+            Name      string              `json:"name"`
+            DigestMap map[string][]string `json:"dmap"`
           }
 
           example like
