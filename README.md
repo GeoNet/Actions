@@ -158,6 +158,59 @@ see [container image signing](#container-image-signing).
 
 in the target repo, set the actions secrets (repo -> Settings -> Security -> Secrets and variables -> Actions) `QUAY_USERNAME` and `QUAY_ROBOT_TOKEN`, then set the input (under `with`) for `registryOverride` to `quay.io/geonet`
 
+### Container image promotion
+
+Promote container images from digests to tags.
+
+```yaml
+name: container image promotion
+
+on:
+  push:
+    paths:
+      - images/config.yaml
+  schedule:
+    - cron: "0 0 * * MON"
+  workflow_dispatch: {}
+
+permissions:
+  packages: write
+  id-token: write
+
+jobs:
+  build:
+    uses: GeoNet/Actions/.github/workflows/reusable-container-image-promotion.yml@main
+    # with:
+    #   registryOverride: quay.io/geonet
+    #   configPath: ./path/to/config.yaml
+```
+
+with a config.yaml in the format of
+
+```yaml
+- name: coolest-serverless-app
+  dmap:
+    "sha256:8246383b7fd0ca87cbac28e6b99d84cda5487f0e80d2c93f16c2f42366160a40": ["v1", "v1.0", "v1.0.0"]
+- name: mission-critical-service
+  dmap:
+    "sha256:a479f33cb7f5fe7d5149de44848bcbc38d5f107d7b47a962df7749259eef49eb": ["v1"]
+    "sha256:84f35de222e8a598dcb8c4cd6ad60df93360a020c6a0647c2500735683d01944": ["2023-04-24", "v2.3.1"]
+- name: webthingy
+  dmap:
+    "sha256:efdb4ab576f4028e8319733890af8e7c49eed7f43bfe33e078052a1d0763ef89": ["v1"]
+    "sha256:f0f843ca0c2b55210555af3f929b3d6ecd156485acc6eaefa59f6f11468b6061": ["2023-04-24", "v1.0.1"]
+```
+
+name being the image name under the $REGISTRY, keys under dmap being the digests to use and it's content being an array of tags to push to.
+
+for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-container-image-promotion.yml](.github/workflows/reusable-container-image-promotion.yml).
+
+for more information, read the [versioning for container images info](#versioning-for-container-images)
+
+#### Pushing to quay.io
+
+in the target repo, set the actions secrets (repo -> Settings -> Security -> Secrets and variables -> Actions) `QUAY_USERNAME` and `QUAY_ROBOT_TOKEN`, then set the input (under `with`) for `registryOverride` to `quay.io/geonet`
+
 ### Update Go version
 
 Automatically create a PR to update a project's required Go version to the latest
@@ -230,7 +283,7 @@ Container images and their SBOMs are signed to prove and verify that they were b
 
 See security supply chain related artifacts for an image:
 
-```yaml
+```shell
 cosign tree IMAGE_REF
 
 # e.g:
@@ -259,3 +312,19 @@ cosign verify-attestation IMAGE_REF --certificate-identity-regexp "https://githu
 
 for more information, see https://docs.sigstore.dev
 
+### Versioning for container images
+
+Container registries utilise content addressed storage, meaning to get some data (blob, image), you must request what it's digest is (the process behind tags).
+When pushing images using the reusable Docker or Ko builds, the images will always be tagged as latest or their digest.
+In order to precisely tag a container image, use the image promotion action.
+
+The digests for images are able to be found with:
+
+```shell
+crane digest IMAGE_REF
+```
+
+or in the logs of the workflow run.
+
+With the image promotion action, versions are able to be pinned with tags in a declarative way.
+This method is much safer than more traditional options with using the affects of `docker tag SRC DEST` and secure supply chain related artifacts are automatically resolved from the digest (no need to generate or sign the new tag).
