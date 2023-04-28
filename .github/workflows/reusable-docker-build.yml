@@ -94,6 +94,7 @@ jobs:
           tags: ${{ steps.run-info.outputs.image-with-tag }}
           context: ${{ inputs.context }}
           platforms: ${{ inputs.platforms }}
+          file: ${{ inputs.dockerfile }}
           labels: |
             org.opencontainers.image.name=${{ inputs.imageName }}
             org.opencontainers.image.revision=${{ github.sha }}
