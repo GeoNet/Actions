@@ -213,6 +213,31 @@ format implementation inspired by [Kubernetes sig-release promotion tools](https
 
 in the target repo, set the actions secrets (repo -> Settings -> Security -> Secrets and variables -> Actions) `QUAY_USERNAME` and `QUAY_ROBOT_TOKEN`, then set the input (under `with`) for `registryOverride` to `quay.io/geonet`
 
+### Container image scan
+
+Scan a (set of) container image(s) and upload the results to GitHub's Security code scanning center.
+
+Basic usage (non-integrated):
+
+```yaml
+name: scan
+
+on:
+  push: {}
+  workflow_dispatch: {}
+
+permissions:
+  security-events: write
+
+jobs:
+  scan:
+    uses: GeoNet/Actions/.github/workflows/reusable-container-image-scan.yml@main
+    with:
+      imageRefs: alpine:3.17,postgres:15
+```
+
+`inputs.imageRefs` is a comma separated list of container image refs.
+
 ### Update Go version
 
 Automatically create a PR to update a project's required Go version to the latest
