@@ -1,0 +1,78 @@
+name: Reusable container image scan
+
+on:
+  workflow_call:
+    inputs:
+      imageRefs:
+        required: true
+        type: string
+        description: |
+          a comma separated list of refs to a container image (one or more)
+          e.g:
+            - docker.io/library/nginx:stable
+            - ghcr.io/bobymcbobs/sample-ko-monorepo/webthingy@sha256:7ec264f3bd6344ae7525e88a69a4e7f6e6b3eaf11549fb889e31a2861df27923
+            - alpine:3.17
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: mikefarah/yq@master
+      - id: set
+        run: |
+          echo "matrix=$(echo ${{ inputs.imageRefs }} | tr ',' ' ' | yq 'split(" ")|.[]|{"target":.}' -ojson | jq -rcM -s .)" >> $GITHUB_OUTPUT
+      - name: check output
+        run: |
+          jq . <<< '${{ steps.set.outputs.matrix }}'
+
+  scan:
+    needs: prepare
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include: ${{ fromJSON(needs.prepare.outputs.matrix) }}
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-go@v4
+      with:
+        go-version: ${{ steps.run-info.outputs.go-version }}
+        cache-dependency-path: go.sum
+    - uses: GeoNet/setup-crane@00c9e93efa4e1138c9a7a5c594acd6c75a2fbf0c
+    - name: quay crane login
+      env:
+        quay-robot-token: ${{ secrets.QUAY_ROBOT_TOKEN }}
+        quay-username: ${{ secrets.QUAY_USERNAME }}
+      if: ${{ env.quay-robot-token != null && env.quay-username != null }}
+      run: |
+        echo "${{ env.quay-robot-token }}" | crane auth login --password-stdin quay.io ${{ env.quay-username }}
+    - name: get-digests
+      id: get-digests
+      env:
+        DESTINATION: ${{ fromJSON(toJSON(matrix)).target }}
+      run: |
+        DESTINATION_DIGEST="$(crane digest "${DESTINATION}" || true)"
+        (
+          echo "DESTINATION-DIGEST"
+          echo "$DESTINATION_DIGEST"
+        ) | column -t
+        echo "destination=${DESTINATION_DIGEST}" >> $GITHUB_OUTPUT
+    - name: Run Trivy vulnerability scanner
+      if: ${{ steps.get-digests.outputs.destination != null }}
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: '${{ fromJSON(toJSON(matrix)).target }}'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        # format: 'table'
+        exit-code: '1'
+        ignore-unfixed: true
+        vuln-type: 'os,library'
+        severity: 'CRITICAL,HIGH'
+    - name: Upload Trivy scan results to GitHub Security tab
+      if: ${{ steps.get-digests.outputs.destination != null }}
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: 'trivy-results.sarif'
