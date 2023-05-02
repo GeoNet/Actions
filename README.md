@@ -180,9 +180,9 @@ permissions:
 jobs:
   build:
     uses: GeoNet/Actions/.github/workflows/reusable-container-image-promotion.yml@main
-    # with:
+    with:
+      configPath: ./path/to/config.yaml
     #   registryOverride: quay.io/geonet
-    #   configPath: ./path/to/config.yaml
 ```
 
 with a config.yaml in the format of
