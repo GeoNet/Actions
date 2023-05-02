@@ -2,26 +2,31 @@ name: Reusable Ko build
 
 on:
   workflow_call:
-    registryOverride:
-      required: false
-      type: string
-      description: |
-        a container registry to use instead of ghcr.io.
-        e.g:
-          - quay.io
-          - registry.gitlab.com/somecoolproject
-          - ghcr.io/somecoolproject/thing
     inputs:
+      registryOverride:
+        required: false
+        type: string
+        description: |
+          a container registry to use instead of ghcr.io.
+          e.g:
+            - quay.io
+            - registry.gitlab.com/somecoolproject
+            - ghcr.io/somecoolproject/thing
       paths:
         required: false
         type: string
         description: |
           the Go entrypoint paths for applications, where there they have `package main`
           e.g: ./cmd/thing1 ./cmd/thing2
+    outputs:
+      images:
+        value: ${{ jobs.build.outputs.images }}
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      images: ${{ steps.build.outputs.images }}
     steps:
     - uses: actions/checkout@v3
     - name: configure system
