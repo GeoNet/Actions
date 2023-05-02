@@ -9,11 +9,16 @@
 - [Docker build](#docker-build)
 - [Docker build container image signing](#docker-build-container-image-signing)
 - [Pushing to quay.io](#pushing-to-quayio-1)
+- [Container image promotion](#container-image-promotion)
+- [Pushing to quay.io](#pushing-to-quayio-2)
+- [Container image scan](#container-image-scan)
 - [Update Go version](#update-go-version)
 - [Terraform management](#terraform-management)
 - [GitHub repo fork sync](#github-repo-fork-sync)
+- [Presubmit Actions workflow require commit digest vet](#presubmit-actions-workflow-require-commit-digest-vet)
 - [Other documentation](#other-documentation)
 - [Container image signing](#container-image-signing)
+- [Versioning for container images](#versioning-for-container-images)
 
 <!-- markdown-toc end -->
 
