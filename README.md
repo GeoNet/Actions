@@ -221,13 +221,21 @@ cosign tree registry.k8s.io/pause:3.9
 Verify a signed image:
 
 ```yaml
-cosign verify IMAGE_REF --certificate-identity-regexp "https://github.com/GeoNet/Actions/.github/workflows/reusable-(docker|ko-)([-])?build.yml@refs/heads/main" --certificate-oidc-issuer "https://token.actions.githubusercontent.com"
+cosign verify IMAGE_REF --certificate-identity-regexp "https://github.com/GeoNet/Actions/.github/workflows/reusable-(docker|ko-)([-])?build.yml@.*" --certificate-oidc-issuer "https://token.actions.githubusercontent.com"
 ```
 
 View the SPXD-JSON formatted SBOM:
 
 ```yaml
 cosign verify-attestation IMAGE_REF --certificate-identity-regexp "https://github.com/GeoNet/Actions/.github/workflows/reusable-(docker|ko|)([-])?build.yml@refs/heads/main" --certificate-oidc-issuer "https://token.actions.githubusercontent.com" | jq -r .payload | base64 -d | jq -r .predicate.Data
+```
+
+See the SBOM contents using the [`bom`](https://github.com/kubernetes-sigs/bom) utility
+
+```shell
+go install sigs.k8s.io/bom/cmd/bom@latest
+
+cosign verify-attestation IMAGE_REF --certificate-identity-regexp "https://github.com/GeoNet/Actions/.github/workflows/reusable-(docker|ko|)([-])?build.yml@.*" --certificate-oidc-issuer "https://token.actions.githubusercontent.com" | jq -r .payload | base64 -d | jq -r .predicate.Data | bom document outline -
 ```
 
 for more information, see https://docs.sigstore.dev
