@@ -66,7 +66,7 @@ jobs:
       matrix: ${{ steps.set.outputs.matrix }}
     steps:
       - uses: actions/checkout@v3
-      - uses: mikefarah/yq@master
+      - uses: GeoNet/yq@bbe305500687a5fe8498d74883c17f0f06431ac4
       - id: set
         run: |
           if [ -n "${{ inputs.configLiteral }}" ]; then

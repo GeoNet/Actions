@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@f095bcc56b7c2baf48f3ac70d6d6782f4f553222
-      - uses: mikefarah/yq@bbe305500687a5fe8498d74883c17f0f06431ac4
+      - uses: GeoNet/yq@bbe305500687a5fe8498d74883c17f0f06431ac4
       - id: actions-per-workflow
         run: |
           # steps
