@@ -230,7 +230,7 @@ View the SPXD-JSON formatted SBOM:
 cosign verify-attestation IMAGE_REF --certificate-identity-regexp "https://github.com/GeoNet/Actions/.github/workflows/reusable-(docker|ko|)([-])?build.yml@refs/heads/main" --certificate-oidc-issuer "https://token.actions.githubusercontent.com" | jq -r .payload | base64 -d | jq -r .predicate.Data
 ```
 
-See the SBOM contents using the [`bom`](https://github.com/kubernetes-sigs/bom) utility
+See the SBOM contents using the [`bom`](https://github.com/kubernetes-sigs/bom) utility from the Kubernetes community:
 
 ```shell
 go install sigs.k8s.io/bom/cmd/bom@latest
