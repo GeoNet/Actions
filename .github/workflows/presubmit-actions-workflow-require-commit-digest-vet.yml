@@ -1,0 +1,11 @@
+name: Presubmit Actions workflow require commit digest vet
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch: {}
+
+jobs:
+  presubmit-workflow:
+    uses: GeoNet/Actions/.github/workflows/reusable-presubmit-actions-workflow-require-commit-digest-vet.yml@main

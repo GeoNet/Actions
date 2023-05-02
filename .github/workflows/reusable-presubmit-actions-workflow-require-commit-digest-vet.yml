@@ -1,0 +1,70 @@
+name: Presubmit Actions workflow vet
+
+on:
+  workflow_call: {}
+
+jobs:
+  presubmit-workflow:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@f095bcc56b7c2baf48f3ac70d6d6782f4f553222
+      - uses: mikefarah/yq@bbe305500687a5fe8498d74883c17f0f06431ac4
+      - id: actions-per-workflow
+        run: |
+          # steps
+          # 1. get jobs from uses fields
+          # 2. format as {"invalid":[], "file":""}
+          REPOSITORY="${{ github.repository }}"
+          ACTIONS=$(
+            for WORKFLOW in $(find .github/workflows -type f -name '*.yml'); do
+              ACTIONS=$(< $WORKFLOW \
+                yq e '.jobs.*.steps[].uses as $jobsteps | .jobs.*.uses as $jobuses | $jobsteps | [., $jobuses]' -o json \
+                  | jq -rcMs --arg file "$WORKFLOW" --arg repository "$REPOSITORY" '{"invalid": . | flatten} | .file = $file')
+              [ -z "${ACTIONS}" ] && continue
+              echo -e "${ACTIONS}"
+            done | jq -sc '.'
+          )
+          echo "actions=$ACTIONS" >> $GITHUB_OUTPUT
+      - name: display actions
+        run: |
+          echo -e '${{ steps.actions-per-workflow.outputs.actions }}' | yq e -P
+      - name: Update Pull Request
+        uses: actions/github-script@060d68304cc19ea84d828af10e34b9c6ca7bdb31
+        if: ${{ github.event_name == 'pull_request' }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const re = /([a-zA-Z0-9-]+\/)([a-zA-Z0-9-]+)(\/[a-zA-Z0-9-]+)?@([a-z0-9]{40})/
+            const invalidActions = JSON.parse(`${{ steps.actions-per-workflow.outputs.actions }}`).filter(i => {
+              i.invalid = i.invalid.filter(v => {
+                return !(re.test(v) || v.includes(`${{ github.repository }}`))
+              })
+              if (i.invalid.length === 0) {
+                return
+              }
+              return i
+            })
+            let output = `#### Actions presubmit\n\n
+            Actions must be used with the commit digest\n\n
+
+            ##### The following actions require updating\n`
+            invalidActions.forEach(i => {
+              output += `[${i.file}](${{ github.server_url }}/${{ github.repository }}/blob/main/${i.file})\n`
+              i.invalid.forEach(v => {
+                output += `- ${v}\n`
+              })
+              output += `\n`
+            })
+
+            output += `\n`
+            output += `**Actions are required to be used like _\`actions/checkout@f095bcc56b7c2baf48f3ac70d6d6782f4f553222\`_ instead of a version tag**\n`
+
+            output += `*Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*
+            <!-- from ${{ github.workflow_ref }} -->
+            `;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
