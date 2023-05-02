@@ -1,3 +1,22 @@
+<!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
+**Table of Contents**
+
+- [Actions](#actions)
+- [Workflows](#workflows)
+- [Ko build](#ko-build)
+- [Ko build container image signing](#ko-build-container-image-signing)
+- [Pushing to quay.io](#pushing-to-quayio)
+- [Docker build](#docker-build)
+- [Docker build container image signing](#docker-build-container-image-signing)
+- [Pushing to quay.io](#pushing-to-quayio-1)
+- [Update Go version](#update-go-version)
+- [Terraform management](#terraform-management)
+- [GitHub repo fork sync](#github-repo-fork-sync)
+- [Other documentation](#other-documentation)
+- [Container image signing](#container-image-signing)
+
+<!-- markdown-toc end -->
+
 # Actions
 
 > reusable GitHub actions across several projects
