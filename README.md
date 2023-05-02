@@ -277,6 +277,24 @@ repos:
 
 The sync functionality is reusable through [.github/workflows/reusable-github-repo-fork-sync.yml](./.github/workflows/reusable-github-repo-fork-sync.yml)
 
+### Presubmit Actions workflow require commit digest vet
+
+Require Actions to use external actions by their commit digest on presubmit pull requests
+
+```yaml
+name: Presubmit Actions workflow require commit digest vet
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch: {}
+
+jobs:
+  presubmit-workflow:
+    uses: GeoNet/Actions/.github/workflows/reusable-presubmit-actions-workflow-require-commit-digest-vet.yml@main
+```
+
 ## Other documentation
 
 ### Container image signing
