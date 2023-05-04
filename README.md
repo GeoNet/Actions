@@ -16,6 +16,7 @@
 - [Terraform management](#terraform-management)
 - [GitHub repo fork sync](#github-repo-fork-sync)
 - [Presubmit Actions workflow require commit digest vet](#presubmit-actions-workflow-require-commit-digest-vet)
+- [Presubmit Go code lint](#presubmit-go-code-lint)
 - [Other documentation](#other-documentation)
 - [Container image signing](#container-image-signing)
 - [Versioning for container images](#versioning-for-container-images)
