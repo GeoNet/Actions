@@ -1,14 +1,12 @@
 name: Presubmit Actions workflow vet
-
 on:
   workflow_call: {}
-
 jobs:
   presubmit-workflow:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@f095bcc56b7c2baf48f3ac70d6d6782f4f553222
-      - uses: GeoNet/yq@bbe305500687a5fe8498d74883c17f0f06431ac4
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+      - uses: GeoNet/yq@bbe305500687a5fe8498d74883c17f0f06431ac4 # master
       - id: actions-per-workflow
         run: |
           # steps
@@ -29,7 +27,7 @@ jobs:
         run: |
           echo -e '${{ steps.actions-per-workflow.outputs.actions }}' | yq e -P
       - name: Update Pull Request
-        uses: actions/github-script@060d68304cc19ea84d828af10e34b9c6ca7bdb31
+        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
         if: ${{ github.event_name == 'pull_request' }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}

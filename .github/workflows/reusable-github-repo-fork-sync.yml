@@ -1,5 +1,4 @@
 name: Reusable GitHub repo fork sync
-
 on:
   workflow_call:
     inputs:
@@ -9,15 +8,14 @@ on:
         default: ''
         description: |
           an org and repo string formatted as 'Org/Repo' like 'GeoNet/setup-ko'
-
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - id: sync
-      if: ${{ inputs.name != '' }}
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN || github.token }}
-      run: |
-        gh repo sync --force ${{ inputs.name }}
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+      - id: sync
+        if: ${{ inputs.name != '' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN || github.token }}
+        run: |
+          gh repo sync --force ${{ inputs.name }}
