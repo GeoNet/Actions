@@ -1,5 +1,4 @@
 name: Reusable Docker build
-
 on:
   workflow_call:
     inputs:
@@ -52,24 +51,23 @@ on:
     outputs:
       images:
         value: ${{ jobs.build.outputs.images }}
-
 jobs:
   build:
     runs-on: ubuntu-latest
     outputs:
       images: ${{ steps.image.outputs.image }}
     steps:
-      - uses: GeoNet/yq@bbe305500687a5fe8498d74883c17f0f06431ac4
-      - uses: actions/setup-go@v4
-      - uses: sigstore/cosign-installer@main
-      - uses: GeoNet/setup-crane@00c9e93efa4e1138c9a7a5c594acd6c75a2fbf0c
-      - uses: actions/checkout@v3
+      - uses: GeoNet/yq@bbe305500687a5fe8498d74883c17f0f06431ac4 # master
+      - uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+      - uses: sigstore/cosign-installer@001a7d424cbd4db4044e5bffd9481cbb5b451635 # v3.0.3
+      - uses: GeoNet/setup-crane@00c9e93efa4e1138c9a7a5c594acd6c75a2fbf0c # main
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@e81a89b1732b9c48d79cd809d8d81d79c4647a18 # v2.1.0
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@4b4e9c3e2d4531116a6f8ba8e71fc6e2cb6e6c8c # v2.5.0
       - name: Login to quay.io
-        uses: docker/login-action@v2
+        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a # v2.1.0
         env:
           quay-robot-token: ${{ secrets.QUAY_ROBOT_TOKEN }}
           quay-username: ${{ secrets.QUAY_USERNAME }}
@@ -80,7 +78,7 @@ jobs:
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_ROBOT_TOKEN }}
       - name: Login to ghcr.io
-        uses: docker/login-action@v2
+        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a # v2.1.0
         with:
           # TODO use Quay.io https://github.com/docker/login-action#quayio
           registry: ghcr.io
@@ -99,7 +97,7 @@ jobs:
             echo "image-with-tag=${GHCR_DOCKER_REPO,,}/${{ inputs.imageName }}:$TAG" >> $GITHUB_OUTPUT
           fi
       - name: Build and push
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671 # v4.0.0
         id: build
         with:
           push: ${{ inputs.push }}
@@ -129,7 +127,7 @@ jobs:
           COSIGN_YES: "true"
         run: |
           cosign sign ${{ steps.run-info.outputs.image-with-tag }}@${{ steps.get-digests.outputs.destination }} -y
-      - uses: anchore/sbom-action@v0
+      - uses: anchore/sbom-action@422cb34a0f8b599678c41b21163ea6088edb2624 # v0.14.1
         if: ${{ inputs.push }}
         with:
           image: ${{ steps.run-info.outputs.image-with-tag }}@${{ steps.get-digests.outputs.destination }}

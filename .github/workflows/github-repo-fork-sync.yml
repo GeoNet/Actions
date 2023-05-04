@@ -1,29 +1,25 @@
 name: GitHub repo fork sync
-
 on:
   schedule:
     - cron: "0 0 * * MON"
   workflow_dispatch: {}
-
 permissions:
   contents: write
   pull-requests: write
-
 jobs:
   prepare:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.set.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v3
-      - uses: GeoNet/yq@bbe305500687a5fe8498d74883c17f0f06431ac4
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+      - uses: GeoNet/yq@bbe305500687a5fe8498d74883c17f0f06431ac4 # master
       - id: set
         run: |
           echo "matrix=$(jq '.repos' -r -c <<< "$(yq e . -o json config/fork-sync.yaml)")" >> $GITHUB_OUTPUT
       - name: check output
         run: |
           jq . <<< '${{ steps.prepare.outputs.matrix }}'
-
   build:
     needs: prepare
     strategy:

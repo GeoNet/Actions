@@ -1,5 +1,4 @@
 name: reusable container image promotion
-
 on:
   workflow_call:
     inputs:
@@ -11,7 +10,6 @@ on:
           e.g:
             - quay.io
             - ghcr.io/GeoNet
-
       configLiteral:
         required: false
         type: string
@@ -28,7 +26,6 @@ on:
           - name: webthingy
             dmap:
               "sha256:efdb4ab576f4028e8319733890af8e7c49eed7f43bfe33e078052a1d0763ef89": ["v1"]
-
       configPath:
         required: false
         type: string
@@ -55,7 +52,6 @@ on:
           - name: webthingy
             dmap:
               "sha256:efdb4ab576f4028e8319733890af8e7c49eed7f43bfe33e078052a1d0763ef89": ["v1"]
-
 jobs:
   prepare:
     runs-on: ubuntu-latest
@@ -65,8 +61,8 @@ jobs:
     outputs:
       matrix: ${{ steps.set.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v3
-      - uses: GeoNet/yq@bbe305500687a5fe8498d74883c17f0f06431ac4
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+      - uses: GeoNet/yq@bbe305500687a5fe8498d74883c17f0f06431ac4 # master
       - id: set
         run: |
           if [ -n "${{ inputs.configLiteral }}" ]; then
@@ -77,7 +73,6 @@ jobs:
       - name: check output
         run: |
           jq . <<< '${{ steps.set.outputs.matrix }}'
-
   promote:
     if: ${{ fromJSON(needs.prepare.outputs.matrix) != null }}
     needs: prepare
@@ -86,11 +81,11 @@ jobs:
       matrix:
         include: ${{ fromJSON(needs.prepare.outputs.matrix) }}
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v4
-      - uses: GeoNet/setup-crane@00c9e93efa4e1138c9a7a5c594acd6c75a2fbf0c
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+      - uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+      - uses: GeoNet/setup-crane@00c9e93efa4e1138c9a7a5c594acd6c75a2fbf0c # main
       - name: Login to quay.io
-        uses: docker/login-action@v2
+        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a # v2.1.0
         env:
           quay-robot-token: ${{ secrets.QUAY_ROBOT_TOKEN }}
           quay-username: ${{ secrets.QUAY_USERNAME }}
