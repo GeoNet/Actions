@@ -361,6 +361,21 @@ Whilst not generally recommend, this config can be override per action use, with
 
 for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-golangci-lint.yml](.github/workflows/reusable-golangci-lint.yml).
 
+### Go test
+
+Run `go test` against the codebase
+
+```yaml
+name: go test
+on:
+  push: {}
+  pull_request: {}
+  workflow_dispatch: {}
+jobs:
+  build:
+    uses: GeoNet/Actions/.github/workflows/reusable-go-test.yml@main
+```
+
 ## Other documentation
 
 ### Container image signing
