@@ -34,7 +34,8 @@ jobs:
           ACTIONS: ${{ steps.actions-per-workflow.outputs.actions }}
           REPOSITORY: ${{ github.repository }}
         run: |
-          for LINE in $(echo "$ACTIONS" | jq --arg REPOSITORY "$REPOSITORY" -rcM '.[] | .file as $file | .actions[] | . as $action_in_workflow | split("@") | .[0] as $action | $action | split("/") | .[0] as $org | .[1] as $repo | {"file": $file, "action": $action, "org": $org, "repo": $repo, "action_in_workflow": $action_in_workflow} | select(.action | contains($REPOSITORY) == false)'); do
+
+          for LINE in $(echo "$ACTIONS" | jq --arg REPOSITORY "$REPOSITORY" -rcM '.[] | .file as $file | .actions[] | . as $action_in_workflow | split("@") | .[0] as $action | $action | split("/") | .[0] as $org | .[1] as $repo | {"file": $file, "action": $action, "org": $org, "repo": $repo, "action_in_workflow": $action_in_workflow} | select(.action | contains($REPOSITORY) == false) | select(.action | startswith("docker://") == false)'); do
             file="$(echo $LINE | jq -rcM .file)"
             action="$(echo $LINE | jq -rcM .action)"
             org="$(echo $LINE | jq -rcM .org)"
