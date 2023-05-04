@@ -4,7 +4,7 @@ on:
     inputs:
       config:
         type: string
-        default: false
+        required: false
         description: |
           a .golangci.yml configuration file.
           Warning: setting this field will override an existing config
@@ -23,7 +23,7 @@ jobs:
           go-version: ${{ steps.run-info.outputs.go-version }}
           cache: false
       - name: write .golangci.yml
-        if: ${{ inputs.config != null }}
+        if: ${{ inputs.config }}
         run: |
           echo "Using config:"
           echo '${{ inputs.config }}' | tee .golangci.yml
