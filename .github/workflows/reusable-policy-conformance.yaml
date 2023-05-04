@@ -1,0 +1,17 @@
+name: reusable policy conformance
+on:
+  workflow_call: {}
+jobs:
+  conform:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: ${{ github.head_ref }}
+      - name: conform
+        uses: docker://ghcr.io/siderolabs/conform:v0.1.0-alpha.27
+        with:
+          args: enforce --commit-ref=refs/heads/${{ github.head_ref }} --reporter=github
+        env:
+          INPUT_TOKEN: ${{ secrets.GITHUB_TOKEN }}

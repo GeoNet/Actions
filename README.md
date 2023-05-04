@@ -17,6 +17,8 @@
 - [GitHub repo fork sync](#github-repo-fork-sync)
 - [Presubmit Actions workflow require commit digest vet](#presubmit-actions-workflow-require-commit-digest-vet)
 - [Presubmit Go code lint](#presubmit-go-code-lint)
+- [Go test](#go-test)
+- [Presubmit commit policy conformance](#presubmit-commit-policy-conformance)
 - [Other documentation](#other-documentation)
 - [Container image signing](#container-image-signing)
 - [Versioning for container images](#versioning-for-container-images)
@@ -375,6 +377,72 @@ jobs:
   build:
     uses: GeoNet/Actions/.github/workflows/reusable-go-test.yml@main
 ```
+
+### Presubmit commit policy conformance
+
+Add policy enforcement to PRs.
+
+```yaml
+name: policy conformance
+on:
+  pull_request:
+    branches:
+      - main
+permissions:
+  statuses: write
+  checks: write
+  contents: read
+  pull-requests: read
+jobs:
+  conform:
+    uses: GeoNet/Actions/.github/workflows/reusable-policy-conformance.yml@main
+```
+
+each repo where this action is applied must contain a `.conform.yaml` in the root of the repo.
+Conform configuration examples:
+- https://github.com/siderolabs/talos/blob/main/.conform.yaml
+- https://github.com/siderolabs/conform/blob/main/.conform.yaml
+- https://github.com/BobyMCbobs/sample-ko-monorepo/blob/main/.conform.yaml
+
+here's an in-line example
+
+```yaml
+policies:
+- type: commit
+  spec:
+    dco: true
+    gpg:
+      required: true
+      githubOrganization: GeoNet
+    spellcheck:
+      locale: US
+    maximumOfOneCommit: true
+    header:
+      length: 89
+      imperative: true
+      case: lower
+      invalidLastCharacters: .
+    body:
+      required: true
+    conventional:
+      types:
+        - chore
+        - docs
+        - perf
+        - refactor
+        - style
+        - test
+        - release
+      scopes: [".*"]
+```
+
+common useful types of requirements:
+- commit signed
+- single commit
+- commit contains body
+
+links: 
+- https://github.com/siderolabs/conform
 
 ## Other documentation
 
