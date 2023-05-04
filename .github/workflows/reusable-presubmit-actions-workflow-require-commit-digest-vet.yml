@@ -42,6 +42,12 @@ jobs:
               }
               return i
             })
+
+            if (invalidActions.length === 0) {
+              console.log(`All actions are valid and formatted correctly. Exiting...`)
+              return
+            }
+
             let output = `#### Actions presubmit\n\n
             Actions must be used with the commit digest\n\n
 
