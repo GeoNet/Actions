@@ -325,6 +325,41 @@ jobs:
     uses: GeoNet/Actions/.github/workflows/reusable-presubmit-actions-workflow-require-commit-digest-vet.yml@main
 ```
 
+### Presubmit Go code lint
+
+Require pull requests for Go projects to have no linting errors
+
+```yaml
+name: Presubmit golangci lint
+on:
+  workflow_dispatch: {}
+  push:
+    branches:
+      - main
+      - master
+      - canon
+  pull_request: {}
+permissions:
+  contents: read
+  pull-requests: read
+jobs:
+  golangci:
+    uses: GeoNet/Actions/.github/workflows/reusable-golangci-lint.yml@main
+    # with:
+    #   config: |
+    #     linters:
+    #       enable:
+    #         - gosec
+    #         - funlen
+    #         - depguard
+    #         - whitespace
+```
+
+Standard `golangci-lint` config comes from the _.golangc-lint.yml_ file, which is located at the root of a repo and is pulled in with this action.
+Whilst not generally recommend, this config can be override per action use, with the `config` input.
+
+for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-golangci-lint.yml](.github/workflows/reusable-golangci-lint.yml).
+
 ## Other documentation
 
 ### Container image signing
