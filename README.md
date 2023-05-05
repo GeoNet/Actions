@@ -363,6 +363,36 @@ Whilst not generally recommend, this config can be override per action use, with
 
 for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-golangci-lint.yml](.github/workflows/reusable-golangci-lint.yml).
 
+### Go vet
+
+Run `go vet` against the codebase
+
+```yaml
+name: go vet
+on:
+  push: {}
+  pull_request: {}
+  workflow_dispatch: {}
+jobs:
+  build:
+    uses: GeoNet/Actions/.github/workflows/reusable-go-vet.yml@main
+```
+
+### Go fmt
+
+Run `gofmt` against the codebase
+
+```yaml
+name: gofmt
+on:
+  push: {}
+  pull_request: {}
+  workflow_dispatch: {}
+jobs:
+  build:
+    uses: GeoNet/Actions/.github/workflows/reusable-gofmt.yml@main
+```
+
 ### Go test
 
 Run `go test` against the codebase
