@@ -45,7 +45,7 @@ jobs:
           fi
           echo "ko-docker-repo=${KO_DOCKER_REPO,,}" >> $GITHUB_OUTPUT
           if [ -n "${{ inputs.paths }}" ]; then
-            echo "paths="${{ inputs.paths }}"" >> $GITHUB_OUTPUT
+            echo "paths=$(echo '${{ inputs.paths }}' | tr '\n' ' ')" >> $GITHUB_OUTPUT
           else
             PATHS="$(grep -r 'package main' | sort | cut -d ':' -f1 | grep '.go$' | xargs -n 1 dirname | sort | uniq | grep -v vendor | xargs -i echo './{}' | xargs)"
             echo "paths="$PATHS"" >> $GITHUB_OUTPUT
