@@ -68,9 +68,9 @@ jobs:
           IMAGE: ${{ steps.build.outputs.images }}
         run: |
           for IMAGE in $(echo ${{ steps.build.outputs.images }} | tr ',' ' '); do
-            cosign sign $IMAGE -y
+            cosign sign $IMAGE -y --recursive
             cosign download sbom $IMAGE > /tmp/sbom-spdx.json
-            cosign attest --predicate /tmp/sbom-spdx.json $IMAGE -y
+            cosign attest --predicate /tmp/sbom-spdx.json $IMAGE -y --recursive
           done
       - name: image result
         id: result
