@@ -1,4 +1,4 @@
-name: reusable-update-go-version
+name: reusable update go version
 on:
   workflow_call:
     inputs:

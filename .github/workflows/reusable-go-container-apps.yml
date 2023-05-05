@@ -1,0 +1,102 @@
+name: reusable go container apps
+on:
+  workflow_call:
+    inputs:
+      registryOverride:
+        required: false
+        type: string
+        description: |
+          a container registry to use instead of ghcr.io.
+          e.g:
+            - quay.io
+            - registry.gitlab.com/somecoolproject
+            - ghcr.io/somecoolproject/thing
+      paths:
+        required: false
+        type: string
+        description: |
+          the Go entrypoint paths for applications, where there they have `package main`
+          e.g: ./cmd/thing1 ./cmd/thing2
+      imagePromotionConfigLiteral:
+        required: false
+        type: string
+        description: |
+          in-line configuration for image promotion.
+
+          e.g:
+          - name: coolest-serverless-app
+            dmap:
+              "sha256:8246383b7fd0ca87cbac28e6b99d84cda5487f0e80d2c93f16c2f42366160a40": ["v1", "v2"]
+          - name: mission-critical-service
+            dmap:
+              "sha256:a479f33cb7f5fe7d5149de44848bcbc38d5f107d7b47a962df7749259eef49eb": ["v1"]
+          - name: webthingy
+            dmap:
+              "sha256:efdb4ab576f4028e8319733890af8e7c49eed7f43bfe33e078052a1d0763ef89": ["v1"]
+      imagePromotionConfigPath:
+        required: false
+        type: string
+        default: ./images/config.yaml
+        description: |
+          the local relative path to a promotion config.
+          e.g: ./images/config.yaml
+
+          the format of the file must be
+
+          type Image struct {
+            Name string              `json:"name"`
+            Dmap map[string][]string `json:"dmap"`
+          }
+
+          example like
+
+          - name: coolest-serverless-app
+            dmap:
+              "sha256:8246383b7fd0ca87cbac28e6b99d84cda5487f0e80d2c93f16c2f42366160a40": ["v1", "v2"]
+          - name: mission-critical-service
+            dmap:
+              "sha256:a479f33cb7f5fe7d5149de44848bcbc38d5f107d7b47a962df7749259eef49eb": ["v1"]
+          - name: webthingy
+            dmap:
+              "sha256:efdb4ab576f4028e8319733890af8e7c49eed7f43bfe33e078052a1d0763ef89": ["v1"]
+      updateGoVersionAutoMerge:
+        type: boolean
+        default: false
+        required: false
+jobs:
+  build:
+    if: ${{ github.event_name == 'workflow_call' || github.event_name == 'push' || github.event_name == 'release' }}
+    uses: GeoNet/Actions/.github/workflows/reusable-build.yml@main
+    with:
+      registryOverride: ${{ inputs.registryOverride }}
+      paths: ${{ inputs.paths }}
+  scan:
+    if: ${{ github.event_name == 'workflow_call' || github.event_name == 'push' || github.event_name == 'release' }}
+    needs: build
+    uses: GeoNet/Actions/.github/workflows/reusable-container-image-scan.yml@main
+    with:
+      imageRefs: ${{ needs.build.outputs.images }}
+  gofmt:
+    if: ${{ github.event_name == 'workflow_call' || github.event_name == 'push' || github.event_name == 'pull_request' }}
+    uses: GeoNet/Actions/.github/workflows/reusable-gofmt.yml@main
+  golangci-lint:
+    if: ${{ github.event_name == 'workflow_call' || github.event_name == 'push' || github.event_name == 'pull_request' && github.head_ref == 'main' }}
+    uses: GeoNet/Actions/.github/workflows/reusable-golangci-lint.yml@main
+  go-test:
+    if: ${{ github.event_name == 'workflow_call' || github.event_name == 'push' || github.event_name == 'pull_request' }}
+    uses: GeoNet/Actions/.github/workflows/reusable-go-test.yml@main
+  go-vet:
+    if: ${{ github.event_name == 'workflow_call' || github.event_name == 'push' || github.event_name == 'pull_request' }}
+    uses: GeoNet/Actions/.github/workflows/reusable-go-vet.yml@main
+  image-promotion:
+    if: ${{ (github.event_name == 'workflow_call' || github.event_name == 'push' || github.event_name == 'schedule') && github.head_ref == 'main' }}
+    uses: GeoNet/Actions/.github/workflows/reusable-image-promotion.yml@main
+    with:
+      registryOverride: ${{ inputs.registryOverride }}
+      configPath: ${{ inputs.imagePromotionConfigPath }}
+      configLiteral: ${{ inputs.imagePromotionConfigLiteral }}
+  update-go-version:
+    if: ${{ github.event_name == 'workflow_call' || github.event_name == 'schedule' }}
+    uses: GeoNet/Actions/.github/workflows/reusable-update-go-version.yml@main
+    with:
+      autoMerge: ${{ inputs.updateGoVersionAutoMerge }}

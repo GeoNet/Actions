@@ -17,8 +17,11 @@
 - [GitHub repo fork sync](#github-repo-fork-sync)
 - [Presubmit Actions workflow require commit digest vet](#presubmit-actions-workflow-require-commit-digest-vet)
 - [Presubmit Go code lint](#presubmit-go-code-lint)
+- [Go vet](#go-vet)
+- [Go fmt](#go-fmt)
 - [Go test](#go-test)
 - [Presubmit commit policy conformance](#presubmit-commit-policy-conformance)
+- [Go container app](#go-container-app)
 - [Other documentation](#other-documentation)
 - [Container image signing](#container-image-signing)
 - [Versioning for container images](#versioning-for-container-images)
@@ -473,6 +476,46 @@ common useful types of requirements:
 
 links: 
 - https://github.com/siderolabs/conform
+
+### Go container app
+
+a workflow which combines the following workflows
+- ko-build
+- container-image-scan
+- gofmt
+- golangci-lint
+- go-test
+- go-vet
+- image-promotion
+- update-go-version
+
+```yaml
+name: go container apps
+
+on:
+  push: {}
+  pull_request: {}
+  schedule:
+    - cron: "0 0 * * *"
+  release:
+    types: [published]
+  workflow_dispatch: {}
+
+permissions:
+  packages: write
+  contents: write
+  pull-requests: write
+  id-token: write
+  security-events: write
+  statuses: write
+  checks: write
+
+jobs:
+  go-container-apps:
+    uses: BobyMCbobs/sample-ko-monorepo/.github/workflows/reusable-go-container-apps.yml@main
+```
+
+for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-go-container-apps.yml](.github/workflows/reusable-go-container-apps.yml).
 
 ## Other documentation
 

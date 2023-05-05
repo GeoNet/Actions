@@ -126,7 +126,7 @@ jobs:
         env:
           COSIGN_YES: "true"
         run: |
-          cosign sign ${{ steps.run-info.outputs.image-with-tag }}@${{ steps.get-digests.outputs.destination }} -y
+          cosign sign ${{ steps.run-info.outputs.image-with-tag }}@${{ steps.get-digests.outputs.destination }} -y --recursive
       - uses: anchore/sbom-action@422cb34a0f8b599678c41b21163ea6088edb2624 # v0.14.1
         if: ${{ inputs.push }}
         with:
@@ -138,7 +138,7 @@ jobs:
         env:
           COSIGN_YES: "true"
         run: |
-          cosign attest --predicate /tmp/sbom-spdx.json ${{ steps.run-info.outputs.image-with-tag }}@${{ steps.get-digests.outputs.destination }}
+          cosign attest --predicate /tmp/sbom-spdx.json ${{ steps.run-info.outputs.image-with-tag }}@${{ steps.get-digests.outputs.destination }} --recursive
       - name: image
         if: ${{ inputs.push }}
         id: image
