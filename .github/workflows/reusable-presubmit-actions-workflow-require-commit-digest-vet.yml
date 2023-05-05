@@ -37,7 +37,7 @@ jobs:
             const githubRepo = `${{ github.repository }}`
             const invalidActions = JSON.parse(actionsJSONString).filter(i => {
               i.actions = i.actions.filter(v => {
-                return !(re.test(v) || v.includes(githubRepo))
+                return !(re.test(v) || v.includes(githubRepo) || v.startsWith('docker://'))
               })
               if (i.actions.length === 0) {
                 return
