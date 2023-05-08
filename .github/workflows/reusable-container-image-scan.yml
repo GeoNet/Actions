@@ -45,6 +45,12 @@ jobs:
         if: ${{ env.quay-robot-token != null && env.quay-username != null }}
         run: |
           echo "${{ env.quay-robot-token }}" | crane auth login --password-stdin quay.io ${{ env.quay-username }}
+      - name: Login to ghcr.io
+        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a # v2.1.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: get-digests
         id: get-digests
         env:
