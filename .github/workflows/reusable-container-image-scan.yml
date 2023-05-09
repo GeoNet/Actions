@@ -65,6 +65,9 @@ jobs:
       - name: Run Trivy vulnerability scanner
         if: ${{ steps.get-digests.outputs.destination != null }}
         uses: aquasecurity/trivy-action@e5f43133f6e8736992c9f3c1b3296e24b37e17f2 # 0.10.0
+        env:
+          TRIVY_USERNAME: ${{ github.actor }}
+          TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
         with:
           image-ref: '${{ fromJSON(toJSON(matrix)).target }}'
           format: 'sarif'
