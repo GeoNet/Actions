@@ -293,6 +293,7 @@ on:
 jobs:
   build:
     uses: GeoNet/Actions/.github/workflows/reusable-terraform-management.yml@main
+    secrets: inherit
     # with:
     #   allowApply: true
 ```
