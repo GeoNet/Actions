@@ -63,6 +63,14 @@ on:
         type: boolean
         default: false
         required: false
+        description: |
+          specifies whether to auto merge PRs for Go version updates to go.mod files
+      containerScanningEnabled:
+        type: boolean
+        default: false
+        required: false
+        description: |
+          specifies whether to enable container scanning for each image built
 jobs:
   build:
     if: ${{ github.event_name == 'workflow_call' || github.event_name == 'push' || github.event_name == 'release' }}
@@ -71,7 +79,7 @@ jobs:
       registryOverride: ${{ inputs.registryOverride }}
       paths: ${{ inputs.paths }}
   scan:
-    if: ${{ github.event_name == 'workflow_call' || github.event_name == 'push' || github.event_name == 'release' }}
+    if: ${{ (github.event_name == 'workflow_call' || github.event_name == 'push' || github.event_name == 'release') && inputs.containerScanningEnabled }}
     needs: build
     uses: GeoNet/Actions/.github/workflows/reusable-container-image-scan.yml@main
     with:

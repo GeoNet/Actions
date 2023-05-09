@@ -502,6 +502,7 @@ on:
   workflow_dispatch: {}
 
 permissions:
+  actions: read
   packages: write
   contents: write
   pull-requests: write
@@ -513,6 +514,14 @@ permissions:
 jobs:
   go-container-apps:
     uses: BobyMCbobs/sample-ko-monorepo/.github/workflows/reusable-go-container-apps.yml@main
+    # with:
+    #   registryOverride: string
+    #   paths: string
+    #   imagePromotionConfigLiteral: |
+    #     string
+    #   imagePromotionConfigPath: string
+    #   updateGoVersionAutoMerge: boolean
+    #   containerScanningEnabled: boolean
 ```
 
 for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-go-container-apps.yml](.github/workflows/reusable-go-container-apps.yml).
