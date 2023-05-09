@@ -33,7 +33,7 @@ jobs:
           git config user.email 'github-actions[bot]@users.noreply.github.com'
           gh auth login --with-token < <(echo ${{ secrets.GITHUB_TOKEN }})
           gh auth status
-      - uses: sigstore/cosign-installer@001a7d424cbd4db4044e5bffd9481cbb5b451635 # v3.0.3
+      - uses: sigstore/cosign-installer@204a51a57a74d190b284a0ce69b44bc37201f343 # v3.0.3
       - id: run-info
         name: collect job run info
         env:
