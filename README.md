@@ -412,6 +412,21 @@ jobs:
     uses: GeoNet/Actions/.github/workflows/reusable-go-test.yml@main
 ```
 
+### Go vulnerability check
+
+Run `govulncheck` against the codebase
+
+```yaml
+name: govulncheck
+on:
+  push: {}
+  pull_request: {}
+  workflow_dispatch: {}
+jobs:
+  govulncheck:
+    uses: GeoNet/Actions/.github/workflows/reusable-govulncheck.yml@main
+```
+
 ### Presubmit commit policy conformance
 
 Add policy enforcement to PRs.
@@ -489,6 +504,7 @@ a workflow which combines the following workflows
 - go-vet
 - image-promotion
 - update-go-version
+- govulncheck
 
 ```yaml
 name: go container apps
