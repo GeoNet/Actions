@@ -494,6 +494,23 @@ common useful types of requirements:
 links: 
 - https://github.com/siderolabs/conform
 
+### Stale submission
+
+marks an issue or PR as stale after 90 days and then closes it after a further 30 days
+
+```yaml
+name: stale
+on:
+  schedule:
+  - cron: '0 1 * * *'
+jobs:
+  stale:
+    uses: GeoNet/Actions/.github/workflows/reusable-stale-submission.yaml@main
+    # with:
+    #   days-before-stale: number
+    #   days-before-close: number
+```
+
 ### Go container app
 
 a workflow which combines the following workflows
