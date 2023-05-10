@@ -20,6 +20,7 @@
 - [Go vet](#go-vet)
 - [Go fmt](#go-fmt)
 - [Go test](#go-test)
+- [Go vulnerability check](#go-vulnerability-check)
 - [Presubmit commit policy conformance](#presubmit-commit-policy-conformance)
 - [Go container app](#go-container-app)
 - [Other documentation](#other-documentation)
