@@ -96,6 +96,9 @@ jobs:
   go-vet:
     if: ${{ github.event_name == 'workflow_call' || github.event_name == 'push' || github.event_name == 'pull_request' }}
     uses: GeoNet/Actions/.github/workflows/reusable-go-vet.yml@main
+  govulncheck:
+    if: ${{ github.event_name == 'workflow_call' || github.event_name == 'push' || github.event_name == 'pull_request' }}
+    uses: GeoNet/Actions/.github/workflows/reusable-govulncheck.yml@main
   image-promotion:
     if: ${{ (github.event_name == 'workflow_call' || github.event_name == 'push' || github.event_name == 'schedule') && github.head_ref == 'main' }}
     uses: GeoNet/Actions/.github/workflows/reusable-container-image-promotion.yml@main
