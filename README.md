@@ -22,6 +22,7 @@
 - [Go test](#go-test)
 - [Go vulnerability check](#go-vulnerability-check)
 - [Presubmit commit policy conformance](#presubmit-commit-policy-conformance)
+- [Stale submission](#stale-submission)
 - [Go container app](#go-container-app)
 - [Other documentation](#other-documentation)
 - [Container image signing](#container-image-signing)
