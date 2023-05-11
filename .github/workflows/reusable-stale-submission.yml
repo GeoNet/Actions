@@ -1,4 +1,4 @@
-name: stale
+name: reusable stale submission
 on:
   workflow_call:
     inputs:
