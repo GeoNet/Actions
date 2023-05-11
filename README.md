@@ -500,13 +500,13 @@ links:
 marks an issue or PR as stale after 90 days and then closes it after a further 30 days
 
 ```yaml
-name: stale
+name: stale submission
 on:
   schedule:
   - cron: '0 1 * * *'
 jobs:
   stale:
-    uses: GeoNet/Actions/.github/workflows/reusable-stale-submission.yaml@main
+    uses: GeoNet/Actions/.github/workflows/reusable-stale-submission.yml@main
     # with:
     #   days-before-stale: number
     #   days-before-close: number
