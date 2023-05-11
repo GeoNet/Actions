@@ -39,7 +39,6 @@ jobs:
         env:
           KO_DOCKER_REPO: ghcr.io/${{ github.repository }}
         run: |
-          echo "go-version=$(go list -f {{.GoVersion}} -m)" >> $GITHUB_OUTPUT
           if [ -n "${{ inputs.registryOverride }}" ]; then
             KO_DOCKER_REPO="${{ inputs.registryOverride }}"
           fi
@@ -52,7 +51,7 @@ jobs:
           fi
       - uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
-          go-version: ${{ steps.run-info.outputs.go-version }}
+          go-version-file: go.mod
           cache-dependency-path: go.sum
       - uses: GeoNet/setup-ko@f3c6980bb213dc8bb4856f52598a9230d910d06f # main
       - id: build
