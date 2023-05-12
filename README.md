@@ -33,7 +33,7 @@
 
 > reusable GitHub actions across several projects
 
-## Workflows
+## Golang Workflows
 
 ### Ko build
 
@@ -77,6 +77,8 @@ see [container image signing](#container-image-signing).
 #### Pushing to quay.io
 
 this has not been implemented yet and only supports pushing to ghcr.io (GitHub Container Registry), see internal discussion [here](https://github.com/GeoNet/tickets/issues/12418).
+
+## Container Workflows
 
 ### Docker build
 
@@ -250,6 +252,8 @@ jobs:
 
 `inputs.imageRefs` is a comma separated list of container image refs.
 
+## Go Workflows
+
 ### Update Go version
 
 Automatically create a PR to update a project's required Go version to the latest
@@ -279,6 +283,8 @@ for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-u
 
 Works great along side [reusable ko build](#ko-build).
 
+## Terraform Workflows
+
 ### Terraform management
 
 Trigger a `terraform plan` (and optionally `terraform apply`) against Terraform located in the repo, starting at the repo root.
@@ -302,6 +308,8 @@ jobs:
 for Terraform Cloud, set `TF_API_TOKEN` in the repo's Actions Secrets
 
 for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-terraform-management.yml](.github/workflows/reusable-terraform-management.yml).
+
+## GitHub Workflows
 
 ### GitHub repo fork sync
 
@@ -332,6 +340,8 @@ jobs:
   presubmit-workflow:
     uses: GeoNet/Actions/.github/workflows/reusable-presubmit-actions-workflow-require-commit-digest-vet.yml@main
 ```
+
+## Golang Workflows
 
 ### Presubmit Go code lint
 
@@ -428,6 +438,8 @@ jobs:
     uses: GeoNet/Actions/.github/workflows/reusable-govulncheck.yml@main
 ```
 
+## GitHub Workflows
+
 ### Presubmit commit policy conformance
 
 Add policy enforcement to PRs.
@@ -494,6 +506,8 @@ common useful types of requirements:
 links: 
 - https://github.com/siderolabs/conform
 
+## Golang Workflows
+
 ### Go container app
 
 a workflow which combines the following workflows
@@ -545,6 +559,8 @@ jobs:
 for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-go-container-apps.yml](.github/workflows/reusable-go-container-apps.yml).
 
 ## Other documentation
+
+## Container Workflows
 
 ### Container image signing
 
