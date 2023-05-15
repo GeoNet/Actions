@@ -146,7 +146,7 @@ jobs:
           echo "matrix=$(find $FOLDER -mindepth 1 -maxdepth 1 -type d | xargs -n 1 basename | xargs | yq 'split(" ")|.[]|{"target":.}' -ojson | jq -rcM -s .)" >> $GITHUB_OUTPUT
       - name: check output
         run: |
-          jq . <<< '${{ steps.prepare.outputs.matrix }}'
+          jq . <<< '${{ steps.set.outputs.matrix }}'
 
   build:
     needs: prepare
@@ -428,6 +428,28 @@ jobs:
   govulncheck:
     uses: GeoNet/Actions/.github/workflows/reusable-govulncheck.yml@main
 ```
+
+### Go build smoke test
+
+Performs `go build -o /dev/null $PATH` to ensure that the programs compile.
+Note: does not cache or push the binary artifacts anywhere.
+
+Example:
+```yaml
+name: build
+
+on:
+  push: {}
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    uses: GeoNet/Actions/.github/workflows/reusable-go-build-smoke-test.yml@main
+    # with:
+    #   paths: ./cmd/coolapp
+```
+
+for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-go-build-smoke-test.yml](.github/workflows/reusable-go-build-smoke-test.yml).
 
 ### Presubmit commit policy conformance
 

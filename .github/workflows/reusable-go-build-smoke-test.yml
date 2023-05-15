@@ -1,0 +1,33 @@
+name: Reusable Go build smoke test
+on:
+  workflow_call:
+    inputs:
+      paths:
+        required: false
+        type: string
+        description: |
+          the Go entrypoint paths for applications, where there they have `package main`
+          e.g: ./cmd/thing1 ./cmd/thing2
+jobs:
+  go-build-smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+      - id: run-info
+        name: collect job run info
+        run: |
+          if [ -n "${{ inputs.paths }}" ]; then
+            echo "paths=$(echo '${{ inputs.paths }}' | tr '\n' ' ')" >> $GITHUB_OUTPUT
+          else
+            PATHS="$(grep -r 'package main' | sort | cut -d ':' -f1 | grep '.go$' | xargs -n 1 dirname | sort | uniq | grep -v vendor | xargs -i echo './{}' | xargs)"
+            echo "paths="$PATHS"" >> $GITHUB_OUTPUT
+          fi
+      - uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+      - id: build
+        env:
+          PATHS: ${{ steps.run-info.outputs.paths }}
+        run: |
+          echo "$PATHS" | tr ' ' '\n' | xargs -i -n 1 go build -o /dev/null './{}'
