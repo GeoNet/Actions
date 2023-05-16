@@ -24,6 +24,7 @@
     - [Presubmit commit policy conformance](#presubmit-commit-policy-conformance)
     - [Stale submission](#stale-submission)
     - [Go container app](#go-container-app)
+    - [Bash shellcheck](#bash-shellcheck)
   - [Other documentation](#other-documentation)
     - [Container image signing](#container-image-signing)
     - [Versioning for container images](#versioning-for-container-images)
@@ -582,6 +583,21 @@ jobs:
 ```
 
 for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-go-container-apps.yml](.github/workflows/reusable-go-container-apps.yml).
+
+### Bash shellcheck
+
+Runs shellcheck against all known shell scripts.
+
+```yaml
+name: bash shellcheck
+on:
+  workflow_dispatch: {}
+  push: {}
+  pull_request: {}
+jobs:
+  bash-shellcheck:
+    uses: GeoNet/Actions/.github/workflows/reusable-bash-shellcheck.yml@main
+```
 
 ## Other documentation
 
