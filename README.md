@@ -21,6 +21,7 @@
 - [Go fmt](#go-fmt)
 - [Go test](#go-test)
 - [Go vulnerability check](#go-vulnerability-check)
+- [Go build smoke test](#go-build-smoke-test)
 - [Presubmit commit policy conformance](#presubmit-commit-policy-conformance)
 - [Stale submission](#stale-submission)
 - [Go container app](#go-container-app)
