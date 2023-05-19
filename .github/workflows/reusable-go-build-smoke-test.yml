@@ -30,4 +30,4 @@ jobs:
         env:
           PATHS: ${{ steps.run-info.outputs.paths }}
         run: |
-          echo "$PATHS" | tr ' ' '\n' | xargs -i -n 1 go build -o /dev/null './{}'
+          echo "$PATHS" | tr ' ' '\n' | xargs -i -n 1 go build -v -o /dev/null './{}'
