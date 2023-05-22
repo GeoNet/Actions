@@ -620,7 +620,7 @@ Verify a signed image:
 cosign verify IMAGE_REF --certificate-identity-regexp "https://github.com/GeoNet/Actions/.github/workflows/reusable-(docker|ko-)([-])?build.yml@.*" --certificate-oidc-issuer "https://token.actions.githubusercontent.com"
 ```
 
-View the SPXD-JSON formatted SBOM:
+View the [SPDX-JSON](https://spdx.org) formatted SBOM:
 
 ```yaml
 cosign verify-attestation IMAGE_REF --certificate-identity-regexp "https://github.com/GeoNet/Actions/.github/workflows/reusable-(docker|ko|)([-])?build.yml@refs/heads/main" --certificate-oidc-issuer "https://token.actions.githubusercontent.com" | jq -r .payload | base64 -d | jq -r .predicate.Data
