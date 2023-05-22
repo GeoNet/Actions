@@ -35,6 +35,12 @@ on:
         default: latest
         description: |
           the tag to set image as.
+      buildArgs:
+        required: false
+        type: string
+        description: |
+          a comma separated list of build args.
+          e.g: THING1=a,THING2=b
       platforms:
         required: false
         type: string
