@@ -580,6 +580,7 @@ jobs:
     #   imagePromotionConfigPath: string
     #   updateGoVersionAutoMerge: boolean
     #   containerScanningEnabled: boolean
+    #   containerBuildEnabled: boolean
 ```
 
 for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-go-container-apps.yml](.github/workflows/reusable-go-container-apps.yml).

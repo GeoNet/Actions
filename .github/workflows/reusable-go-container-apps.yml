@@ -71,6 +71,12 @@ on:
         required: false
         description: |
           specifies whether to enable container scanning for each image built
+      containerBuildEnabled:
+        type: boolean
+        default: ${{ github.ref == 'refs/heads/main' }}
+        required: false
+        description: |
+          specifies whether to enable container scanning for each image built
 jobs:
   go-build:
     if: ${{ github.event_name == 'workflow_call' || github.event_name == 'push' }}
@@ -78,7 +84,7 @@ jobs:
     with:
       paths: ${{ inputs.paths }}
   build:
-    if: ${{ contains(fromJSON('["workflow_call", "push", "release"]'), github.event_name) }}
+    if: ${{ contains(fromJSON('["workflow_call", "push", "release"]'), github.event_name) && inputs.containerBuildEnabled }}
     uses: GeoNet/Actions/.github/workflows/reusable-ko-build.yml@main
     with:
       registryOverride: ${{ inputs.registryOverride }}
