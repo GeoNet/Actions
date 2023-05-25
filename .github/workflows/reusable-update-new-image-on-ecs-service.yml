@@ -1,0 +1,83 @@
+name: reusable-update-new-image-on-ecs-service
+on:
+  workflow_call:
+    inputs:
+      condition:
+        type: boolean
+        default: true
+        description: |
+          an evaulated expression resulting in a bool.
+          e.g: ${{ github.ref == 'refs/heads/main' }}
+      aws-region:
+        type: string
+        default: ap-southeast-2
+        description: |
+          the AWS region to auth with.
+          e.g: ap-southeast-2
+      role-to-assume:
+        type: string
+        required: true
+        description: |
+          the AWS ARN for a role to assume.
+          e.g: arn:aws:iam::ACCOUNT:role/MY_ROLE
+      role-duration-seconds:
+        type: number
+        default: 600
+        description: |
+          the duration of seconds for the auth to last for
+      source-container-image:
+        type: string
+        required: true
+        description: |
+          a ref for a container image to copy to ECR.
+      destination-ecr-image-repo:
+        type: string
+        required: true
+        description: |
+          a repo ref for a container image to copy to ECR.
+          e.g: 862640294325.dkr.ecr.ap-southeast-2.amazonaws.com/wakey-shakey
+      destination-ecr-image-tag:
+        type: string
+        required: true
+        description: |
+          the tag to push the container image to. Commonly set as the commit where the image came from, at least for ECS
+      ecr-cluster:
+        type: string
+        required: true
+        description: |
+          the ECR cluster deploy to
+      ecr-service:
+        type: string
+        required: true
+        description: |
+          the ECR service deploy to
+jobs:
+  deploy:
+    needs: build
+    if: ${{ inputs.condition }}
+    runs-on: ubuntu-latest
+    steps:
+      - if: ${{ startsWith(github.repository, 'GeoNet/') == false }}
+        run: |
+          exit 1
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+      - uses: GeoNet/setup-crane@00c9e93efa4e1138c9a7a5c594acd6c75a2fbf0c # main
+      - id: run-info
+        run: |
+          echo "role-session-name=$(echo github-actions-${{ github.repository }}-${{ github.run_id }}-${{ github.job }} | tr '[:upper:]' '[:lower:]' | sed 's/\//-/g')" >> $GITHUB_OUTPUT
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@2b225b5275d2d624ea40ffd55ecd0bae1d98845f # v2.0.0
+        with:
+          aws-region: ${{ inputs.aws-region }}
+          role-to-assume: ${{ inputs.role-to-assume }}
+          role-duration-seconds: ${{ inputs.role-duration-seconds }}
+          role-session-name: ${{ steps.run-info.outputs.role-session-name }}
+      - name: copy image to ECR
+        run: |
+          crane cp ${{ inputs.source-container-image }} "${{ inputs.destination-ecr-image-repo }}:latest"
+          crane cp ${{ inputs.source-container-image }} "${{ inputs.destination-ecr-image-repo }}:${{ inputs.destination-ecr-image-tag }}"
+      - name: Deploy
+        run: |
+          aws ecs update-service --force-new-deployment \
+          --service "${{ inputs.ecr-service }}" \
+          --cluster "${{ inputs.ecr-cluster }}"

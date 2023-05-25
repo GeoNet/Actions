@@ -32,6 +32,7 @@
     - [Presubmit GitHub Actions workflow validator](#presubmit-github-actions-workflow-validator)
     - [Markdown lint](#markdown-lint)
     - [Copy to S3](#copy-to-s3)
+    - [update new image on ECS service](#update-new-image-on-ecs-service)
   - [Other documentation](#other-documentation)
     - [Container image signing](#container-image-signing)
     - [Versioning for container images](#versioning-for-container-images)
@@ -922,6 +923,23 @@ jobs:
 GitHub Actions artifacts are used to bring state between jobs, this is not possible in any other known way.
 
 for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-copy-to-s3.yml](.github/workflows/reusable-copy-to-s3.yml).
+
+### update new image on ECS service
+
+Runs `aws ecs update-service --force-new-deployment` to pull from tag and restart service.
+
+```yaml
+
+name: reusable-update-new-image-on-ecs-service
+on:
+  push:
+    branch:
+      - main
+  workflow_dispatch: {}
+jobs:
+  reusable-update-new-image-on-ecs-service:
+    uses: GeoNet/Actions/.github/workflows/reusable-update-new-image-on-ecs-service.yml@main
+```
 
 ## Other documentation
 
