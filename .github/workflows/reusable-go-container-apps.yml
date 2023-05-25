@@ -36,7 +36,7 @@ on:
       imagePromotionConfigPath:
         required: false
         type: string
-        default: ./images/config.yaml
+        default: images/config.yaml
         description: |
           the local relative path to a promotion config.
           e.g: ./images/config.yaml
@@ -73,7 +73,7 @@ on:
           specifies whether to enable container scanning for each image built
       containerBuildEnabled:
         type: boolean
-        default: ${{ github.ref == 'refs/heads/main' }}
+        default: ${{ github.ref == 'refs/heads/main' || contains(fromJSON('["workflow_call", "release"]'), github.event_name) }}
         required: false
         description: |
           specifies whether to enable container scanning for each image built
@@ -82,7 +82,7 @@ on:
         value: ${{ jobs.build.outputs.images }}
 jobs:
   go-build:
-    if: ${{ github.event_name == 'workflow_call' || github.event_name == 'push' }}
+    if: ${{ contains(fromJSON('["workflow_call", "push", "pull_request"]'), github.event_name) }}
     uses: GeoNet/Actions/.github/workflows/reusable-go-build-smoke-test.yml@main
     with:
       paths: ${{ inputs.paths }}
@@ -113,6 +113,13 @@ jobs:
   govulncheck:
     if: ${{ contains(fromJSON('["workflow_call", "push", "pull_request"]'), github.event_name) }}
     uses: GeoNet/Actions/.github/workflows/reusable-govulncheck.yml@main
+  image-promotion-in-config-on-release:
+    needs: build
+    if: ${{ contains(fromJSON('["workflow_call", "release"]'), github.event_name) && inputs.imagePromotionConfigLiteral == null }}
+    uses: GeoNet/Actions/.github/workflows/reusable-container-image-promotion.yml@main
+    with:
+      configPath: ${{ inputs.imagePromotionConfigPath }}
+      imageRefs: ${{ needs.build.outputs.images }}
   image-promotion:
     if: ${{ contains(fromJSON('["workflow_call", "push", "schedule"]'), github.event_name) && github.ref == 'refs/heads/main' }}
     uses: GeoNet/Actions/.github/workflows/reusable-container-image-promotion.yml@main

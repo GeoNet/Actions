@@ -196,6 +196,8 @@ jobs:
     with:
       configPath: ./path/to/config.yaml
     #   registryOverride: quay.io/geonet
+    #   configLiteral: |
+    #     ...
 ```
 
 with a config.yaml in the format of
@@ -221,6 +223,8 @@ for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-c
 for more information, read the [versioning for container images info](#versioning-for-container-images)
 
 format implementation inspired by [Kubernetes sig-release promotion tools](https://github.com/kubernetes-sigs/promo-tools).
+
+On release, if using `configPath` and not `configLiteral`, a PR will be automatically created which adds the release tags to be promoted per each image built.
 
 #### Pushing to quay.io
 
