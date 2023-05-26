@@ -222,6 +222,8 @@ jobs:
           if [ "${EXISTING_PR}" = "Add new image promotions from release $RELEASE_VERSION" ]; then
             echo "exists=true" >> $GITHUB_OUTPUT
           fi
+      - uses: GeoNet/chainguard-dev-actions/setup-gitsign@c1773c35e73af78f72f606c002e9819cd737984d # main
+        if: ${{ steps.determine-changes.outputs.changes == 'true' && steps.existing-pr.outputs.exists != 'true' }}
       - name: create PR
         if: ${{ steps.determine-changes.outputs.changes == 'true' && steps.existing-pr.outputs.exists != 'true' }}
         id: create-pr
