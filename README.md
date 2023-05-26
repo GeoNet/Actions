@@ -23,7 +23,8 @@
     - [Go build smoke test](#go-build-smoke-test)
     - [Presubmit commit policy conformance](#presubmit-commit-policy-conformance)
     - [Stale submission](#stale-submission)
-    - [Go container app](#go-container-app)
+    - [Go container apps](#go-container-apps)
+    - [Go apps](#go-apps)
     - [Bash shellcheck](#bash-shellcheck)
   - [Other documentation](#other-documentation)
     - [Container image signing](#container-image-signing)
@@ -538,10 +539,11 @@ jobs:
     #   days-before-close: number
 ```
 
-### Go container app
+### Go container apps
 
 a workflow which combines the following workflows
 - ko-build
+- go-build-smoke-test
 - container-image-scan
 - gofmt
 - golangci-lint
@@ -575,7 +577,7 @@ permissions:
 
 jobs:
   go-container-apps:
-    uses: BobyMCbobs/sample-ko-monorepo/.github/workflows/reusable-go-container-apps.yml@main
+    uses: GeoNet/Actions/.github/workflows/reusable-go-container-apps.yml@main
     # with:
     #   registryOverride: string
     #   paths: string
@@ -585,6 +587,48 @@ jobs:
     #   updateGoVersionAutoMerge: boolean
     #   containerScanningEnabled: boolean
     #   containerBuildEnabled: boolean
+```
+
+for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-go-container-apps.yml](.github/workflows/reusable-go-container-apps.yml).
+
+### Go apps
+
+a workflow which combines the following workflows
+- go-build-smoke-test
+- gofmt
+- golangci-lint
+- go-test
+- go-vet
+- update-go-version
+- govulncheck
+
+```yaml
+name: go apps
+
+on:
+  push: {}
+  pull_request: {}
+  schedule:
+    - cron: "0 0 * * *"
+  release:
+    types: [published]
+  workflow_dispatch: {}
+
+permissions:
+  actions: read
+  contents: write
+  pull-requests: write
+  id-token: write
+  security-events: write
+  statuses: write
+  checks: write
+
+jobs:
+  go-container-apps:
+    uses: GeoNet/Actions/.github/workflows/reusable-go-apps.yml@main
+    # with:
+    #   paths: string
+    #   updateGoVersionAutoMerge: boolean
 ```
 
 for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-go-container-apps.yml](.github/workflows/reusable-go-container-apps.yml).
