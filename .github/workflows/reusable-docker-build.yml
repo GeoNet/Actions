@@ -112,6 +112,7 @@ jobs:
           context: ${{ inputs.context }}
           platforms: ${{ inputs.platforms }}
           file: ${{ inputs.dockerfile }}
+          build-args: ${{ inputs.buildArgs }}
           labels: |
             org.opencontainers.image.name=${{ inputs.imageName }}
             org.opencontainers.image.revision=${{ github.sha }}

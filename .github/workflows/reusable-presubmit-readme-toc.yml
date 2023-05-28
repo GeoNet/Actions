@@ -1,0 +1,38 @@
+name: reusable presubmit README table of contents
+on:
+  workflow_call:
+    inputs:
+      readmePath:
+        type: string
+        default: README.md
+        description: |
+          the path to the README.md
+jobs:
+  presubmit-readme-toc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+      - uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+      - env:
+          READMEPATH: ${{ inputs.readmePath }}
+        name: generate table of contents
+        run: |
+          go run sigs.k8s.io/mdtoc@latest --inplace $READMEPATH
+      - id: changes
+        name: determine changes
+        env:
+          READMEPATH: ${{ inputs.readmePath }}
+        run: |
+          if git diff --name-only --diff-filter=ACMRT | grep $READMEPATH; then
+            echo "changes=true" >> $GITHUB_OUTPUT
+          fi
+      - if: ${{ steps.changes.outputs.changes == 'true' }}
+        env:
+          READMEPATH: ${{ inputs.readmePath }}
+        run: |
+          echo "changes detected" >/dev/stderr
+          echo "Please run 'go run sigs.k8s.io/mdtoc@latest --inplace $READMEPATH' and commit again."
+          exit 1

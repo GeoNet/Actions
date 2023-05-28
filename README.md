@@ -23,8 +23,10 @@
     - [Go build smoke test](#go-build-smoke-test)
     - [Presubmit commit policy conformance](#presubmit-commit-policy-conformance)
     - [Stale submission](#stale-submission)
-    - [Go container app](#go-container-app)
+    - [Go container apps](#go-container-apps)
+    - [Go apps](#go-apps)
     - [Bash shellcheck](#bash-shellcheck)
+    - [Presubmit README table of contents](#presubmit-readme-table-of-contents)
   - [Other documentation](#other-documentation)
     - [Container image signing](#container-image-signing)
     - [Versioning for container images](#versioning-for-container-images)
@@ -196,6 +198,8 @@ jobs:
     with:
       configPath: ./path/to/config.yaml
     #   registryOverride: quay.io/geonet
+    #   configLiteral: |
+    #     ...
 ```
 
 with a config.yaml in the format of
@@ -221,6 +225,8 @@ for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-c
 for more information, read the [versioning for container images info](#versioning-for-container-images)
 
 format implementation inspired by [Kubernetes sig-release promotion tools](https://github.com/kubernetes-sigs/promo-tools).
+
+On release, if using `configPath` and not `configLiteral`, a PR will be automatically created which adds the release tags to be promoted per each image built.
 
 #### Pushing to quay.io
 
@@ -414,6 +420,8 @@ jobs:
     uses: GeoNet/Actions/.github/workflows/reusable-go-test.yml@main
 ```
 
+test coverage results upload to job artifacts, found at the bottom of a job summary page.
+
 ### Go vulnerability check
 
 Run `govulncheck` against the codebase
@@ -534,10 +542,11 @@ jobs:
     #   days-before-close: number
 ```
 
-### Go container app
+### Go container apps
 
 a workflow which combines the following workflows
 - ko-build
+- go-build-smoke-test
 - container-image-scan
 - gofmt
 - golangci-lint
@@ -571,7 +580,7 @@ permissions:
 
 jobs:
   go-container-apps:
-    uses: BobyMCbobs/sample-ko-monorepo/.github/workflows/reusable-go-container-apps.yml@main
+    uses: GeoNet/Actions/.github/workflows/reusable-go-container-apps.yml@main
     # with:
     #   registryOverride: string
     #   paths: string
@@ -581,6 +590,48 @@ jobs:
     #   updateGoVersionAutoMerge: boolean
     #   containerScanningEnabled: boolean
     #   containerBuildEnabled: boolean
+```
+
+for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-go-container-apps.yml](.github/workflows/reusable-go-container-apps.yml).
+
+### Go apps
+
+a workflow which combines the following workflows
+- go-build-smoke-test
+- gofmt
+- golangci-lint
+- go-test
+- go-vet
+- update-go-version
+- govulncheck
+
+```yaml
+name: go apps
+
+on:
+  push: {}
+  pull_request: {}
+  schedule:
+    - cron: "0 0 * * *"
+  release:
+    types: [published]
+  workflow_dispatch: {}
+
+permissions:
+  actions: read
+  contents: write
+  pull-requests: write
+  id-token: write
+  security-events: write
+  statuses: write
+  checks: write
+
+jobs:
+  go-container-apps:
+    uses: GeoNet/Actions/.github/workflows/reusable-go-apps.yml@main
+    # with:
+    #   paths: string
+    #   updateGoVersionAutoMerge: boolean
 ```
 
 for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-go-container-apps.yml](.github/workflows/reusable-go-container-apps.yml).
@@ -598,6 +649,20 @@ on:
 jobs:
   bash-shellcheck:
     uses: GeoNet/Actions/.github/workflows/reusable-bash-shellcheck.yml@main
+```
+
+### Presubmit README table of contents
+
+Ensure that the table of contents is updated in README.md, when titles are added/changed/removed.
+
+```yaml
+name: presubmit README table of contents
+on:
+  pull_request: {}
+  workflow_dispatch: {}
+jobs:
+  presubmit-readme-toc:
+    uses: GeoNet/Actions/.github/workflows/reusable-presubmit-readme-toc.yml@main
 ```
 
 ## Other documentation

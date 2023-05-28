@@ -12,4 +12,18 @@ jobs:
           cache-dependency-path: go.sum
       - name: test
         id: test
-        run: go test -v ./...
+        run: |
+          go test -v -coverprofile /tmp/coverage.out -cover ./...
+      - name: create coverage html
+        id: coverage-html
+        run: |
+          go tool cover -html=/tmp/coverage.out -o /tmp/coverage.html
+      - name: Upload test log
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        if: always()
+        with:
+          name: test-results
+          path: |
+            /tmp/coverage.out
+            /tmp/coverage.html
+          if-no-files-found: error

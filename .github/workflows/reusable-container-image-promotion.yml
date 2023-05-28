@@ -29,10 +29,10 @@ on:
       configPath:
         required: false
         type: string
-        default: ./images/config.yaml
+        default: images/config.yaml
         description: |
           the local relative path to a promotion config.
-          e.g: ./images/config.yaml
+          e.g: images/config.yaml
 
           the format of the file must be
 
@@ -52,9 +52,17 @@ on:
           - name: webthingy
             dmap:
               "sha256:efdb4ab576f4028e8319733890af8e7c49eed7f43bfe33e078052a1d0763ef89": ["v1"]
+      imageRefs:
+        required: false
+        type: string
+        description: |
+          a list of comma-separated container image refs to use for image promotion.
+          e.g: ghcr.io/bobymcbobs/sample-ko-monorepo/coolest-serverless-app@sha256:d0146dfb48121fd0421f6231ac10c3aa52a19fd6720ebd6913dfdff54e82f046 ghcr.io/bobymcbobs/sample-ko-monorepo/mission-critical-service@sha256:52ad9e246f8061c42491fac8364d336cd7ba00f09e42075814b3f247a216dea1 ghcr.io/bobymcbobs/sample-ko-monorepo/webthingy@sha256:100c9cc4e02eae0d4444f91407d1bfa38418d3067b3042e9144a56ac33e6d3c1
+
 jobs:
   prepare:
     runs-on: ubuntu-latest
+    if: ${{ contains(fromJSON('["workflow_call", "push", "schedule"]'), github.event_name) }}
     env:
       TRANSFORM_EXPRESSION: |
         .[] | . as $version | .name as $name | .dmap | keys | .[] | . as $digest | $version.dmap[$digest] as $tags | $tags[] | {"name": $name, "digest":$digest, "tag":.}
@@ -74,7 +82,7 @@ jobs:
         run: |
           jq . <<< '${{ steps.set.outputs.matrix }}'
   promote:
-    if: ${{ fromJSON(needs.prepare.outputs.matrix) != null }}
+    if: ${{ contains(fromJSON('["workflow_call", "push", "schedule"]'), github.event_name) && fromJSON(needs.prepare.outputs.matrix) != null }}
     needs: prepare
     runs-on: ubuntu-latest
     strategy:
@@ -86,6 +94,8 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v4.0.1
+        with:
+          go-version-file: go.mod
       - uses: GeoNet/setup-crane@00c9e93efa4e1138c9a7a5c594acd6c75a2fbf0c # main
       - name: Login to quay.io
         uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a # v2.1.0
@@ -134,3 +144,102 @@ jobs:
           DESTINATION: ${{ steps.run-info.outputs.destination }}
         run: |
           crane cp $SOURCE $DESTINATION
+  promote-in-config-on-release:
+    if: ${{ contains(fromJSON('["workflow_call", "release"]'), github.event_name) && inputs.configLiteral == null && inputs.configPath != null }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+      - name: configure system
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          gh auth login --with-token < <(echo ${{ secrets.GITHUB_TOKEN }})
+          gh auth status
+      - uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+        with:
+          go-version-file: go.mod
+      - uses: GeoNet/setup-crane@00c9e93efa4e1138c9a7a5c594acd6c75a2fbf0c # main
+      - name: Login to quay.io
+        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a # v2.1.0
+        env:
+          quay-robot-token: ${{ secrets.QUAY_ROBOT_TOKEN }}
+          quay-username: ${{ secrets.QUAY_USERNAME }}
+        if: ${{ env.quay-robot-token != null && env.quay-username != null }}
+        with:
+          registry: quay.io
+          username: ${{ secrets.QUAY_USERNAME }}
+          password: ${{ secrets.QUAY_ROBOT_TOKEN }}
+      - name: write to config
+        env:
+          RELEASE_VERSION: ${{ github.event.release.tag_name }}
+          IMAGE_REGEXP: "^(.*)/(.*)@(.*)$"
+          CONFIG_PATH: ${{ inputs.configPath }}
+        run: |
+          for IMAGE in $(echo ${{ inputs.imageRefs }} | tr ',' ' '); do
+            if [[ "$IMAGE" =~ $IMAGE_REGEXP ]]; then
+              export REPO="${BASH_REMATCH[1]}"
+              export NAME="${BASH_REMATCH[2]}"
+              export DIGEST="${BASH_REMATCH[3]}"
+            else
+              echo "failed to match image ($IMAGE)" >/dev/stderr
+              exit 1
+            fi
+            echo "Adding promotion for image '$IMAGE' with digest '$DIGEST' to tag '${RELEASE_VERSION}'"
+            if [ ! -f "$CONFIG_PATH" ] \
+              || [ "$(cat $CONFIG_PATH)" = "[]" ]; then
+              echo "file not found. Creating a new $CONFIG_PATH file"
+              # new file or image
+              touch $CONFIG_PATH
+              yq e -P -i '.name = env(NAME) | .dmap[env(DIGEST)] = [env(RELEASE_VERSION)] | [.]' $CONFIG_PATH
+            elif [ -f "$CONFIG_PATH" ] && [ ! "$(yq e '.[] | select(.name == env(NAME)) | .name' $CONFIG_PATH 2>/dev/null || true)" = "$NAME" ]; then
+              # append new image
+              echo "image '$NAME' not found. Appending a new index"
+              yq e -P -i '. += {"name": env(NAME), "dmap": {env(DIGEST): [env(RELEASE_VERSION)]}}' $CONFIG_PATH
+            else
+              # append new version
+              echo "appending new promotion to existing image"
+              yq e -P -i 'with(.[] | select(.name==env(NAME)); .dmap[env(DIGEST)] += [env(RELEASE_VERSION)])' $CONFIG_PATH
+            fi
+
+            if [ ! "$(yq e -P '.[] | select(.name==env(NAME)) | .dmap[env(DIGEST)][0] == env(RELEASE_VERSION)' $CONFIG_PATH)" = "true" ]; then
+              echo "failed to write value to $CONFIG_PATH" >/dev/stderr
+              # exit 1
+            fi
+          done
+      - name: determine changes
+        id: determine-changes
+        run: |
+          if git diff --name-only --diff-filter=ACMRT | grep ${{ inputs.configPath }}; then
+            echo "changes=true" >> $GITHUB_OUTPUT
+          fi
+      - name: determine if there is an existing PR
+        id: existing-pr
+        if: ${{ steps.determine-changes.outputs.changes == 'true' }}
+        env:
+          RELEASE_VERSION: ${{ github.event.release.tag_name }}
+        run: |
+          EXISTING_PR="$(gh pr list --json title,labels,body --jq '.' --search "Add new image promotions from release $RELEASE_VERSION" | jq -r .[].title)"
+          if [ "${EXISTING_PR}" = "Add new image promotions from release $RELEASE_VERSION" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          fi
+      - uses: GeoNet/chainguard-dev-actions/setup-gitsign@c1773c35e73af78f72f606c002e9819cd737984d # main
+        if: ${{ steps.determine-changes.outputs.changes == 'true' && steps.existing-pr.outputs.exists != 'true' }}
+      - name: create PR
+        if: ${{ steps.determine-changes.outputs.changes == 'true' && steps.existing-pr.outputs.exists != 'true' }}
+        id: create-pr
+        env:
+          RELEASE_VERSION: ${{ github.event.release.tag_name }}
+        run: |
+          TIMESTAMP="$(date +%Y-%m-%d-%H-%M)"
+          NEW_BRANCH="add-new-image-promotions-from-release-$RELEASE_VERSION-${TIMESTAMP}"
+          echo "new-branch=$NEW_BRANCH" >> $GITHUB_OUTPUT
+          git add ${{ inputs.configPath }}
+          git branch "${NEW_BRANCH}"
+          git checkout "${NEW_BRANCH}"
+          git commit -s -m "Add new image promotions from release $RELEASE_VERSION"
+          git push origin "${NEW_BRANCH}"
+          gh pr create --title "Add new image promotions from release $RELEASE_VERSION" --body "Add new image promotions from release $RELEASE_VERSION for ${{ inputs.configPath }}"
+      - name: merge PR
+        if: ${{ inputs.autoMerge && steps.determine-changes.outputs.changes == 'true' && steps.existing-pr.outputs.exists != 'true' }}
+        run: |
+          gh pr merge --merge --auto ${{ steps.create-pr.outputs.new-branch }}
