@@ -158,7 +158,7 @@ jobs:
       - uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
           go-version-file: go.mod
-      - uses: imjasonh/setup-crane@00c9e93efa4e1138c9a7a5c594acd6c75a2fbf0c # v0.3
+      - uses: GeoNet/setup-crane@00c9e93efa4e1138c9a7a5c594acd6c75a2fbf0c # main
       - name: Login to quay.io
         uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a # v2.1.0
         env:
