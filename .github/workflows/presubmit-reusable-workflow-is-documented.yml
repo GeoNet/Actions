@@ -1,0 +1,20 @@
+name: ensure reusable workflow is documented
+on:
+  pull_request: {}
+  workflow_dispatch: {}
+jobs:
+  ensure-reusable-workflow-is-documented:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+      - run: |
+          FAILURES=false
+          for WORKFLOW in $(find .github/workflows -name 'reusable*' | xargs); do
+            if ! grep -q "$WORKFLOW" README.md; then
+              echo "Not found in README: $WORKFLOW"
+              FAILURES=true
+            fi
+          done
+          if [ "$FAILURES" = true ]; then
+            exit 1
+          fi
