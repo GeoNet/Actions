@@ -1,0 +1,7 @@
+name: presubmit README table of contents
+on:
+  pull_request: {}
+  workflow_dispatch: {}
+jobs:
+  presubmit-readme-toc:
+    uses: GeoNet/Actions/.github/workflows/reusable-presubmit-readme-toc.yml@main

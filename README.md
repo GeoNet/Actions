@@ -25,6 +25,7 @@
     - [Stale submission](#stale-submission)
     - [Go container app](#go-container-app)
     - [Bash shellcheck](#bash-shellcheck)
+    - [Presubmit README table of contents](#presubmit-readme-table-of-contents)
   - [Other documentation](#other-documentation)
     - [Container image signing](#container-image-signing)
     - [Versioning for container images](#versioning-for-container-images)
@@ -604,6 +605,20 @@ on:
 jobs:
   bash-shellcheck:
     uses: GeoNet/Actions/.github/workflows/reusable-bash-shellcheck.yml@main
+```
+
+### Presubmit README table of contents
+
+Ensure that the table of contents is updated in README.md, when titles are added/changed/removed.
+
+```yaml
+name: presubmit README table of contents
+on:
+  pull_request: {}
+  workflow_dispatch: {}
+jobs:
+  presubmit-readme-toc:
+    uses: GeoNet/Actions/.github/workflows/reusable-presubmit-readme-toc.yml@main
 ```
 
 ## Other documentation
