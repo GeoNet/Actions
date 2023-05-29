@@ -193,7 +193,7 @@ permissions:
   id-token: write
 
 jobs:
-  build:
+  promote:
     uses: GeoNet/Actions/.github/workflows/reusable-container-image-promotion.yml@main
     with:
       configPath: ./path/to/config.yaml
@@ -299,7 +299,7 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  build:
+  terraform:
     uses: GeoNet/Actions/.github/workflows/reusable-terraform-management.yml@main
     secrets: inherit
     # with:
@@ -386,7 +386,7 @@ on:
   pull_request: {}
   workflow_dispatch: {}
 jobs:
-  build:
+  go-vet:
     uses: GeoNet/Actions/.github/workflows/reusable-go-vet.yml@main
 ```
 
@@ -401,7 +401,7 @@ on:
   pull_request: {}
   workflow_dispatch: {}
 jobs:
-  build:
+  gofmt:
     uses: GeoNet/Actions/.github/workflows/reusable-gofmt.yml@main
 ```
 
@@ -416,7 +416,7 @@ on:
   pull_request: {}
   workflow_dispatch: {}
 jobs:
-  build:
+  go-test:
     uses: GeoNet/Actions/.github/workflows/reusable-go-test.yml@main
 ```
 
@@ -444,14 +444,14 @@ Note: does not cache or push the binary artifacts anywhere.
 
 Example:
 ```yaml
-name: build
+name: go build smoke test
 
 on:
   push: {}
   workflow_dispatch: {}
 
 jobs:
-  build:
+  go-build-smoke-test:
     uses: GeoNet/Actions/.github/workflows/reusable-go-build-smoke-test.yml@main
     # with:
     #   paths: ./cmd/coolapp
@@ -627,7 +627,7 @@ permissions:
   checks: write
 
 jobs:
-  go-container-apps:
+  go-apps:
     uses: GeoNet/Actions/.github/workflows/reusable-go-apps.yml@main
     # with:
     #   paths: string
