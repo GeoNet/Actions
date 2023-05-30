@@ -36,6 +36,9 @@
 
 > reusable GitHub actions across several projects
 
+This repo is for reusable workflows to run in GitHub Actions for the GeoNet program.
+The workflows are not publicly supported and come with absolutely no warranty.
+
 ## Workflows
 
 ### Ko build
