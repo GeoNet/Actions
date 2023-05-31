@@ -156,6 +156,9 @@ jobs:
           git config user.email 'github-actions[bot]@users.noreply.github.com'
           gh auth login --with-token < <(echo ${{ secrets.GITHUB_TOKEN }})
           gh auth status
+      - id: run-info
+        run: |
+          echo "configPath=$(echo "${{ inputs.configPath }}" | sed 's,^./,,g')" >> $GITHUB_OUTPUT
       - uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
           go-version-file: go.mod
@@ -174,7 +177,7 @@ jobs:
         env:
           RELEASE_VERSION: ${{ github.event.release.tag_name }}
           IMAGE_REGEXP: "^(.*)/(.*)@(.*)$"
-          CONFIG_PATH: ${{ inputs.configPath }}
+          CONFIG_PATH: ${{ steps.run-info.outputs.configPath }}
           IMAGE_REFS: ${{ inputs.imageRefs }}
         run: |
           for IMAGE in $(echo $IMAGE_REFS | tr ',' ' '); do
@@ -209,9 +212,11 @@ jobs:
             fi
           done
       - name: determine changes
+        env:
+          CONFIG_PATH: ${{ steps.run-info.outputs.configPath }}
         id: determine-changes
         run: |
-          if git diff --name-only --diff-filter=ACMRT | grep ${{ inputs.configPath }}; then
+          if git diff --name-only --diff-filter=ACMRT | grep $CONFIG_PATH; then
             echo "changes=true" >> $GITHUB_OUTPUT
           fi
       - name: determine if there is an existing PR
@@ -231,16 +236,17 @@ jobs:
         id: create-pr
         env:
           RELEASE_VERSION: ${{ github.event.release.tag_name }}
+          CONFIG_PATH: ${{ steps.run-info.outputs.configPath }}
         run: |
           TIMESTAMP="$(date +%Y-%m-%d-%H-%M)"
           NEW_BRANCH="add-new-image-promotions-from-release-$RELEASE_VERSION-${TIMESTAMP}"
           echo "new-branch=$NEW_BRANCH" >> $GITHUB_OUTPUT
-          git add ${{ inputs.configPath }}
+          git add $CONFIG_PATH
           git branch "${NEW_BRANCH}"
           git checkout "${NEW_BRANCH}"
           git commit -s -m "Add new image promotions from release $RELEASE_VERSION"
           git push origin "${NEW_BRANCH}"
-          gh pr create --title "Add new image promotions from release $RELEASE_VERSION" --body "Add new image promotions from release $RELEASE_VERSION for ${{ inputs.configPath }}"
+          gh pr create --title "Add new image promotions from release $RELEASE_VERSION" --body "Add new image promotions from release $RELEASE_VERSION for $CONFIG_PATH"
       - name: merge PR
         if: ${{ inputs.autoMerge && steps.determine-changes.outputs.changes == 'true' && steps.existing-pr.outputs.exists != 'true' }}
         run: |
