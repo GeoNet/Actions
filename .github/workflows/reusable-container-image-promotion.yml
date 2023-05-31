@@ -149,6 +149,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+      - uses: GeoNet/yq@bbe305500687a5fe8498d74883c17f0f06431ac4 # master
       - name: configure system
         run: |
           git config user.name 'github-actions[bot]'
@@ -174,8 +175,9 @@ jobs:
           RELEASE_VERSION: ${{ github.event.release.tag_name }}
           IMAGE_REGEXP: "^(.*)/(.*)@(.*)$"
           CONFIG_PATH: ${{ inputs.configPath }}
+          IMAGE_REFS: ${{ inputs.imageRefs }}
         run: |
-          for IMAGE in $(echo ${{ inputs.imageRefs }} | tr ',' ' '); do
+          for IMAGE in $(echo $IMAGE_REFS | tr ',' ' '); do
             if [[ "$IMAGE" =~ $IMAGE_REGEXP ]]; then
               export REPO="${BASH_REMATCH[1]}"
               export NAME="${BASH_REMATCH[2]}"
@@ -190,18 +192,18 @@ jobs:
               echo "file not found. Creating a new $CONFIG_PATH file"
               # new file or image
               touch $CONFIG_PATH
-              yq e -P -i '.name = env(NAME) | .dmap[env(DIGEST)] = [env(RELEASE_VERSION)] | [.]' $CONFIG_PATH
+              yq e -i '.name = env(NAME) | .dmap[env(DIGEST)] = [env(RELEASE_VERSION)] | [.] | .. style="double"' $CONFIG_PATH
             elif [ -f "$CONFIG_PATH" ] && [ ! "$(yq e '.[] | select(.name == env(NAME)) | .name' $CONFIG_PATH 2>/dev/null || true)" = "$NAME" ]; then
               # append new image
               echo "image '$NAME' not found. Appending a new index"
-              yq e -P -i '. += {"name": env(NAME), "dmap": {env(DIGEST): [env(RELEASE_VERSION)]}}' $CONFIG_PATH
+              yq e -i '. += [{"name": env(NAME), "dmap": {env(DIGEST): [env(RELEASE_VERSION)]}}] | .. style="double"' $CONFIG_PATH
             else
               # append new version
               echo "appending new promotion to existing image"
-              yq e -P -i 'with(.[] | select(.name==env(NAME)); .dmap[env(DIGEST)] += [env(RELEASE_VERSION)])' $CONFIG_PATH
+              yq e -i 'with(.[] | select(.name==env(NAME)); .dmap[env(DIGEST)] += [env(RELEASE_VERSION)]) | .. style="double"' $CONFIG_PATH
             fi
 
-            if [ ! "$(yq e -P '.[] | select(.name==env(NAME)) | .dmap[env(DIGEST)][0] == env(RELEASE_VERSION)' $CONFIG_PATH)" = "true" ]; then
+            if [ ! "$(yq e '.[] | select(.name==env(NAME)) | .dmap[env(DIGEST)][0] == env(RELEASE_VERSION)' $CONFIG_PATH)" = "true" ]; then
               echo "failed to write value to $CONFIG_PATH" >/dev/stderr
               # exit 1
             fi
