@@ -17,9 +17,14 @@ on:
         description: |
           the Go entrypoint paths for applications, where there they have `package main`
           e.g: ./cmd/thing1 ./cmd/thing2
+    secrets:
+      GH_CI_USER_TOKEN:
+        required: false
     outputs:
       images:
         value: ${{ jobs.build.outputs.images }}
+env:
+  GH_CI_USERNAME: geonetci
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -55,6 +60,10 @@ jobs:
           go-version-file: go.mod
           cache-dependency-path: go.sum
       - uses: GeoNet/setup-ko@f3c6980bb213dc8bb4856f52598a9230d910d06f # main
+      - name: ghcr.io auth
+        if: ${{ secrets.GH_CI_USER_TOKEN }}
+        run: |
+          echo "${{ secrets.GH_CI_USER_TOKEN }}" | ko login ghcr.io --username "$GH_CI_USERNAME" --password-stdin
       - id: build
         name: build
         env:

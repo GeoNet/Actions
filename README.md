@@ -105,6 +105,7 @@ permissions:
 jobs:
   build:
     uses: GeoNet/Actions/.github/workflows/reusable-docker-build.yml@main
+    secrets: inherit
     with:
       context: .
       dockerfile: ./Dockerfile
@@ -156,6 +157,7 @@ jobs:
       matrix:
         include: ${{ fromJSON(needs.prepare.outputs.matrix) }}
     uses: GeoNet/Actions/.github/workflows/reusable-build.yml@main
+    secrets: inherit
     with:
       context: apps/${{ fromJSON(toJSON(matrix)).target }}
       dockerfile: apps/${{ fromJSON(toJSON(matrix)).target }}/Dockerfile
@@ -581,6 +583,7 @@ permissions:
 jobs:
   go-container-apps:
     uses: GeoNet/Actions/.github/workflows/reusable-go-container-apps.yml@main
+    secrets: inherit
     # with:
     #   registryOverride: string
     #   paths: string
