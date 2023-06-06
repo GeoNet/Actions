@@ -35,6 +35,7 @@ jobs:
           gh auth login --with-token < <(echo ${{ secrets.GITHUB_TOKEN }})
           gh auth status
       - uses: sigstore/cosign-installer@dd6b2e2b610a11fd73dd187a43d57cc1394e35f9 # v3.0.5
+      - uses: GeoNet/setup-crane@00c9e93efa4e1138c9a7a5c594acd6c75a2fbf0c # main
       - id: run-info
         name: collect job run info
         env:
