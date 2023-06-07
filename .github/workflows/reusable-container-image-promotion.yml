@@ -243,10 +243,10 @@ jobs:
           TIMESTAMP="$(date +%Y-%m-%d-%H-%M)"
           NEW_BRANCH="add-new-image-promotions-from-release-$RELEASE_VERSION-${TIMESTAMP}"
           echo "new-branch=$NEW_BRANCH" >> $GITHUB_OUTPUT
-          git add $CONFIG_PATH
+          git add "$CONFIG_PATH"
           git branch "${NEW_BRANCH}"
           git checkout "${NEW_BRANCH}"
-          git commit -s -m "Add new image promotions from release $RELEASE_VERSION"
+          git commit -s -m "release: add new image promotions from release $RELEASE_VERSION"
           git push origin "${NEW_BRANCH}"
           gh pr create --title "Add new image promotions from release $RELEASE_VERSION" --body "Add new image promotions from release $RELEASE_VERSION for $CONFIG_PATH"
       - name: merge PR
