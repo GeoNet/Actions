@@ -157,8 +157,10 @@ jobs:
           gh auth login --with-token < <(echo ${{ secrets.GITHUB_TOKEN }})
           gh auth status
       - id: run-info
+        env:
+          CONFIG_PATH: ${{ inputs.configPath }}
         run: |
-          echo "configPath=$(echo "${{ inputs.configPath }}" | sed 's,^./,,g')" >> $GITHUB_OUTPUT
+          echo "configPath=$(realpath "$CONFIG_PATH" | sed "s,^$PWD/,,g")" >> $GITHUB_OUTPUT
       - uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
         with:
           go-version-file: go.mod
