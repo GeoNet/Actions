@@ -88,7 +88,7 @@ jobs:
       paths: ${{ inputs.paths }}
   build:
     if: ${{ contains(fromJSON('["workflow_call", "push", "release"]'), github.event_name) && inputs.containerBuildEnabled }}
-    uses: GeoNet/Actions/.github/workflows/reusable-ko-build.yml@main
+    uses: GeoNet/Actions/.github/workflows/reusable-ko-build.yml@6b46f5d55c1699af15e96e8f5b71715940d34617
     with:
       registryOverride: ${{ inputs.registryOverride }}
       paths: ${{ inputs.paths }}
