@@ -99,9 +99,9 @@ jobs:
       - name: ghcr.io auth
         env:
           GH_CI_USER_TOKEN: ${{ secrets.GH_CI_USER_TOKEN }}
-        if: ${{ env.GITHUB_CI_USER_TOKEN }}
         run: |
-          echo "$GH_CI_USER_TOKEN" | crane auth login ghcr.io --username "$GH_CI_USERNAME" --password-stdin
+          [ -z "$GH_CI_USER_TOKEN" ] \
+            || echo "$GH_CI_USER_TOKEN" | crane auth login ghcr.io --username "$GH_CI_USERNAME" --password-stdin
       - id: run-info
         name: collect job run info
         env:
