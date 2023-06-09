@@ -2,6 +2,11 @@ name: Terraform management
 on:
   workflow_call:
     inputs:
+      validateOnly:
+        type: boolean
+        default: false
+        description: |
+          only check the Terrform code.
       allowApply:
         type: boolean
         default: false
@@ -55,31 +60,32 @@ jobs:
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
       - name: Terraform Format
         id: format
-        run: terraform fmt -check
+        run: terraform fmt -check -diff=true -recursive
       - name: Terraform Init
+        if: ${{ inputs.validateOnly != true }}
         id: init
         run: terraform init
       - name: Terraform Validate
         id: validate
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && inputs.validateOnly != true
         run: terraform validate -no-color
         continue-on-error: true
       - name: Terraform Plan
         id: plan
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && inputs.validateOnly != true
         run: terraform plan -no-color -input=false
         continue-on-error: true
       - name: Update Pull Request
         uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && inputs.validateOnly != true
         env:
           PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: "const output = `#### Terraform Format and Style \U0001F58C\\`${{ steps.format.outcome }}\\`\n#### Terraform Initialization ⚙️\\`${{ steps.init.outcome }}\\`\n#### Terraform Plan \U0001F4D6\\`${{ steps.plan.outcome }}\\`\n#### Terraform Validation \U0001F916\\`${{ steps.validate.outcome }}\\`\n<details><summary>Show Plan</summary>\n\\`\\`\\`\\n\n${process.env.PLAN}\n\\`\\`\\`\n</details>\n*Pushed by: @${{ github.actor }}, Action: \\`${{ github.event_name }}\\`*\n<!-- tfmgmnt -->\n`;\ngithub.rest.issues.createComment({\n  issue_number: context.issue.number,\n  owner: context.repo.owner,\n  repo: context.repo.repo,\n  body: output\n})\n"
       - name: Terraform Plan Status
-        if: steps.plan.outcome == 'failure'
+        if: steps.plan.outcome == 'failure' && inputs.validateOnly != true
         run: exit 1
       - name: Terraform Apply
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push' && inputs.allowApply == true
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push' && inputs.allowApply == true && inputs.validateOnly != true
         run: terraform apply -auto-approve -input=false
