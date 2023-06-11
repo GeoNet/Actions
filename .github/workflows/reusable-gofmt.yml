@@ -10,6 +10,7 @@ jobs:
         with:
           go-version-file: go.mod
           cache-dependency-path: go.sum
+          check-latest: true
       - name: gofmt
         id: gofmt
         run: find . -name "*.go" | grep -E -v vendor | xargs gofmt -s -l -d -e
