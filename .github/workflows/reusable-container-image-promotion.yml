@@ -58,7 +58,6 @@ on:
         description: |
           a list of comma-separated container image refs to use for image promotion.
           e.g: ghcr.io/bobymcbobs/sample-ko-monorepo/coolest-serverless-app@sha256:d0146dfb48121fd0421f6231ac10c3aa52a19fd6720ebd6913dfdff54e82f046 ghcr.io/bobymcbobs/sample-ko-monorepo/mission-critical-service@sha256:52ad9e246f8061c42491fac8364d336cd7ba00f09e42075814b3f247a216dea1 ghcr.io/bobymcbobs/sample-ko-monorepo/webthingy@sha256:100c9cc4e02eae0d4444f91407d1bfa38418d3067b3042e9144a56ac33e6d3c1
-
 jobs:
   prepare:
     runs-on: ubuntu-latest
@@ -69,7 +68,7 @@ jobs:
     outputs:
       matrix: ${{ steps.set.outputs.matrix }}
     steps:
-      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
       - uses: GeoNet/yq@bbe305500687a5fe8498d74883c17f0f06431ac4 # master
       - id: set
         run: |
@@ -89,18 +88,18 @@ jobs:
       matrix:
         include: ${{ fromJSON(needs.prepare.outputs.matrix) }}
     steps:
-      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+      - uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v4.0.1
         with:
           go-version-file: go.mod
           cache-dependency-path: go.sum
           check-latest: true
       - uses: GeoNet/setup-crane@00c9e93efa4e1138c9a7a5c594acd6c75a2fbf0c # main
       - name: Login to quay.io
-        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a # v2.1.0
+        uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc # v2.2.0
         env:
           quay-robot-token: ${{ secrets.QUAY_ROBOT_TOKEN }}
           quay-username: ${{ secrets.QUAY_USERNAME }}
@@ -150,7 +149,7 @@ jobs:
     if: ${{ contains(fromJSON('["workflow_call", "release"]'), github.event_name) && inputs.configLiteral == null && inputs.configPath != null }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
       - uses: GeoNet/yq@bbe305500687a5fe8498d74883c17f0f06431ac4 # master
       - name: configure system
         run: |
@@ -163,14 +162,14 @@ jobs:
           CONFIG_PATH: ${{ inputs.configPath }}
         run: |
           echo "configPath=$(realpath "$CONFIG_PATH" | sed "s,^$PWD/,,g")" >> $GITHUB_OUTPUT
-      - uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
+      - uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v4.0.1
         with:
           go-version-file: go.mod
           cache-dependency-path: go.sum
           check-latest: true
       - uses: GeoNet/setup-crane@00c9e93efa4e1138c9a7a5c594acd6c75a2fbf0c # main
       - name: Login to quay.io
-        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a # v2.1.0
+        uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc # v2.2.0
         env:
           quay-robot-token: ${{ secrets.QUAY_ROBOT_TOKEN }}
           quay-username: ${{ secrets.QUAY_USERNAME }}
