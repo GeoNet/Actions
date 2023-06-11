@@ -37,6 +37,7 @@ jobs:
         with:
           go-version-file: go.mod
           cache-dependency-path: go.sum
+          check-latest: true
       - uses: GeoNet/setup-crane@00c9e93efa4e1138c9a7a5c594acd6c75a2fbf0c # main
       - name: quay crane login
         env:

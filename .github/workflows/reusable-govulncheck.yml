@@ -10,6 +10,7 @@ jobs:
         with:
           go-version-file: go.mod
           cache-dependency-path: go.sum
+          check-latest: true
       - name: govulncheck
         id: govulncheck
         run: |

@@ -54,6 +54,7 @@ jobs:
         with:
           go-version-file: go.mod
           cache-dependency-path: go.sum
+          check-latest: true
       - uses: GeoNet/setup-ko@f3c6980bb213dc8bb4856f52598a9230d910d06f # main
       - id: build
         name: build
