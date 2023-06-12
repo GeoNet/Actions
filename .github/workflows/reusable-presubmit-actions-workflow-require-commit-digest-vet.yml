@@ -1,4 +1,4 @@
-name: Presubmit Actions workflow vet
+name: presubmit Actions workflow vet
 on:
   workflow_call: {}
 jobs:
