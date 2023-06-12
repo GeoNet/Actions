@@ -28,4 +28,4 @@ jobs:
         uses: GeoNet/golangci-lint-action@4cb96975783006316142911dac808e71dd8b0b40 # master
         with:
           version: v1.52.2
-          args: --timeout 30m
+          args: --timeout 30m -E gosec
