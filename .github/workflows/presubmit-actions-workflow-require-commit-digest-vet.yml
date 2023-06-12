@@ -1,4 +1,4 @@
-name: Presubmit Actions workflow require commit digest vet
+name: presubmit Actions workflow require commit digest vet
 
 on:
   pull_request:

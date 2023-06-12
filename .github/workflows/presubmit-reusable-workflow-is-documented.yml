@@ -1,4 +1,4 @@
-name: ensure reusable workflow is documented
+name: presubmit ensure reusable workflow is documented
 on:
   pull_request: {}
   workflow_dispatch: {}
