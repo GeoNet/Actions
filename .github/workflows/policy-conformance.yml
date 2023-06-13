@@ -1,0 +1,13 @@
+name: policy conformance
+on:
+  pull_request:
+    branches:
+      - main
+permissions:
+  statuses: write
+  checks: write
+  contents: read
+  pull-requests: read
+jobs:
+  conform:
+    uses: GeoNet/Actions/.github/workflows/reusable-policy-conformance.yml@main
