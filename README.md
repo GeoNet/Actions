@@ -28,6 +28,7 @@
     - [Bash shellcheck](#bash-shellcheck)
     - [Presubmit README table of contents](#presubmit-readme-table-of-contents)
     - [Presubmit GitHub Actions workflow validator](#presubmit-github-actions-workflow-validator)
+    - [Image copy to ECR](#image-copy-to-ecr)
   - [Other documentation](#other-documentation)
     - [Container image signing](#container-image-signing)
     - [Versioning for container images](#versioning-for-container-images)
@@ -682,6 +683,40 @@ jobs:
   presubmit-github-actions-workflow-validator:
     uses: GeoNet/Actions/.github/workflows/reusable-presubmit-github-actions-workflow-validator.yml@main
 ```
+
+### Image copy to ECR
+
+A workflow which is mostly useful after image build+push with go-container-apps or docker-build.
+
+```yaml
+name: image copy to ecr
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: {}
+
+permissions:
+  packages: read
+
+jobs:
+  image-copy-ecr:
+    uses: GeoNet/Actions/.github/workflows/reusable-image-copy-to-ecr.yml@main
+    with:
+      condition: ${{ github.ref == 'refs/heads/main' }}
+      aws-region: ap-southeast-2
+      role-to-assume: arn:aws:iam::ACCOUNT_ID:role/MY_HELPFUL_ROLE
+      role-duration-seconds: 3600
+      source-container-images: ghcr.io/geonet/lasso/dart-alert@sha256:491fcc3178953c6de91efe44967f5404ad38168679eff4a0754f8c15c45de268,ghcr.io/geonet/monitor/jasper-datadogd@sha256:21659e6824528afb031f0fe9f38e30d00602384028d3383c0700b55eb8ecaa0a,ghcr.io/geonet/base-images/mkdocs_plus@sha256:6d9907121f6968f9d097089522209f0399bd6e5909576a087c0105f5fd34552c
+      destination-ecr-image-repo: ACCOUNT_ID.dkr.ecr.ap-southeast-2.amazonaws.com/ECR
+    #  registryOverride: quay.io/geonet
+```
+
+notes:
+- _source-container-images_ is expected to be an array of _REPO_NAME/IMAGE@sha256:DIGEST_ separated by commas
+
+for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-image-copy-to-ecr.yml](.github/workflows/reusable-image-copy-to-ecr.yml).
 
 ## Other documentation
 

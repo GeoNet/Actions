@@ -1,0 +1,92 @@
+name: reusable-image-copy-to-ecr
+on:
+  workflow_call:
+    inputs:
+      condition:
+        type: boolean
+        default: true
+        description: |
+          an evaulated expression resulting in a bool.
+          e.g: ${{ github.ref == 'refs/heads/main' }}
+      aws-region:
+        type: string
+        default: ap-southeast-2
+        description: |
+          the AWS region to auth with.
+          e.g: ap-southeast-2
+      role-to-assume:
+        type: string
+        required: true
+        description: |
+          the AWS ARN for a role to assume.
+          e.g: arn:aws:iam::ACCOUNT:role/MY_ROLE
+      role-duration-seconds:
+        type: number
+        default: 600
+        description: |
+          the duration of seconds for the auth to last for
+      source-container-images:
+        type: string
+        required: true
+        description: |
+          a comma separated list for a container images to copy to ECR.
+          e.g: ghcr.io/geonet/lasso/dart-alert@sha256:491fcc3178953c6de91efe44967f5404ad38168679eff4a0754f8c15c45de268,ghcr.io/geonet/monitor/jasper-datadogd@sha256:21659e6824528afb031f0fe9f38e30d00602384028d3383c0700b55eb8ecaa0a,ghcr.io/geonet/base-images/mkdocs_plus@sha256:6d9907121f6968f9d097089522209f0399bd6e5909576a087c0105f5fd34552c
+      destination-ecr-image-repo:
+        type: string
+        required: true
+        description: |
+          an ECR for container images to be copied to
+          e.g: 862640294325.dkr.ecr.ap-southeast-2.amazonaws.com
+      destination-ecr-image-tag:
+        type: string
+        required: true
+        description: |
+          the tag to push the container image to. Commonly set as the commit where the image came from, at least for ECS
+      registryOverride:
+        required: false
+        type: string
+        description: |
+          a container registry to use instead of ghcr.io.
+          e.g:
+            - quay.io
+            - registry.gitlab.com/somecoolproject
+            - ghcr.io/somecoolproject/thing
+jobs:
+  deploy:
+    needs: build
+    if: ${{ inputs.condition }}
+    runs-on: ubuntu-latest
+    steps:
+      - if: ${{ startsWith(github.repository, 'GeoNet/') == false }}
+        run: |
+          exit 1
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+      - uses: GeoNet/setup-crane@00c9e93efa4e1138c9a7a5c594acd6c75a2fbf0c # main
+      - id: run-info
+        env:
+          DOCKER_REPO: ghcr.io/${{ github.repository }}
+        run: |
+          echo "role-session-name=$(echo github-actions-${{ github.repository }}-${{ github.run_id }}-${{ github.job }} | tr '[:upper:]' '[:lower:]' | sed 's/\//-/g')" >> $GITHUB_OUTPUT
+          if [ -n "${{ inputs.registryOverride }}" ]; then
+            DOCKER_REPO="${{ inputs.registryOverride }}"
+          fi
+          echo "docker-repo=${DOCKER_REPO,,}" >> $GITHUB_OUTPUT
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@2b225b5275d2d624ea40ffd55ecd0bae1d98845f # v2.0.0
+        with:
+          aws-region: ${{ inputs.aws-region }}
+          role-to-assume: ${{ inputs.role-to-assume }}
+          role-duration-seconds: ${{ inputs.role-duration-seconds }}
+          role-session-name: ${{ steps.run-info.outputs.role-session-name }}
+      - name: copy image to ECR
+        env:
+          SOURCE: ${{ steps.run-info.outputs.docker-repo }}
+          IMAGES: ${{ inputs.source-container-images }}
+          DESTINATION: ${{ inputs.destination-ecr-image-repo }}
+          TAG: ${{ inputs.destination-ecr-image-tag }}
+        run: |
+          for IMAGE in $(echo "$IMAGES" | tr ',' ' '); do
+            NAME="$(echo $IMAGE | sed 's,.*/\(.*\)\(:\)\?\(.*\)\?\(@sha256:\).*,\1,g')"
+            crane cp "$IMAGE" "$DESTINATION/$NAME:latest"
+            crane cp "$IMAGE" "$DESTINATION/$NAME:$TAG"
+          done
