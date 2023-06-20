@@ -1,0 +1,7 @@
+name: presubmit GitHub Actions workflow validator
+on:
+  pull_request: {}
+  workflow_dispatch: {}
+jobs:
+  presubmit-github-actions-workflow-validator:
+    uses: GeoNet/Actions/.github/workflows/reusable-presubmit-github-actions-workflow-validator.yml@main

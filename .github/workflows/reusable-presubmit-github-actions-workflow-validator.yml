@@ -1,0 +1,27 @@
+name: reusable-presubmit-github-actions-workflow-validator
+on:
+  workflow_call: {}
+  workflow_dispatch: {}
+jobs:
+  validate-github-actions:
+    runs-on: ubuntu-latest
+    steps:
+      - if: ${{ startsWith(github.repository, 'GeoNet/') == false }}
+        run: |
+          exit 1
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      - name: download schema
+        run: |
+          curl -sSL https://json.schemastore.org/github-workflow.json -o /tmp/github-workflow-schema.json
+      - name: validate actions
+        env:
+          VERSION_JSONSCHEMA: df30d55b699bcc4c63d43a131017799715c1ae1a # v5.3.0
+        run: |
+          FAILURES=false
+          for WORKFLOW in $(find .github/workflows -type f | sort); do
+            echo "validating '$WORKFLOW'"
+            go run "github.com/santhosh-tekuri/jsonschema/cmd/jv@$VERSION_JSONSCHEMA" -- /tmp/github-workflow-schema.json "$WORKFLOW" || FAILURES=true
+          done
+          if [ "$FAILURES" = true ]; then
+            exit 1
+          fi

@@ -27,6 +27,7 @@
     - [Go apps](#go-apps)
     - [Bash shellcheck](#bash-shellcheck)
     - [Presubmit README table of contents](#presubmit-readme-table-of-contents)
+    - [Presubmit GitHub Actions workflow validator](#presubmit-github-actions-workflow-validator)
   - [Other documentation](#other-documentation)
     - [Container image signing](#container-image-signing)
     - [Versioning for container images](#versioning-for-container-images)
@@ -666,6 +667,20 @@ on:
 jobs:
   presubmit-readme-toc:
     uses: GeoNet/Actions/.github/workflows/reusable-presubmit-readme-toc.yml@main
+```
+
+### Presubmit GitHub Actions workflow validator
+
+A workflow to validate all the workflows in the repo
+
+```yaml
+name: presubmit GitHub Actions workflow validator
+on:
+  pull_request: {}
+  workflow_dispatch: {}
+jobs:
+  presubmit-github-actions-workflow-validator:
+    uses: GeoNet/Actions/.github/workflows/reusable-presubmit-github-actions-workflow-validator.yml@main
 ```
 
 ## Other documentation
