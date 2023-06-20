@@ -80,4 +80,4 @@ jobs:
       - name: image result
         id: result
         run: |
-          echo "Build, pushed and signed: $(echo ${{ steps.build.outputs.images }} | tr ',' ' ')"
+          echo -e "Built, pushed and signed:\n\n$(echo ${{ steps.build.outputs.images }} | sed 's/,/\n/g' | sed 's/^/- /g')"

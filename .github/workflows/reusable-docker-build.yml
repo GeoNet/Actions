@@ -163,4 +163,4 @@ jobs:
         if: ${{ inputs.push }}
         id: result
         run: |
-          echo "Build, pushed and signed: ${{ steps.image.outputs.image }}"
+          echo -e "Built, pushed and signed:\n\n$(echo ${{ steps.image.outputs.image }} | sed 's/,/\n/g' | sed 's/^/- /g')"
