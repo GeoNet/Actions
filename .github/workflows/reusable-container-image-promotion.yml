@@ -64,7 +64,7 @@ jobs:
     if: ${{ contains(fromJSON('["workflow_call", "push", "schedule"]'), github.event_name) }}
     env:
       TRANSFORM_EXPRESSION: |
-        .[] | . as $version | .name as $name | .dmap | keys | .[] | . as $digest | $version.dmap[$digest] as $tags | $tags[] | {"name": $name, "digest":$digest, "tag":.}
+        .[] | . as $version | .name as $name | .dmap | keys | .[] | . as $digest | $version.dmap[$digest] as $tags | $tags[] | {"name": $name, "digest":$digest, "tag":.} | {"include":.}
     outputs:
       matrix: ${{ steps.set.outputs.matrix }}
     steps:
@@ -88,8 +88,7 @@ jobs:
     needs: prepare
     runs-on: ubuntu-latest
     strategy:
-      matrix:
-        include: ${{ fromJSON(needs.prepare.outputs.matrix) }}
+      matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
     steps:
       - if: ${{ startsWith(github.repository, 'GeoNet/') == false }}
         run: |
