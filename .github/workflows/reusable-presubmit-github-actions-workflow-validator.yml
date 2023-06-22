@@ -1,5 +1,6 @@
 name: reusable-presubmit-github-actions-workflow-validator
 on:
+  pull_request: {}
   workflow_call: {}
   workflow_dispatch: {}
 jobs:
