@@ -24,16 +24,16 @@ jobs:
       - uses: GeoNet/yq@bbe305500687a5fe8498d74883c17f0f06431ac4 # master
       - id: set
         run: |
-          echo "matrix=$(echo ${{ inputs.imageRefs }} | tr ',' ' ' | yq 'split(" ")|.[]|{"target":.}' -ojson | jq -rcM -s .)" >> $GITHUB_OUTPUT
+          echo "matrix=$(echo ${{ inputs.imageRefs }} | tr ',' ' ' | yq 'split(" ")|.[]|{"target":.}' -ojson | jq -rcM -s {"include":.})" >> $GITHUB_OUTPUT
       - name: check output
         run: |
           jq . <<< '${{ steps.set.outputs.matrix }}'
   scan:
     needs: prepare
     runs-on: ubuntu-latest
+    if: ${{ needs.prepare.outputs.matrix }}
     strategy:
-      matrix:
-        include: ${{ fromJSON(needs.prepare.outputs.matrix) }}
+      matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
       - uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v4.0.1
@@ -73,16 +73,16 @@ jobs:
           TRIVY_USERNAME: ${{ github.actor }}
           TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
         with:
-          image-ref: '${{ fromJSON(toJSON(matrix)).target }}'
-          format: 'sarif'
-          output: 'trivy-results.sarif'
+          image-ref: "${{ fromJSON(toJSON(matrix)).target }}"
+          format: "sarif"
+          output: "trivy-results.sarif"
           # format: 'table'
-          exit-code: '1'
+          exit-code: "1"
           ignore-unfixed: true
-          vuln-type: 'os,library'
-          severity: 'CRITICAL,HIGH'
+          vuln-type: "os,library"
+          severity: "CRITICAL,HIGH"
       - name: Upload Trivy scan results to GitHub Security tab
         if: ${{ steps.get-digests.outputs.destination != null }}
         uses: github/codeql-action/upload-sarif@1245696032ecf7d39f87d54daa406e22ddf769a8 # codeql-bundle-20230524
         with:
-          sarif_file: 'trivy-results.sarif'
+          sarif_file: "trivy-results.sarif"
