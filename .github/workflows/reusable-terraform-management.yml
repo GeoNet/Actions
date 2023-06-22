@@ -15,7 +15,7 @@ on:
           when this is set to true, it will use `terraform apply -auto-approve` to apply without prompt when on main.
     secrets:
       TF_API_TOKEN:
-        required: true
+        required: false
 jobs:
   tflint:
     name: tflint
@@ -24,8 +24,7 @@ jobs:
       - if: ${{ startsWith(github.repository, 'GeoNet/') == false }}
         run: |
           exit 1
-      - name: Checkout
-        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
       - uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # v3.3.1
         name: Cache plugin dir
         with:
@@ -48,8 +47,7 @@ jobs:
       - if: ${{ startsWith(github.repository, 'GeoNet/') == false }}
         run: |
           exit 1
-      - name: Checkout
-        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
       - name: tfsec
         uses: aquasecurity/tfsec-action@b466648d6e39e7c75324f25d83891162a721f2d6 # v1.0.3
         with:
@@ -61,8 +59,17 @@ jobs:
       - if: ${{ startsWith(github.repository, 'GeoNet/') == false }}
         run: |
           exit 1
-      - name: Checkout
-        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      - name: check for access token
+        env:
+          TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+          VALIDATE_ONLY: ${{ inputs.validateOnly }}
+          ALLOW_APPLY: ${{ inputs.allowApply }}
+        run: |
+          if [ -z "$TF_API_TOKEN" ] && ( [ ! "$VALIDATE_ONLY" = "true" ] || [ "$ALLOW_APPLY" = "true" ] ); then
+            echo "echo TF_API_TOKEN value must be set" >/dev/stderr
+            exit 1
+          fi
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@633666f66e0061ca3b725c73b2ec20cd13a8fdd1 # v2.0.3
         with:
