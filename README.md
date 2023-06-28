@@ -21,6 +21,7 @@
     - [Go test](#go-test)
     - [Go vulnerability check](#go-vulnerability-check)
     - [Go build smoke test](#go-build-smoke-test)
+    - [goimports](#goimports)
     - [Presubmit commit policy conformance](#presubmit-commit-policy-conformance)
     - [Stale submission](#stale-submission)
     - [Go container apps](#go-container-apps)
@@ -462,6 +463,21 @@ jobs:
 ```
 
 for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-go-build-smoke-test.yml](.github/workflows/reusable-go-build-smoke-test.yml).
+
+### goimports
+
+Run `goimports` against the codebase
+
+```yaml
+name: goimports
+on:
+  push: {}
+  pull_request: {}
+  workflow_dispatch: {}
+jobs:
+  goimports:
+    uses: GeoNet/Actions/.github/workflows/reusable-goimports.yml@main
+```
 
 ### Presubmit commit policy conformance
 

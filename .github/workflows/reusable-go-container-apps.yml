@@ -113,6 +113,9 @@ jobs:
   govulncheck:
     if: ${{ contains(fromJSON('["workflow_call", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
     uses: GeoNet/Actions/.github/workflows/reusable-govulncheck.yml@main
+  goimports:
+    if: ${{ contains(fromJSON('["workflow_call", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
+    uses: GeoNet/Actions/.github/workflows/reusable-goimports.yml@main
   image-promotion-in-config-on-release:
     needs: build
     if: ${{ contains(fromJSON('["workflow_call", "release"]'), github.event_name) && inputs.imagePromotionConfigLiteral == null && startsWith(github.repository, 'GeoNet/') != false }}

@@ -35,6 +35,9 @@ jobs:
   govulncheck:
     if: ${{ contains(fromJSON('["workflow_call", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
     uses: GeoNet/Actions/.github/workflows/reusable-govulncheck.yml@main
+  goimports:
+    if: ${{ contains(fromJSON('["workflow_call", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
+    uses: GeoNet/Actions/.github/workflows/reusable-goimports.yml@main
   update-go-version:
     if: ${{ contains(fromJSON('["workflow_call", "schedule"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
     uses: GeoNet/Actions/.github/workflows/reusable-update-go-version.yml@main

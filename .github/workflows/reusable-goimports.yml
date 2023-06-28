@@ -1,0 +1,31 @@
+name: reusable goimports
+on:
+  workflow_call: {}
+jobs:
+  goimports:
+    runs-on: ubuntu-latest
+    steps:
+      - if: ${{ startsWith(github.repository, 'GeoNet/') == false }}
+        run: |
+          exit 1
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      - uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v4.0.1
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+          check-latest: true
+      - name: goimports
+        id: goimports
+        run: |
+          go install golang.org/x/tools/cmd/goimports@latest
+          find . -type f -name '*.go' -not -path './vendor/*' | xargs -I{} goimports -w {}
+      - name: determine changes
+        id: determine-changes
+        run: |
+          if git diff --name-only --diff-filter=ACMRT | grep -E '(.*).go$'; then
+            echo "changes=true" >> $GITHUB_OUTPUT
+          fi
+      - name: fail on changes
+        if: ${{ steps.determine-changes.outputs.changes == 'true' }}
+        run: |
+          exit 1
