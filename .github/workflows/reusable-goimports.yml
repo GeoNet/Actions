@@ -28,4 +28,6 @@ jobs:
       - name: fail on changes
         if: ${{ steps.determine-changes.outputs.changes == 'true' }}
         run: |
+          echo "changes detected" >/dev/stderr
+          echo "Please run 'find . -type f -name '*.go' -not -path './vendor/*' | xargs -I{} goimports -w {}' and commit again."
           exit 1
