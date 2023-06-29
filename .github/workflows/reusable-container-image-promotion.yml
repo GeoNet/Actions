@@ -64,7 +64,7 @@ jobs:
     if: ${{ contains(fromJSON('["workflow_call", "push", "schedule"]'), github.event_name) }}
     env:
       TRANSFORM_EXPRESSION: |
-        .[] | . as $version | .name as $name | .dmap | keys | .[] | . as $digest | $version.dmap[$digest] as $tags | $tags[] | {"name": $name, "digest":$digest, "tag":.} | {"include":.}
+        .[] | . as $version | .name as $name | .dmap | keys | .[] | . as $digest | $version.dmap[$digest] as $tags | $tags[] | {"name": $name, "digest":$digest, "tag":.}
     outputs:
       matrix: ${{ steps.set.outputs.matrix }}
     steps:
@@ -76,9 +76,9 @@ jobs:
       - id: set
         run: |
           if [ -n "${{ inputs.configLiteral }}" ]; then
-            echo "matrix=$(jq -rcMs <<< "$(yq e --expression "$TRANSFORM_EXPRESSION" -P -o json <<< $(echo -e '${{ inputs.configLiteral }}'))")" >> $GITHUB_OUTPUT
+            echo "matrix=$(jq -rcMs '{"include":.}' <<< "$(yq e --expression "$TRANSFORM_EXPRESSION" -P -o json <<< $(echo -e '${{ inputs.configLiteral }}'))")" >> $GITHUB_OUTPUT
           else
-            echo "matrix=$(jq -rcMs <<< "$(yq e --expression "$TRANSFORM_EXPRESSION" -P ${{ inputs.configPath }} -o json)")" >> $GITHUB_OUTPUT
+            echo "matrix=$(jq -rcMs '{"include":.}' <<< "$(yq e --expression "$TRANSFORM_EXPRESSION" -P ${{ inputs.configPath }} -o json)")" >> $GITHUB_OUTPUT
           fi
       - name: check output
         run: |
