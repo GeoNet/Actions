@@ -1,0 +1,151 @@
+name: reusable copy to s3
+on:
+  workflow_call:
+    inputs:
+      aws-region:
+        type: string
+        default: ap-southeast-2
+        required: false
+        description: |
+          the AWS region to use; e.g ap-southeast-2
+      aws-role-arn-to-assume:
+        type: string
+        required: true
+        description: |
+          an AWS role ARN to assume.
+          e.g: arn:aws:iam::ACCOUNT_ID:role/github-actions-ROLE_NAME
+      aws-role-duration-seconds:
+        type: string
+        required: true
+        description: |
+          the amount of seconds to hold a session open for.
+      aws-role-session-name:
+        type: string
+        required: false
+        description: |
+          the name of the session to use for AssumeRole(WithWebIdentity)
+      cp-or-sync:
+        type: string
+        default: sync
+        required: false
+        description: |
+          the command to use, whether cp (copy) or sync
+      direction:
+        type: string
+        default: to
+        required: true
+        description: |
+          the direction to copy, whether from or to
+      artifact-name:
+        type: string
+        required: true
+        description: |
+          the name of the GitHub Actions artifact to download
+      artifact-path:
+        type: string
+        required: true
+        description: |
+          the path in the GitHub Actions artifact to download
+      s3-bucket:
+        type: string
+        required: true
+        description: |
+          the AWS S3 bucket to use
+jobs:
+  copy-to-s3:
+    runs-on: ubuntu-latest
+    steps:
+      - if: ${{ startsWith(github.repository, 'GeoNet/') == false }}
+        run: |
+          exit 1
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+      - name: get session name
+        id: get-session-name
+        env:
+          REPO: ${{ github.repository }}
+          AWS_ROLE_SESSION_NAME: ${{ inputs.aws-role-session-name }}
+          DIRECTION: ${{ inputs.direction }}
+        run: |
+          SESSION_NAME="$(echo "github-actions-$DIRECTION-$REPO" | sed 's,/,--,g' | tr '[[:upper:]]' '[[:lower:]]')"
+          if [ -n "$AWS_ROLE_SESSION_NAME" ]; then
+            SESSION_NAME="$AWS_ROLE_SESSION_NAME"
+          fi
+          echo "session-name=$SESSION_NAME" >> $GITHUB_OUTPUT
+      - name: validate
+        env:
+          REGEXP_S3_BUCKET: ^s3://[a-z0-9_/.-]+$
+          CP_OR_SYNC: ${{ inputs.cp-or-sync }}
+          S3_BUCKET: ${{ inputs.s3-bucket }}
+          DIRECTION: ${{ inputs.direction }}
+        run: |
+          ERRORS=false
+          if ! echo "$CP_OR_SYNC" | grep -q -E '^(cp|sync)$'; then
+            echo "error: command must be either 'cp' or 'sync'" >/dev/stderr
+            ERRORS=true
+          fi
+          # tested with
+          #   for BUCKET in $(aws-vault exec prod -- aws s3 ls | awk '{print "s3://" $3}'); do echo $BUCKET | grep -q -E $REGEXP_S3_BUCKET || echo "INVALID BUCKET $BUCKET"; done
+          if ! echo "$S3_BUCKET" | grep -q -E "$REGEXP_S3_BUCKET"; then
+            echo "error: not valid s3 bucket URI '$S3_BUCKET'" >/dev/stderr
+            ERRORS=true
+          fi
+          if ! echo "$DIRECTION" | grep -q -E '^(from|to)$'; then
+            echo "error: command must be either 'from' or 'to'" >/dev/stderr
+            ERRORS=true
+          fi
+          if [ "$ERRORS" = true ]; then
+            exit 1
+          fi
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        if: ${{ inputs.direction == 'to' }}
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: ${{ inputs.artifact-path }}
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@2b225b5275d2d624ea40ffd55ecd0bae1d98845f # v2.0.0
+        with:
+          aws-region: ${{ inputs.aws-region }}
+          role-to-assume: ${{ inputs.aws-role-arn-to-assume }}
+          role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
+          role-session-name: ${{ steps.get-session-name.outputs.session-name }}
+      - name: copy or sync
+        env:
+          CP_OR_SYNC: ${{ inputs.cp-or-sync }}
+          LOCAL_SOURCE_DIR: ${{ inputs.artifact-path }}
+          S3_BUCKET: ${{ inputs.s3-bucket }}
+          DIRECTION: ${{ inputs.direction }}
+        run: |
+          ARGS=()
+          case "$CP_OR_SYNC" in
+            cp)
+              ARGS+=(--recursive)
+            ;;
+            sync)
+
+            ;;
+            *)
+              echo "Yer CI be propper haunted eh matey?"
+          esac
+          case "$DIRECTION" in
+            from)
+              echo "Copying from '$S3_BUCKET' to '$LOCAL_SOURCE_DIR'"
+              ARGS+=("$S3_BUCKET" "$LOCAL_SOURCE_DIR")
+              ;;
+
+            to)
+              echo "Copying from '$LOCAL_SOURCE_DIR' to '$S3_BUCKET'"
+              ARGS+=("$LOCAL_SOURCE_DIR" "$S3_BUCKET")
+              ;;
+
+            *)
+              echo "*ghostly ooooohhhh* this is the ghost of GitHub actions *ghostly ooooohhh*"
+              echo "how did you geeeettt heereeee???"
+              echo "*ghostly oooooohhh*"
+          esac
+          aws s3 "$CP_OR_SYNC" "${ARGS[@]}"
+      - uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        if: ${{ inputs.direction == 'from' }}
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: ${{ inputs.artifact-path }}
+          retention-days: 1

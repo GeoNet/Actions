@@ -29,6 +29,7 @@
     - [Bash shellcheck](#bash-shellcheck)
     - [Presubmit README table of contents](#presubmit-readme-table-of-contents)
     - [Presubmit GitHub Actions workflow validator](#presubmit-github-actions-workflow-validator)
+    - [Copy to S3](#copy-to-s3)
   - [Other documentation](#other-documentation)
     - [Container image signing](#container-image-signing)
     - [Versioning for container images](#versioning-for-container-images)
@@ -698,6 +699,84 @@ jobs:
   presubmit-github-actions-workflow-validator:
     uses: GeoNet/Actions/.github/workflows/reusable-presubmit-github-actions-workflow-validator.yml@main
 ```
+
+### Copy to S3
+
+A workflow to copy or sync a local directory to an S3 bucket
+
+```yaml
+name: copy to s3
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: {}
+permissions:
+  id-token: write
+  contents: read
+jobs:
+  copy-to-s3:
+    uses: GeoNet/Actions/.github/workflows/reusable-copy-to-s3.yml@main
+    with:
+      aws-region: ap-southeast-2
+      aws-role-arn-to-assume: arn:aws:iam::ACCOUNT_ID:role/github-actions-ROLE_NAME
+      aws-role-duration-seconds: 3600
+      # aws-role-session-name:
+      local-source-dir: ./result/
+      destination-s3-bucket: s3://some-really-really-cool-s3-bucket
+      cp-or-sync: sync # 'cp' or 'sync'
+      direction: to # 'to' or 'from'
+```
+
+it is also chainable with other jobs
+
+```yaml
+name: copy to s3
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: {}
+permissions:
+  id-token: write
+  contents: read
+jobs:
+  generate-cool-numbers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+      - name: generate
+        run: |
+          mkdir -p ./outputs/
+          echo "$RANDOM" >> ./outputs/1.txt
+          echo "$RANDOM" >> ./outputs/1.txt
+          echo "$RANDOM" >> ./outputs/1.txt
+          echo "$RANDOM" >> ./outputs/1.txt
+          echo "$RANDOM" >> ./outputs/2.txt
+          echo "$RANDOM" >> ./outputs/2.txt
+          echo "$RANDOM" >> ./outputs/2.txt
+          echo "$RANDOM" >> ./outputs/2.txt
+      - name: upload the cool numbers
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        with:
+          name: cool-numbers
+          path: ./outputs/**
+  copy-to-s3:
+    needs: generate-cool-numbers
+    uses: GeoNet/Actions/.github/workflows/reusable-copy-to-s3.yml@main
+    with:
+      aws-region: ap-southeast-2
+      aws-role-arn-to-assume: arn:aws:iam::ACCOUNT_ID:role/github-actions-ROLE_NAME
+      aws-role-duration-seconds: 3600
+      # aws-role-session-name:
+      artifact-name: cool-numbers
+      artifact-path: ./output
+      destination-s3-bucket: s3://some-really-really-cool-s3-bucket
+      cp-or-sync: sync # 'cp' or 'sync'
+      direction: to # 'to' or 'from'
+```
+
+for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-copy-to-s3.yml](.github/workflows/reusable-copy-to-s3.yml).
 
 ## Other documentation
 
