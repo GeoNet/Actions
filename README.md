@@ -776,6 +776,43 @@ jobs:
       direction: to # 'to' or 'from'
 ```
 
+or copying from S3
+
+``` yaml
+name: copy from s3
+on:
+  workflow_dispatch: {}
+permissions:
+  id-token: write
+  contents: read
+jobs:
+  copy-from-s3:
+    uses: GeoNet/Actions/.github/workflows/reusable-copy-to-s3.yml@main
+    with:
+      aws-region: ap-southeast-2
+      aws-role-arn-to-assume: arn:aws:iam::ACCOUNT_ID:role/github-actions-ROLE_NAME
+      aws-role-duration-seconds: 3600
+      # aws-role-session-name:
+      artifact-name: cool-numbers
+      artifact-path: ./output
+      s3-bucket: s3://some-really-really-cool-s3-bucket
+      cp-or-sync: sync # 'cp' or 'sync'
+      direction: from # 'to' or 'from'
+  check-out-the-cool-numbers:
+    needs: copy-from-s3
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        with:
+          name: cool-numbers
+          path: ./output
+      - run: |
+          tree ./output/
+```
+
+GitHub Actions artifacts are used to bring state between jobs, this is not possible in any other known way.
+
 for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-copy-to-s3.yml](.github/workflows/reusable-copy-to-s3.yml).
 
 ## Other documentation
