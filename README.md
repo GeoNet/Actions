@@ -161,13 +161,47 @@ jobs:
     strategy:
       matrix:
         include: ${{ fromJSON(needs.prepare.outputs.matrix) }}
-    uses: GeoNet/Actions/.github/workflows/reusable-build.yml@main
+    uses: GeoNet/Actions/.github/workflows/reusable-docker-build.yml@main
     with:
       context: apps/${{ fromJSON(toJSON(matrix)).target }}
       dockerfile: apps/${{ fromJSON(toJSON(matrix)).target }}/Dockerfile
       imageName: ${{ fromJSON(toJSON(matrix)).target }}
       platforms: 'linux/amd64,linux/arm64'
 ```
+
+Pushing to ECR example:
+
+```yaml
+name: build
+
+on:
+  push: {}
+  release:
+    types: [published]
+  workflow_dispatch: {}
+
+permissions:
+  packages: write
+  contents: write
+  pull-requests: write
+  id-token: write
+
+jobs:
+  build:
+    uses: GeoNet/Actions/.github/workflows/reusable-docker-build.yml@main
+    with:
+      context: .
+      dockerfile: ./Dockerfile
+      imageName: cool
+      platforms: 'linux/amd64,linux/arm64'
+      push: ${{ github.ref_name == 'main' }}
+      registryOverride: $ACCOUNT.dkr.ecr.$REGION.amazonaws.com
+      aws-region: ap-southeast-2
+      aws-role-arn-to-assume: arn:aws:iam::$ACCOUNT:role/$ROLE_NAME
+      aws-role-duration-seconds: "3600"
+```
+
+note: $registryOverride + '/' + $imageName must be an existing ECR
 
 for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-docker-build.yml](.github/workflows/reusable-docker-build.yml).
 
