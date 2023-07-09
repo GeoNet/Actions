@@ -17,6 +17,12 @@ on:
         description: |
           the Go entrypoint paths for applications, where there they have `package main`
           e.g: ./cmd/thing1 ./cmd/thing2
+      push:
+        required: false
+        default: ${{ github.ref = 'refs/heads/main' }}
+        type: boolean
+        description: |
+          set to true to push an image to a registry. When set to false, it will build and exit
     outputs:
       images:
         value: ${{ jobs.build.outputs.images }}
@@ -64,10 +70,12 @@ jobs:
         env:
           KO_DOCKER_REPO: ${{ steps.run-info.outputs.ko-docker-repo }}
           IMAGES_PATH: ${{ steps.run-info.outputs.paths }}
+          PUSH: ${{ inputs.push }}
         run: |
-          IMAGES="$(ko build --base-import-paths $IMAGES_PATH)"
+          IMAGES="$(ko build --push=$PUSH --base-import-paths $IMAGES_PATH)"
           echo "images=$(echo $IMAGES | tr ' ' ',')" >> $GITHUB_OUTPUT
       - id: sign-images-and-attest-sbom
+        if: ${{ inputs.push }}
         env:
           COSIGN_YES: "true"
           IMAGE: ${{ steps.build.outputs.images }}
@@ -78,6 +86,7 @@ jobs:
             cosign attest --predicate /tmp/sbom-spdx.json $IMAGE -y --recursive
           done
       - name: image result
+        if: ${{ inputs.push }}
         id: result
         run: |
           echo -e "Built, pushed and signed:\n\n$(echo ${{ steps.build.outputs.images }} | sed 's/,/\n/g' | sed 's/^/- /g')"
