@@ -160,7 +160,7 @@ jobs:
           echo "session-name=$SESSION_NAME" >> $GITHUB_OUTPUT
       - name: Configure AWS Credentials
         if: ${{ inputs.push && inputs.aws-region != '' && inputs.aws-role-arn-to-assume != '' && inputs.aws-role-duration-seconds != '' && steps.get-session-name.outputs.session-name != '' && inputs.registryOverride != '' }}
-        uses: aws-actions/configure-aws-credentials@2b225b5275d2d624ea40ffd55ecd0bae1d98845f # v2.0.0
+        uses: aws-actions/configure-aws-credentials@5fd3084fc36e372ff1fff382a39b10d03659f355 # v2.2.0
         with:
           aws-region: ${{ inputs.aws-region }}
           role-to-assume: ${{ inputs.aws-role-arn-to-assume }}
