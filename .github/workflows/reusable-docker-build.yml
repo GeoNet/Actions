@@ -159,7 +159,7 @@ jobs:
           fi
           echo "session-name=$SESSION_NAME" >> $GITHUB_OUTPUT
       - name: Configure AWS Credentials
-        if: ${{ inputs.aws-region != '' && inputs.aws-role-arn-to-assume != '' && inputs.aws-role-duration-seconds != '' && steps.get-session-name.outputs.session-name != '' && inputs.registryOverride != '' }}
+        if: ${{ inputs.push && inputs.aws-region != '' && inputs.aws-role-arn-to-assume != '' && inputs.aws-role-duration-seconds != '' && steps.get-session-name.outputs.session-name != '' && inputs.registryOverride != '' }}
         uses: aws-actions/configure-aws-credentials@2b225b5275d2d624ea40ffd55ecd0bae1d98845f # v2.0.0
         with:
           aws-region: ${{ inputs.aws-region }}
@@ -167,7 +167,7 @@ jobs:
           role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
           role-session-name: ${{ steps.get-session-name.outputs.session-name }}
       - name: login to ECR
-        if: ${{ inputs.aws-region != '' && inputs.aws-role-arn-to-assume != '' && inputs.aws-role-duration-seconds != '' && steps.get-session-name.outputs.session-name != '' }}
+        if: ${{ inputs.push && inputs.aws-region != '' && inputs.aws-role-arn-to-assume != '' && inputs.aws-role-duration-seconds != '' && steps.get-session-name.outputs.session-name != '' }}
         run: |
           aws ecr get-login-password --region ${{ inputs.aws-region }} | crane auth login ${{ inputs.registryOverride }} -u AWS --password-stdin
       - name: Build and push
