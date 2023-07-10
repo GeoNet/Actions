@@ -159,15 +159,15 @@ jobs:
           fi
           echo "session-name=$SESSION_NAME" >> $GITHUB_OUTPUT
       - name: Configure AWS Credentials
-        if: ${{ inputs.push && inputs.aws-region != '' && inputs.aws-role-arn-to-assume != '' && inputs.aws-role-duration-seconds != '' && steps.get-session-name.outputs.session-name != '' && inputs.registryOverride != '' }}
-        uses: aws-actions/configure-aws-credentials@5fd3084fc36e372ff1fff382a39b10d03659f355 # v2.2.0
+        if: ${{ inputs.push == true && inputs.aws-region != '' && inputs.aws-role-arn-to-assume != '' && inputs.aws-role-duration-seconds != '' && steps.get-session-name.outputs.session-name != '' && inputs.registryOverride != '' }}
+        uses: aws-actions/configure-aws-credentials@2b225b5275d2d624ea40ffd55ecd0bae1d98845f # v2.0.0
         with:
           aws-region: ${{ inputs.aws-region }}
           role-to-assume: ${{ inputs.aws-role-arn-to-assume }}
           role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
           role-session-name: ${{ steps.get-session-name.outputs.session-name }}
       - name: login to ECR
-        if: ${{ inputs.push && inputs.aws-region != '' && inputs.aws-role-arn-to-assume != '' && inputs.aws-role-duration-seconds != '' && steps.get-session-name.outputs.session-name != '' }}
+        if: ${{ inputs.push == true && inputs.aws-region != '' && inputs.aws-role-arn-to-assume != '' && inputs.aws-role-duration-seconds != '' && steps.get-session-name.outputs.session-name != '' }}
         run: |
           aws ecr get-login-password --region ${{ inputs.aws-region }} | crane auth login ${{ inputs.registryOverride }} -u AWS --password-stdin
       - name: Build and push
@@ -186,7 +186,7 @@ jobs:
             org.opencontainers.image.source=${{ github.repositoryUrl }}
       - name: get-digests
         id: get-digests
-        if: ${{ inputs.push }}
+        if: ${{ inputs.push == true }}
         env:
           DESTINATION: ${{ steps.run-info.outputs.image }}@${{ steps.build.outputs.digest }}
         run: |
@@ -197,30 +197,30 @@ jobs:
           ) | column -t
           echo "destination=${DESTINATION_DIGEST}" >> $GITHUB_OUTPUT
       - name: Sign image
-        if: ${{ inputs.push }}
+        if: ${{ inputs.push == true }}
         env:
           COSIGN_YES: "true"
         run: |
           cosign sign ${{ steps.run-info.outputs.image }}@${{ steps.get-digests.outputs.destination }} -y --recursive
       - uses: anchore/sbom-action@78fc58e266e87a38d4194b2137a3d4e9bcaf7ca1 # v0.14.3
-        if: ${{ inputs.push }}
+        if: ${{ inputs.push == true }}
         with:
           image: ${{ steps.run-info.outputs.image }}@${{ steps.get-digests.outputs.destination }}
           artifact-name: sbom-spdx.json
           output-file: /tmp/sbom-spdx.json
       - name: publish sbom blob as blob
-        if: ${{ inputs.push }}
+        if: ${{ inputs.push == true }}
         env:
           COSIGN_YES: "true"
         run: |
           cosign attest --predicate /tmp/sbom-spdx.json ${{ steps.run-info.outputs.image }}@${{ steps.get-digests.outputs.destination }} --recursive
       - name: image
-        if: ${{ inputs.push }}
+        if: ${{ inputs.push == true }}
         id: image
         run: |
           echo "image=${{ steps.run-info.outputs.image }}@${{ steps.get-digests.outputs.destination }}" >> $GITHUB_OUTPUT
       - name: image result
-        if: ${{ inputs.push }}
+        if: ${{ inputs.push == true }}
         id: result
         run: |
           echo -e "Built, pushed and signed:\n\n$(echo ${{ steps.image.outputs.image }} | sed 's/,/\n/g' | sed 's/^/- /g')"
