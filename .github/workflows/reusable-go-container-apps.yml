@@ -83,6 +83,11 @@ on:
         type: boolean
         description: |
           set to true to push an image to a registry. When set to false, it will build and exit
+      testSetup:
+        type: boolean
+        required: false
+        description: |
+          shell commands to setup the test environment
     outputs:
       images:
         value: ${{ jobs.build.outputs.images }}
@@ -113,6 +118,8 @@ jobs:
   go-test:
     if: ${{ contains(fromJSON('["workflow_call", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
     uses: GeoNet/Actions/.github/workflows/reusable-go-test.yml@main
+    with:
+      setup: ${{ inputs.testSetup }}
   go-vet:
     if: ${{ contains(fromJSON('["workflow_call", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
     uses: GeoNet/Actions/.github/workflows/reusable-go-vet.yml@main
