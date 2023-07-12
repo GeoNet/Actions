@@ -1,6 +1,12 @@
 name: reusable go test
 on:
-  workflow_call: {}
+  workflow_call:
+    inputs:
+      setup:
+        required: false
+        type: string
+        description: |
+          shell commands to setup the test environment
 jobs:
   go-test:
     runs-on: ubuntu-latest
@@ -14,6 +20,9 @@ jobs:
           go-version-file: go.mod
           cache-dependency-path: go.sum
           check-latest: true
+      - name: setup
+        run: |
+          eval '${{ inputs.setup }}'
       - name: test
         id: test
         run: |

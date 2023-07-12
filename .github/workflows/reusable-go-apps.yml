@@ -14,6 +14,11 @@ on:
         required: false
         description: |
           specifies whether to auto merge PRs for Go version updates to go.mod files
+      testSetup:
+        type: boolean
+        required: false
+        description: |
+          shell commands to setup the test environment
 jobs:
   go-build:
     if: ${{ contains(fromJSON('["workflow_call", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
@@ -29,6 +34,8 @@ jobs:
   go-test:
     if: ${{ contains(fromJSON('["workflow_call", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
     uses: GeoNet/Actions/.github/workflows/reusable-go-test.yml@main
+    with:
+      setup: ${{ inputs.testSetup }}
   go-vet:
     if: ${{ contains(fromJSON('["workflow_call", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
     uses: GeoNet/Actions/.github/workflows/reusable-go-vet.yml@main
