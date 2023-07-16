@@ -79,7 +79,7 @@ on:
           specifies whether to enable container scanning for each image built
       push:
         required: false
-        default: ${{ github.ref = 'refs/heads/main' }}
+        default: ${{ github.ref == 'refs/heads/main' }}
         type: boolean
         description: |
           set to true to push an image to a registry. When set to false, it will build and exit
