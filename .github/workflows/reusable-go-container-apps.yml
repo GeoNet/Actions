@@ -84,7 +84,7 @@ on:
         description: |
           set to true to push an image to a registry. When set to false, it will build and exit
       testSetup:
-        type: boolean
+        type: string
         required: false
         description: |
           shell commands to setup the test environment
