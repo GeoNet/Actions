@@ -1,0 +1,41 @@
+name: reusable-markdown-lint
+on:
+  workflow_call:
+    inputs:
+      ignore:
+        type: string
+        required: false
+        default: node_modules
+        description: |
+          a space separated list of directories and files to ignore
+jobs:
+  markdown-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - if: ${{ startsWith(github.repository, 'GeoNet/') == false }}
+        run: |
+          exit 1
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+      - run: |
+          IGNORE=""
+          for ITEM in ${{ inputs.ignore }}; do
+            IGNORE="$IGNORE --ignore $ITEM"
+          done
+          npm install -g markdownlint-cli@0.29.0
+          markdownlint '**/*.md' $IGNORE -c <(cat << EOF
+          {
+          "comment": "Relaxed rules",
+          "default": true,
+          "whitespace": false,
+          "line_length": false,
+          "ul-start-left": false,
+          "ul-indent": false,
+          "no-inline-html": false,
+          "no-bare-urls": false,
+          "fenced-code-language": false,
+          "first-line-h1": false,
+          "no-duplicate-header": false,
+          "no-emphasis-as-header": false,
+          "single-h1": false
+          }
+          EOF)

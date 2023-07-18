@@ -30,6 +30,7 @@
     - [Bash shellcheck](#bash-shellcheck)
     - [Presubmit README table of contents](#presubmit-readme-table-of-contents)
     - [Presubmit GitHub Actions workflow validator](#presubmit-github-actions-workflow-validator)
+    - [Markdown lint](#markdown-lint)
     - [Copy to S3](#copy-to-s3)
   - [Other documentation](#other-documentation)
     - [Container image signing](#container-image-signing)
@@ -748,6 +749,22 @@ on:
 jobs:
   presubmit-github-actions-workflow-validator:
     uses: GeoNet/Actions/.github/workflows/reusable-presubmit-github-actions-workflow-validator.yml@main
+```
+
+### Markdown lint
+
+Lints markdown files
+
+```yaml
+name: lint markdown
+on:
+  pull_request: {}
+  workflow_dispatch: {}
+jobs:
+  lint-markdown:
+    uses: GeoNet/Actions/.github/workflows/reusable-markdown-lint.yml@main
+    # with:
+    #   ignore: some-folder
 ```
 
 ### Copy to S3

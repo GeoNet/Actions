@@ -1,0 +1,7 @@
+name: lint markdown
+on:
+  pull_request: {}
+  workflow_dispatch: {}
+jobs:
+  lint-markdown:
+    uses: GeoNet/Actions/.github/workflows/reusable-markdown-lint.yml@main
