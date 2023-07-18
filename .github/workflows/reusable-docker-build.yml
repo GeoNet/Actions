@@ -81,6 +81,11 @@ on:
         required: false
         description: |
           the name of the session to use for AssumeRole(WithWebIdentity).
+      setup:
+        type: string
+        required: false
+        description: |
+          shell commands to setup the build environment
     outputs:
       image:
         value: ${{ jobs.build.outputs.image }}
@@ -124,6 +129,9 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: setup
+        run: |
+          eval '${{ inputs.setup }}'
       - id: run-info
         name: collect job run info
         env:
