@@ -1,0 +1,31 @@
+name: reusable-dockerfile-lint
+on:
+  workflow_call:
+    inputs:
+      dockerfiles:
+        type: string
+        required: false
+        description: |
+          the selected Dockerfiles to lint
+jobs:
+  dockerfile-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - if: ${{ startsWith(github.repository, 'GeoNet/') == false }}
+        run: |
+          exit 1
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+      - id: run-info
+        env:
+          INPUTS: ${{ inputs.dockerfiles }}
+        run: |
+          DOCKERFILES="$(find . -name '*Dockerfile*' -or -name '*Containerfile')"
+          if [ -n "$INPUTS" ]; then
+            DOCKERFILES="$INPUTS"
+          fi
+          echo "dockerfiles=$DOCKERFILES" >> $GITHUB_OUTPUT
+      - name: lint
+        env:
+          DOCKERFILES: ${{ steps.run-info.outputs.dockerfiles }}
+        run: |
+          docker run --rm -v "$PWD:$PWD" --workdir "$PWD" ghcr.io/geonet/base-images/hadolint/hadolint:v2.12.0-alpine hadolint $DOCKERFILES

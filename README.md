@@ -8,6 +8,7 @@
     - [Docker build](#docker-build)
       - [Docker build container image signing](#docker-build-container-image-signing)
       - [Pushing to quay.io](#pushing-to-quayio-1)
+  - [Dockerfile lint](#dockerfile-lint)
     - [Container image promotion](#container-image-promotion)
       - [Pushing to quay.io](#pushing-to-quayio-2)
     - [Container image scan](#container-image-scan)
@@ -212,6 +213,21 @@ see [container image signing](#container-image-signing).
 #### Pushing to quay.io
 
 in the target repo, set the actions secrets (repo -> Settings -> Security -> Secrets and variables -> Actions) `QUAY_USERNAME` and `QUAY_ROBOT_TOKEN`, then set the input (under `with`) for `registryOverride` to `quay.io/geonet`
+
+## Dockerfile lint
+
+```yaml
+name: dockerfile lint
+on:
+  pull_request: {}
+  workflow_dispatch: {}
+jobs:
+  dockerfile-lint:
+    uses: GeoNet/Actions/.github/workflows/reusable-dockerfile-lint.yml@main
+    with:
+    #   dockerfiles: |
+    #     ...
+```
 
 ### Container image promotion
 
