@@ -51,6 +51,7 @@ The workflows are not publicly supported and come with absolutely no warranty.
 Generic build for containerised Go applications with [Ko](https://ko.build) and signing the container images and SBOMs with [cosign](https://docs.sigstore.dev/cosign/overview/)
 
 Example:
+
 ```yaml
 name: build
 
@@ -348,6 +349,7 @@ Works great along side [reusable ko build](#ko-build).
 Trigger a `terraform plan` (and optionally `terraform apply`) against Terraform located in the repo, starting at the repo root.
 
 Example:
+
 ```yaml
 name: terraform
 
@@ -500,6 +502,7 @@ Performs `go build -o /dev/null $PATH` to ensure that the programs compile.
 Note: does not cache or push the binary artifacts anywhere.
 
 Example:
+
 ```yaml
 name: go build smoke test
 
@@ -553,6 +556,7 @@ jobs:
 
 each repo where this action is applied must contain a `.conform.yaml` in the root of the repo.
 Conform configuration examples:
+
 - https://github.com/siderolabs/talos/blob/main/.conform.yaml
 - https://github.com/siderolabs/conform/blob/main/.conform.yaml
 - https://github.com/BobyMCbobs/sample-ko-monorepo/blob/main/.conform.yaml
@@ -590,11 +594,13 @@ policies:
 ```
 
 common useful types of requirements:
+
 - commit signed
 - single commit
 - commit contains body
 
 links: 
+
 - https://github.com/siderolabs/conform
 
 ### Stale submission
@@ -617,6 +623,7 @@ jobs:
 ### Go container apps
 
 a workflow which combines the following workflows
+
 - ko-build
 - go-build-smoke-test
 - container-image-scan
@@ -669,6 +676,7 @@ for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-g
 ### Go apps
 
 a workflow which combines the following workflows
+
 - go-build-smoke-test
 - gofmt
 - golangci-lint
