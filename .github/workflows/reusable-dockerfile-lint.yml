@@ -19,7 +19,7 @@ jobs:
         env:
           INPUTS: ${{ inputs.dockerfiles }}
         run: |
-          DOCKERFILES="$(find . -name '*Dockerfile*' -or -name '*Containerfile')"
+          DOCKERFILES="$(find . -name '*Dockerfile*' -or -name '*Containerfile' | xargs | tr ' ' ',')"
           if [ -n "$INPUTS" ]; then
             DOCKERFILES="$INPUTS"
           fi
@@ -28,4 +28,5 @@ jobs:
         env:
           DOCKERFILES: ${{ steps.run-info.outputs.dockerfiles }}
         run: |
-          docker run --rm -v "$PWD:$PWD" --workdir "$PWD" ghcr.io/geonet/base-images/hadolint/hadolint:v2.12.0-alpine hadolint $DOCKERFILES
+          echo "linting: ${DOCKERFILES//,/ }"
+          docker run --rm -v "$PWD:$PWD" --workdir "$PWD" ghcr.io/geonet/base-images/hadolint/hadolint:v2.12.0-alpine hadolint ${DOCKERFILES//,/ }
