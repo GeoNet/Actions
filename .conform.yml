@@ -1,27 +1,27 @@
 policies:
-- type: commit
-  spec:
-    dco: false
-    gpg:
-      required: true
-      gitHubOrganization: GeoNet
-    spellcheck:
-      locale: US
-    maximumOfOneCommit: true
-    header:
-      length: 89
-      imperative: true
-      case: lower
-      invalidLastCharacters: .
-    body:
-      required: false
-    conventional:
-      types:
-        - chore
-        - docs
-        - perf
-        - refactor
-        - style
-        - test
-        - release
-      scopes: [".*"]
+  - type: commit
+    spec:
+      dco: false
+      gpg:
+        required: true
+        gitHubOrganization: GeoNet
+      spellcheck:
+        locale: UK
+      maximumOfOneCommit: false
+      header:
+        length: 89
+        imperative: true
+        case: lower
+        invalidLastCharacters: .
+      body:
+        required: false
+      conventional:
+        types:
+          - chore
+          - docs
+          - perf
+          - refactor
+          - style
+          - test
+          - release
+        scopes: [".*"]
