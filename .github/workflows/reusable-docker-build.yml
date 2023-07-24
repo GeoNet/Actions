@@ -66,13 +66,13 @@ on:
           the AWS region to use; e.g ap-southeast-2
       aws-role-arn-to-assume:
         type: string
-        default: "3600"
         required: false
         description: |
           an AWS role ARN to assume.
           e.g: arn:aws:iam::ACCOUNT_ID:role/github-actions-ROLE_NAME
       aws-role-duration-seconds:
         type: string
+        default: "3600"
         required: false
         description: |
           the amount of seconds to hold a session open for.
