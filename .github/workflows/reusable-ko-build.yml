@@ -19,7 +19,7 @@ on:
           e.g: ./cmd/thing1 ./cmd/thing2
       push:
         required: false
-        default: ${{ github.ref = 'refs/heads/main' }}
+        default: ${{ github.ref == 'refs/heads/main' }}
         type: boolean
         description: |
           set to true to push an image to a registry. When set to false, it will build and exit
