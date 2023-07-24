@@ -120,6 +120,8 @@ jobs:
       imageName: cool
       platforms: 'linux/amd64,linux/arm64'
       push: ${{ github.ref_name == 'main' }}
+      buildArgs: |
+        VERSION=${{ github.sha }}
 ```
 
 to add more, copy the block like `jobs.build` and replace values in next block where desired.
