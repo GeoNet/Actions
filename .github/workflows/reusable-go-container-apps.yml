@@ -88,6 +88,29 @@ on:
         required: false
         description: |
           shell commands to setup the test environment
+      aws-region:
+        type: string
+        default: ap-southeast-2
+        required: false
+        description: |
+          the AWS region to use; e.g ap-southeast-2
+      aws-role-arn-to-assume:
+        type: string
+        required: false
+        description: |
+          an AWS role ARN to assume.
+          e.g: arn:aws:iam::ACCOUNT_ID:role/github-actions-ROLE_NAME
+      aws-role-duration-seconds:
+        type: string
+        default: "3600"
+        required: false
+        description: |
+          the amount of seconds to hold a session open for.
+      aws-role-session-name:
+        type: string
+        required: false
+        description: |
+          the name of the session to use for AssumeRole(WithWebIdentity).
     outputs:
       images:
         value: ${{ jobs.build.outputs.images }}
@@ -103,6 +126,10 @@ jobs:
     with:
       registryOverride: ${{ inputs.registryOverride }}
       paths: ${{ inputs.paths }}
+      aws-region: ${{ inputs.aws-region }}
+      aws-role-arn-to-assume: ${{ inputs.aws-role-arn-to-assume }}
+      aws-role-duration-seconds: ${{ inputs.aws-role-duration-sections }}
+      aws-role-session-name: ${{ inputs.aws-role-session-name }}
   scan:
     if: ${{ contains(fromJSON('["workflow_call", "push", "release"]'), github.event_name) && inputs.containerScanningEnabled && startsWith(github.repository, 'GeoNet/') != false }}
     needs: build

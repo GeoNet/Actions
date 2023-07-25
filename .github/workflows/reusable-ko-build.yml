@@ -23,6 +23,29 @@ on:
         type: boolean
         description: |
           set to true to push an image to a registry. When set to false, it will build and exit
+      aws-region:
+        type: string
+        default: ap-southeast-2
+        required: false
+        description: |
+          the AWS region to use; e.g ap-southeast-2
+      aws-role-arn-to-assume:
+        type: string
+        required: false
+        description: |
+          an AWS role ARN to assume.
+          e.g: arn:aws:iam::ACCOUNT_ID:role/github-actions-ROLE_NAME
+      aws-role-duration-seconds:
+        type: string
+        default: "3600"
+        required: false
+        description: |
+          the amount of seconds to hold a session open for.
+      aws-role-session-name:
+        type: string
+        required: false
+        description: |
+          the name of the session to use for AssumeRole(WithWebIdentity).
     outputs:
       images:
         value: ${{ jobs.build.outputs.images }}
@@ -65,6 +88,26 @@ jobs:
           cache-dependency-path: go.sum
           check-latest: true
       - uses: GeoNet/setup-ko@f3c6980bb213dc8bb4856f52598a9230d910d06f # main
+      - name: get session name
+        id: get-session-name
+        if: ${{ inputs.aws-region != '' && inputs.aws-role-arn-to-assume != '' && inputs.aws-role-duration-seconds != '' && inputs.registryOverride != '' }}
+        env:
+          REPO: ${{ github.repository }}
+          AWS_ROLE_SESSION_NAME: ${{ inputs.aws-role-session-name }}
+        run: |
+          SESSION_NAME="$(echo "github-actions-$REPO" | sed 's,/,--,g' | tr '[[:upper:]]' '[[:lower:]]')"
+          if [ -n "$AWS_ROLE_SESSION_NAME" ]; then
+            SESSION_NAME="$AWS_ROLE_SESSION_NAME"
+          fi
+          echo "session-name=$SESSION_NAME" >> $GITHUB_OUTPUT
+      - name: Configure AWS Credentials
+        if: ${{ inputs.push == true && inputs.aws-region != '' && inputs.aws-role-arn-to-assume != '' && inputs.aws-role-duration-seconds != '' && steps.get-session-name.outputs.session-name != '' && inputs.registryOverride != '' }}
+        uses: aws-actions/configure-aws-credentials@2b225b5275d2d624ea40ffd55ecd0bae1d98845f # v2.0.0
+        with:
+          aws-region: ${{ inputs.aws-region }}
+          role-to-assume: ${{ inputs.aws-role-arn-to-assume }}
+          role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
+          role-session-name: ${{ steps.get-session-name.outputs.session-name }}
       - id: build
         name: build
         env:

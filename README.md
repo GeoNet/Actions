@@ -80,6 +80,33 @@ jobs:
   - SBOM
 - fast!
 
+Pushing to ECR example:
+
+```yaml
+name: build
+
+on:
+  push: {}
+  release:
+    types: [published]
+  workflow_dispatch: {}
+
+permissions:
+  packages: write
+  contents: write
+  pull-requests: write
+  id-token: write
+
+jobs:
+  build:
+    uses: GeoNet/Actions/.github/workflows/reusable-ko-build.yml@main
+    with:
+      registryOverride: $ACCOUNT.dkr.ecr.$REGION.amazonaws.com
+      aws-region: ap-southeast-2
+      aws-role-arn-to-assume: arn:aws:iam::$ACCOUNT:role/$ROLE_NAME
+      aws-role-duration-seconds: "3600"
+```
+
 for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-ko-build.yml](.github/workflows/reusable-ko-build.yml).
 
 #### Ko build container image signing
@@ -671,6 +698,10 @@ jobs:
     #   updateGoVersionAutoMerge: boolean
     #   containerScanningEnabled: boolean
     #   containerBuildEnabled: boolean
+    #   registryOverride: $ACCOUNT.dkr.ecr.$REGION.amazonaws.com
+    #   aws-region: ap-southeast-2
+    #   aws-role-arn-to-assume: arn:aws:iam::$ACCOUNT:role/$ROLE_NAME
+    #   aws-role-duration-seconds: "3600"
 ```
 
 for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-go-container-apps.yml](.github/workflows/reusable-go-container-apps.yml).
