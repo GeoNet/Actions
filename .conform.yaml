@@ -14,7 +14,7 @@ policies:
         case: lower
         invalidLastCharacters: .
       body:
-        required: false
+        required: true
       conventional:
         types:
           - chore
