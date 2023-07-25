@@ -3,7 +3,7 @@ policies:
     spec:
       dco: false
       gpg:
-        required: true
+        required: false
         gitHubOrganization: GeoNet
       spellcheck:
         locale: UK
