@@ -1,6 +1,37 @@
 name: reusable policy conformance
 on:
-  workflow_call: {}
+  workflow_call:
+    inputs:
+      config:
+        type: string
+        default: |
+          policies:
+            - type: commit
+              spec:
+                dco: false
+                gpg:
+                  required: true
+                  gitHubOrganization: GeoNet
+                spellcheck:
+                  locale: UK
+                maximumOfOneCommit: false
+                header:
+                  length: 89
+                  imperative: true
+                  case: lower
+                  invalidLastCharacters: .
+                body:
+                  required: true
+                conventional:
+                  types:
+                    - chore
+                    - docs
+                    - perf
+                    - refactor
+                    - style
+                    - test
+                    - release
+                  scopes: [".*"]
 jobs:
   conform:
     runs-on: ubuntu-latest
@@ -12,6 +43,17 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.head_ref }}
+      - id: determine-existing-config
+        run: |
+          if [ -f .conform.yaml ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          fi
+      - name: write config
+        if: ${{ steps.determine-existing-config.outputs.exists != 'true' }}
+        run: |
+          cat << EOF > .conform.yaml
+          ${{ inputs.config }}
+          EOF
       - name: conform
         env:
           INPUT_TOKEN: ${{ github.token }}
