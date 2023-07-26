@@ -87,6 +87,7 @@ jobs:
           go-version-file: go.mod
           cache-dependency-path: go.sum
           check-latest: true
+      - uses: GeoNet/setup-crane@00c9e93efa4e1138c9a7a5c594acd6c75a2fbf0c # main
       - uses: GeoNet/setup-ko@f3c6980bb213dc8bb4856f52598a9230d910d06f # main
       - name: get session name
         id: get-session-name
