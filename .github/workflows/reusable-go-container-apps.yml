@@ -128,7 +128,7 @@ jobs:
       paths: ${{ inputs.paths }}
       aws-region: ${{ inputs.aws-region }}
       aws-role-arn-to-assume: ${{ inputs.aws-role-arn-to-assume }}
-      aws-role-duration-seconds: ${{ inputs.aws-role-duration-sections }}
+      aws-role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
       aws-role-session-name: ${{ inputs.aws-role-session-name }}
   scan:
     if: ${{ contains(fromJSON('["workflow_call", "push", "release"]'), github.event_name) && inputs.containerScanningEnabled && startsWith(github.repository, 'GeoNet/') != false }}
