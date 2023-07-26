@@ -116,9 +116,10 @@ jobs:
         name: collect job run info
         env:
           GHCR_DOCKER_REPO: ghcr.io/${{ github.repository }}
+          REGISTRY_OVERRIDE: ${{ inputs.registryOverride }}
         run: |
-          if [ -n "${{ inputs.registryOverride }}" ]; then
-            REGISTRY="${REGISTRY,,}"
+          if [ -n "$REGISTRY_OVERRIDE" ]; then
+            REGISTRY="$REGISTRY_OVERRIDE"
           else
             REGISTRY="${GHCR_DOCKER_REPO,,}"
           fi
