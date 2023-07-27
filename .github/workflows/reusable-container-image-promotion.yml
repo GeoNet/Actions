@@ -135,6 +135,30 @@ jobs:
           registry: quay.io
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_ROBOT_TOKEN }}
+      - name: get session name
+        id: get-session-name
+        if: ${{ inputs.aws-region != '' && inputs.aws-role-arn-to-assume != '' && inputs.aws-role-duration-seconds != '' && inputs.registryOverride != '' }}
+        env:
+          REPO: ${{ github.repository }}
+          AWS_ROLE_SESSION_NAME: ${{ inputs.aws-role-session-name }}
+        run: |
+          SESSION_NAME="$(echo "github-actions-$REPO" | sed 's,/,--,g' | tr '[[:upper:]]' '[[:lower:]]')"
+          if [ -n "$AWS_ROLE_SESSION_NAME" ]; then
+            SESSION_NAME="$AWS_ROLE_SESSION_NAME"
+          fi
+          echo "session-name=$SESSION_NAME" >> $GITHUB_OUTPUT
+      - name: Configure AWS Credentials
+        if: ${{ inputs.aws-region != '' && inputs.aws-role-arn-to-assume != '' && inputs.aws-role-duration-seconds != '' && steps.get-session-name.outputs.session-name != '' && inputs.registryOverride != '' }}
+        uses: aws-actions/configure-aws-credentials@2b225b5275d2d624ea40ffd55ecd0bae1d98845f # v2.0.0
+        with:
+          aws-region: ${{ inputs.aws-region }}
+          role-to-assume: ${{ inputs.aws-role-arn-to-assume }}
+          role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
+          role-session-name: ${{ steps.get-session-name.outputs.session-name }}
+      - name: login to ECR
+        if: ${{ inputs.aws-region != '' && inputs.aws-role-arn-to-assume != '' && inputs.aws-role-duration-seconds != '' && steps.get-session-name.outputs.session-name != '' }}
+        run: |
+          aws ecr get-login-password --region ${{ inputs.aws-region }} | crane auth login ${{ inputs.registryOverride }} -u AWS --password-stdin
       - id: run-info
         name: collect job run info
         env:
@@ -166,30 +190,6 @@ jobs:
           ) | column -t
           echo "source=${SOURCE_DIGEST}" >> $GITHUB_OUTPUT
           echo "destination=${DESTINATION_DIGEST}" >> $GITHUB_OUTPUT
-      - name: get session name
-        id: get-session-name
-        if: ${{ inputs.aws-region != '' && inputs.aws-role-arn-to-assume != '' && inputs.aws-role-duration-seconds != '' && inputs.registryOverride != '' }}
-        env:
-          REPO: ${{ github.repository }}
-          AWS_ROLE_SESSION_NAME: ${{ inputs.aws-role-session-name }}
-        run: |
-          SESSION_NAME="$(echo "github-actions-$REPO" | sed 's,/,--,g' | tr '[[:upper:]]' '[[:lower:]]')"
-          if [ -n "$AWS_ROLE_SESSION_NAME" ]; then
-            SESSION_NAME="$AWS_ROLE_SESSION_NAME"
-          fi
-          echo "session-name=$SESSION_NAME" >> $GITHUB_OUTPUT
-      - name: Configure AWS Credentials
-        if: ${{ inputs.aws-region != '' && inputs.aws-role-arn-to-assume != '' && inputs.aws-role-duration-seconds != '' && steps.get-session-name.outputs.session-name != '' && inputs.registryOverride != '' }}
-        uses: aws-actions/configure-aws-credentials@2b225b5275d2d624ea40ffd55ecd0bae1d98845f # v2.0.0
-        with:
-          aws-region: ${{ inputs.aws-region }}
-          role-to-assume: ${{ inputs.aws-role-arn-to-assume }}
-          role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
-          role-session-name: ${{ steps.get-session-name.outputs.session-name }}
-      - name: login to ECR
-        if: ${{ inputs.aws-region != '' && inputs.aws-role-arn-to-assume != '' && inputs.aws-role-duration-seconds != '' && steps.get-session-name.outputs.session-name != '' }}
-        run: |
-          aws ecr get-login-password --region ${{ inputs.aws-region }} | crane auth login ${{ inputs.registryOverride }} -u AWS --password-stdin
       - name: copy
         if: ${{ steps.get-digests.outputs.source != steps.get-digests.outputs.destination || steps.get-digests.outputs.destination == null }}
         env:
