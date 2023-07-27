@@ -8,6 +8,11 @@ on:
         description: |
           a .golangci.yml configuration file.
           Warning: setting this field will override an existing config
+      setup:
+        required: false
+        type: string
+        description: |
+          shell commands to setup the test environment
 jobs:
   golangci:
     name: lint
@@ -27,6 +32,9 @@ jobs:
         run: |
           echo "Using config:"
           echo '${{ inputs.config }}' | tee .golangci.yml
+      - name: setup
+        run: |
+          eval '${{ inputs.setup }}'
       - name: golangci-lint
         uses: GeoNet/golangci-lint-action@4cb96975783006316142911dac808e71dd8b0b40 # master
         with:
