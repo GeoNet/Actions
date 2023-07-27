@@ -8,6 +8,11 @@ on:
         description: |
           the Go entrypoint paths for applications, where there they have `package main`
           e.g: ./cmd/thing1 ./cmd/thing2
+      setup:
+        required: false
+        type: string
+        description: |
+          shell commands to setup the test environment
 jobs:
   go-build-smoke-test:
     runs-on: ubuntu-latest
@@ -30,6 +35,9 @@ jobs:
           go-version-file: go.mod
           cache-dependency-path: go.sum
           check-latest: true
+      - name: setup
+        run: |
+          eval '${{ inputs.setup }}'
       - id: build
         env:
           PATHS: ${{ steps.run-info.outputs.paths }}
