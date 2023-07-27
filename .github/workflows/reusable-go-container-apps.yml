@@ -163,6 +163,10 @@ jobs:
     with:
       configPath: ${{ inputs.imagePromotionConfigPath }}
       imageRefs: ${{ needs.build.outputs.images }}
+      aws-region: ${{ inputs.aws-region }}
+      aws-role-arn-to-assume: ${{ inputs.aws-role-arn-to-assume }}
+      aws-role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
+      aws-role-session-name: ${{ inputs.aws-role-session-name }}
   image-promotion:
     if: ${{ contains(fromJSON('["workflow_call", "push", "schedule"]'), github.event_name) && github.ref == 'refs/heads/main' && startsWith(github.repository, 'GeoNet/') != false }}
     uses: GeoNet/Actions/.github/workflows/reusable-container-image-promotion.yml@main
@@ -170,6 +174,10 @@ jobs:
       registryOverride: ${{ inputs.registryOverride }}
       configPath: ${{ inputs.imagePromotionConfigPath }}
       configLiteral: ${{ inputs.imagePromotionConfigLiteral }}
+      aws-region: ${{ inputs.aws-region }}
+      aws-role-arn-to-assume: ${{ inputs.aws-role-arn-to-assume }}
+      aws-role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
+      aws-role-session-name: ${{ inputs.aws-role-session-name }}
   update-go-version:
     if: ${{ contains(fromJSON('["workflow_call", "schedule"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
     uses: GeoNet/Actions/.github/workflows/reusable-update-go-version.yml@main
