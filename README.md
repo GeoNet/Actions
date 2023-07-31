@@ -628,9 +628,16 @@ common useful types of requirements:
 - single commit
 - commit contains body
 
+notes:
+
+- the conventional types include the following types by default and are not needed to be specified
+  - _feat_
+  - _fix_
+
 links: 
 
 - https://github.com/siderolabs/conform
+- https://www.conventionalcommits.org/en/v1.0.0/
 
 ### Stale submission
 
