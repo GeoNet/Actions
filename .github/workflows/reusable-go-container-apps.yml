@@ -33,6 +33,12 @@ on:
           - name: webthingy
             dmap:
               "sha256:efdb4ab576f4028e8319733890af8e7c49eed7f43bfe33e078052a1d0763ef89": ["v1"]
+      imagePromotionEnabled:
+        required: true
+        default: true
+        type: boolean
+        description: |
+          configures whether image promtion is enabled.
       imagePromotionConfigPath:
         required: false
         type: string
@@ -158,7 +164,7 @@ jobs:
     uses: GeoNet/Actions/.github/workflows/reusable-goimports.yml@main
   image-promotion-in-config-on-release:
     needs: build
-    if: ${{ contains(fromJSON('["workflow_call", "release"]'), github.event_name) && inputs.imagePromotionConfigLiteral == null && startsWith(github.repository, 'GeoNet/') != false }}
+    if: ${{ contains(fromJSON('["workflow_call", "release"]'), github.event_name) && inputs.imagePromotionConfigLiteral == null && startsWith(github.repository, 'GeoNet/') != false && inputs.imagePromotionEnabled == true }}
     uses: GeoNet/Actions/.github/workflows/reusable-container-image-promotion.yml@main
     with:
       configPath: ${{ inputs.imagePromotionConfigPath }}
@@ -168,7 +174,7 @@ jobs:
       aws-role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
       aws-role-session-name: ${{ inputs.aws-role-session-name }}
   image-promotion:
-    if: ${{ contains(fromJSON('["workflow_call", "push", "schedule"]'), github.event_name) && github.ref == 'refs/heads/main' && startsWith(github.repository, 'GeoNet/') != false }}
+    if: ${{ contains(fromJSON('["workflow_call", "push", "schedule"]'), github.event_name) && github.ref == 'refs/heads/main' && startsWith(github.repository, 'GeoNet/') != false && inputs.imagePromotionEnabled == true }}
     uses: GeoNet/Actions/.github/workflows/reusable-container-image-promotion.yml@main
     with:
       registryOverride: ${{ inputs.registryOverride }}
