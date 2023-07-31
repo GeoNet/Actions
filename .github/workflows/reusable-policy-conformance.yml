@@ -5,6 +5,8 @@ on:
       config:
         type: string
         default: |
+          # https://github.com/siderolabs/conform#getting-started
+          # https://www.conventionalcommits.org/en/v1.0.0/
           policies:
             - type: commit
               spec:
