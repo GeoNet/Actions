@@ -27,12 +27,15 @@ on:
                 conventional:
                   types:
                     - chore
+                    - ci
                     - docs
-                    - perf
+                    - feat
+                    - fix
                     - refactor
+                    - release
+                    - revert
                     - style
                     - test
-                    - release
                   scopes: [".*"]
 jobs:
   conform:
