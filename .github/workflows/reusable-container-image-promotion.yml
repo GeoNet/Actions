@@ -1,4 +1,6 @@
 name: reusable container image promotion
+env:
+  VERSION_CRANE: v0.16.1
 on:
   workflow_call:
     inputs:
@@ -125,6 +127,8 @@ jobs:
           go-version: stable
           check-latest: true
       - uses: GeoNet/setup-crane@00c9e93efa4e1138c9a7a5c594acd6c75a2fbf0c # main
+        with:
+          version: ${{ env.VERSION_CRANE }}
       - name: Login to quay.io
         uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc # v2.2.0
         env:
@@ -222,6 +226,8 @@ jobs:
           go-version: stable
           check-latest: true
       - uses: GeoNet/setup-crane@00c9e93efa4e1138c9a7a5c594acd6c75a2fbf0c # main
+        with:
+          version: ${{ env.VERSION_CRANE }}
       - name: Login to quay.io
         uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc # v2.2.0
         env:

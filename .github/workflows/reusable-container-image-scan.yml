@@ -1,4 +1,6 @@
 name: Reusable container image scan
+env:
+  VERSION_CRANE: v0.16.1
 on:
   workflow_call:
     inputs:
@@ -41,6 +43,8 @@ jobs:
           go-version: stable
           check-latest: true
       - uses: GeoNet/setup-crane@00c9e93efa4e1138c9a7a5c594acd6c75a2fbf0c # main
+        with:
+          version: ${{ env.VERSION_CRANE }}
       - name: quay crane login
         env:
           quay-robot-token: ${{ secrets.QUAY_ROBOT_TOKEN }}
