@@ -146,7 +146,7 @@ jobs:
       dockerfile: ./Dockerfile
       imageName: cool
       platforms: 'linux/amd64,linux/arm64'
-      push: ${{ github.ref_name == 'main' }}
+      push: ${{ github.ref == 'refs/heads/main' }}
       buildArgs: |
         VERSION=${{ github.sha }}
 ```
@@ -226,7 +226,7 @@ jobs:
       dockerfile: ./Dockerfile
       imageName: cool
       platforms: 'linux/amd64,linux/arm64'
-      push: ${{ github.ref_name == 'main' }}
+      push: ${{ github.ref == 'refs/heads/main' }}
       registryOverride: $ACCOUNT.dkr.ecr.$REGION.amazonaws.com
       aws-region: ap-southeast-2
       aws-role-arn-to-assume: arn:aws:iam::$ACCOUNT:role/$ROLE_NAME
