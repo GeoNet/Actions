@@ -1,9 +1,0 @@
-# unique repos
-repos:
-  # ko build
-  - name: GeoNet/setup-ko
-  # docker build
-  - name: GeoNet/setup-crane
-  - name: GeoNet/yq
-  # terraform management
-  # docker-foundry
