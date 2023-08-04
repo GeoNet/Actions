@@ -14,7 +14,6 @@
     - [Container image scan](#container-image-scan)
     - [Update Go version](#update-go-version)
     - [Terraform management](#terraform-management)
-    - [GitHub repo fork sync](#github-repo-fork-sync)
     - [Presubmit Actions workflow require commit digest vet](#presubmit-actions-workflow-require-commit-digest-vet)
     - [Presubmit Go code lint](#presubmit-go-code-lint)
     - [Go vet](#go-vet)
@@ -397,18 +396,6 @@ jobs:
 for Terraform Cloud, set `TF_API_TOKEN` in the repo's Actions Secrets
 
 for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-terraform-management.yml](.github/workflows/reusable-terraform-management.yml).
-
-### GitHub repo fork sync
-
-Declaratively and automatically synchronise forked GitHub repositories inside the org.
-Configuration is managed in [config/fork-sync.yaml](./config/fork-sync.yml), in a format like
-
-```yaml
-repos:
-  - name: GeoNet/<NAME>
-```
-
-The sync functionality is reusable through [.github/workflows/reusable-github-repo-fork-sync.yml](./.github/workflows/reusable-github-repo-fork-sync.yml)
 
 ### Presubmit Actions workflow require commit digest vet
 
