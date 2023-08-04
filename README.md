@@ -63,8 +63,6 @@ on:
 
 permissions:
   packages: write
-  contents: write
-  pull-requests: write
   id-token: write
 
 jobs:
@@ -93,8 +91,6 @@ on:
 
 permissions:
   packages: write
-  contents: write
-  pull-requests: write
   id-token: write
 
 jobs:
@@ -134,8 +130,6 @@ on:
 
 permissions:
   packages: write
-  contents: write
-  pull-requests: write
   id-token: write
 
 jobs:
@@ -166,8 +160,6 @@ on:
 
 permissions:
   packages: write
-  contents: write
-  pull-requests: write
   id-token: write
 
 env:
@@ -214,8 +206,6 @@ on:
 
 permissions:
   packages: write
-  contents: write
-  pull-requests: write
   id-token: write
 
 jobs:
@@ -359,6 +349,7 @@ on:
     - cron: "0 0 * * MON"
 
 permissions:
+  pull_requests: write
   contents: write
   pull-requests: write
 
@@ -442,9 +433,6 @@ on:
       - master
       - canon
   pull_request: {}
-permissions:
-  contents: read
-  pull-requests: read
 jobs:
   golangci:
     uses: GeoNet/Actions/.github/workflows/reusable-golangci-lint.yml@main
@@ -577,7 +565,6 @@ permissions:
   statuses: write
   checks: write
   contents: read
-  pull-requests: read
 jobs:
   conform:
     uses: GeoNet/Actions/.github/workflows/reusable-policy-conformance.yml@main
