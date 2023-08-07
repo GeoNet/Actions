@@ -88,7 +88,7 @@ on:
       timeout-mins:
         type: number
         description: 'minutes before build will timeout'
-        required: true
+        required: false
         default: 30
       setup:
         type: string
