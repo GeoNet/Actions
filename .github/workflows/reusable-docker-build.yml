@@ -90,6 +90,16 @@ on:
         description: 'minutes before build will timeout'
         required: false
         default: 30
+      artifact-name:
+        type: string
+        required: true
+        description: |
+          the name of the GitHub Actions artifact to download
+      artifact-path:
+        type: string
+        required: true
+        description: |
+          the path in the GitHub Actions artifact to download
       setup:
         type: string
         required: false
@@ -187,6 +197,12 @@ jobs:
         if: ${{ inputs.push == true && inputs.aws-region != '' && inputs.aws-role-arn-to-assume != '' && inputs.aws-role-duration-seconds != '' && steps.get-session-name.outputs.session-name != '' }}
         run: |
           aws ecr get-login-password --region ${{ inputs.aws-region }} | crane auth login ${{ inputs.registryOverride }} -u AWS --password-stdin
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        if: ${{ inputs.artifact-name != '' && inputs.artifact-path != '' }}
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: ${{ inputs.artifact-path }}
+          retention-days: 1
       - name: Build and push
         uses: docker/build-push-action@2eb1c1961a95fc15694676618e422e8ba1d63825 # v4.1.1
         id: build
