@@ -222,6 +222,82 @@ jobs:
       aws-role-duration-seconds: "3600"
 ```
 
+Pulling in a GitHub artifact for a build:
+
+```yaml
+name: build
+
+on:
+  push: {}
+  release:
+    types: [published]
+  workflow_dispatch: {}
+
+permissions:
+  packages: write
+  id-token: write
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      - run: |
+          mkdir -p ./apps/cool-ng/assets
+          echo 'hello!' > ./apps/cool-ng/assets/index.html
+  build:
+    needs: prepare
+    uses: GeoNet/Actions/.github/workflows/reusable-docker-build.yml@main
+    with:
+      context: ./apps/cool-ng
+      dockerfile: ./apps/cool-ng/Dockerfile
+      imageName: cool-ng
+      platforms: 'linux/amd64,linux/arm64'
+      push: ${{ github.ref == 'refs/heads/main' }}
+      artifact-name: cool-ng
+      artifact-path: ./apps/cool-ng/assets
+```
+
+Pulling in things from S3 in a build:
+
+```yaml
+name: build
+
+on:
+  push: {}
+  release:
+    types: [published]
+  workflow_dispatch: {}
+
+permissions:
+  packages: write
+  id-token: write
+
+jobs:
+  copy-from-s3:
+    uses: GeoNet/Actions/.github/workflows/reusable-copy-to-s3.yml@main
+    with:
+      aws-region: ap-southeast-2
+      aws-role-arn-to-assume: arn:aws:iam::ACCOUNT_ID:role/github-actions-ROLE_NAME
+      aws-role-duration-seconds: 3600
+      artifact-name: cool-ng
+      artifact-path: ./apps/cool-ng/assets
+      s3-bucket: s3://some-really-really-cool-s3-bucket/assets
+      cp-or-sync: cp
+      direction: from # 'to' or 'from'
+  build:
+    needs: copy-from-s3
+    uses: GeoNet/Actions/.github/workflows/reusable-docker-build.yml@main
+    with:
+      context: ./apps/cool-ng
+      dockerfile: ./apps/cool-ng/Dockerfile
+      imageName: cool-ng
+      platforms: 'linux/amd64,linux/arm64'
+      push: ${{ github.ref == 'refs/heads/main' }}
+      artifact-name: cool-ng
+      artifact-path: ./apps/cool-ng/assets
+```
+
 note: $registryOverride + '/' + $imageName must be an existing ECR
 
 for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-docker-build.yml](.github/workflows/reusable-docker-build.yml).
