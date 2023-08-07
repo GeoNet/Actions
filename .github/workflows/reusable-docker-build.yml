@@ -85,6 +85,11 @@ on:
         required: false
         description: |
           the name of the session to use for AssumeRole(WithWebIdentity).
+      timeout-mins:
+        type: number
+        description: 'minutes before build will timeout'
+        required: true
+        default: 30
       setup:
         type: string
         required: false
@@ -96,7 +101,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: ${{ inputs.timeout-mins }}
     outputs:
       image: ${{ steps.image.outputs.image }}
     steps:
