@@ -92,12 +92,12 @@ on:
         default: 30
       artifact-name:
         type: string
-        required: true
+        required: false
         description: |
           the name of the GitHub Actions artifact to download
       artifact-path:
         type: string
-        required: true
+        required: false
         description: |
           the path in the GitHub Actions artifact to download
       setup:
