@@ -69,6 +69,13 @@ jobs:
     uses: GeoNet/Actions/.github/workflows/reusable-ko-build.yml@main
     # with:
     #   paths: ./cmd/coolapp
+    #   registryOverride: registry.example.com
+    #   registryGhcrUsernameOverride: ${{ secrets.GHCR_USERNAME }}
+    #   registryGhcrPasswordOverride: ${{ secrets.GHCR_PASSWORD }}
+    #   push: true
+    #   aws-region: ap-southeast-2
+    #   aws-role-arn-to-assume: arn:aws:iam::ACCOUNT_ID:role/github-actions-ROLE_NAME
+    #   aws-role-duration-seconds: "3600"
 ```
 
 - dynamic build of images based on entrypoints (where there is a `package main`), unless if _inputs.paths_ is set
@@ -299,6 +306,36 @@ jobs:
 ```
 
 note: $registryOverride + '/' + $imageName must be an existing ECR
+
+Override auth to ghcr.io
+
+```yaml
+name: build
+
+on:
+  push: {}
+  release:
+    types: [published]
+  workflow_dispatch: {}
+
+permissions:
+  packages: write
+  id-token: write
+
+jobs:
+  build:
+    uses: GeoNet/Actions/.github/workflows/reusable-docker-build.yml@main
+    with:
+      context: .
+      dockerfile: ./Dockerfile
+      imageName: cool
+      platforms: 'linux/amd64,linux/arm64'
+      push: ${{ github.ref == 'refs/heads/main' }}
+      buildArgs: |
+        VERSION=${{ github.sha }}
+      registryGhcrUsernameOverride: example
+    secrets: inherit
+```
 
 for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-docker-build.yml](.github/workflows/reusable-docker-build.yml).
 

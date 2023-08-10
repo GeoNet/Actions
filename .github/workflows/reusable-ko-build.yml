@@ -13,6 +13,11 @@ on:
             - quay.io
             - registry.gitlab.com/somecoolproject
             - ghcr.io/somecoolproject/thing
+      registryGhcrUsernameOverride:
+        required: false
+        type: string
+        description: |
+          the GitHub username to use for ghcr auth override.
       paths:
         required: false
         type: string
@@ -48,6 +53,9 @@ on:
         required: false
         description: |
           the name of the session to use for AssumeRole(WithWebIdentity).
+    secrets:
+      GH_CI_USER_TOKEN:
+        required: false
     outputs:
       images:
         value: ${{ jobs.build.outputs.images }}
@@ -117,6 +125,13 @@ jobs:
         if: ${{ inputs.push == true && inputs.aws-region != '' && inputs.aws-role-arn-to-assume != '' && inputs.aws-role-duration-seconds != '' && steps.get-session-name.outputs.session-name != '' }}
         run: |
           aws ecr get-login-password --region ${{ inputs.aws-region }} | crane auth login ${{ inputs.registryOverride }} -u AWS --password-stdin
+      - name: override login to ghcr
+        env:
+          registryGhcrUsernameOverride: ${{ inputs.registryGhcrUsernameOverride }}
+          registryGhcrPasswordOverride: ${{ secrets.GH_CI_USER_TOKEN }}
+        if: ${{ inputs.push == true && env.registryGhcrUsernameOverride != '' && env.registryGhcrPasswordOverride != '' }}
+        run: |
+          echo "${{ env.registryGhcrPasswordOverride }}" | crane auth login ghcr.io -u ${{ env.registryGhcrUsernameOverride }} --password-stdin
       - id: build
         name: build
         env:

@@ -11,6 +11,11 @@ on:
             - quay.io
             - registry.gitlab.com/somecoolproject
             - ghcr.io/somecoolproject/thing
+      registryGhcrUsernameOverride:
+        required: false
+        type: string
+        description: |
+          the GitHub username to use for ghcr auth override.
       paths:
         required: false
         type: string
@@ -117,6 +122,9 @@ on:
         required: false
         description: |
           the name of the session to use for AssumeRole(WithWebIdentity).
+    secrets:
+      GH_CI_USER_TOKEN:
+        required: false
     outputs:
       images:
         value: ${{ jobs.build.outputs.images }}
@@ -129,6 +137,7 @@ jobs:
   build:
     if: ${{ contains(fromJSON('["workflow_call", "push", "release"]'), github.event_name) && inputs.containerBuildEnabled && startsWith(github.repository, 'GeoNet/') != false }}
     uses: GeoNet/Actions/.github/workflows/reusable-ko-build.yml@main
+    secrets: inherit
     with:
       registryOverride: ${{ inputs.registryOverride }}
       paths: ${{ inputs.paths }}
@@ -136,6 +145,7 @@ jobs:
       aws-role-arn-to-assume: ${{ inputs.aws-role-arn-to-assume }}
       aws-role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
       aws-role-session-name: ${{ inputs.aws-role-session-name }}
+      registryGhcrUsernameOverride: ${{ inputs.registryGhcrUsernameOverride }}
   scan:
     if: ${{ contains(fromJSON('["workflow_call", "push", "release"]'), github.event_name) && inputs.containerScanningEnabled && startsWith(github.repository, 'GeoNet/') != false }}
     needs: build
@@ -166,6 +176,7 @@ jobs:
     needs: build
     if: ${{ contains(fromJSON('["workflow_call", "release"]'), github.event_name) && inputs.imagePromotionConfigLiteral == null && startsWith(github.repository, 'GeoNet/') != false && inputs.imagePromotionEnabled == true }}
     uses: GeoNet/Actions/.github/workflows/reusable-container-image-promotion.yml@main
+    secrets: inherit
     with:
       configPath: ${{ inputs.imagePromotionConfigPath }}
       imageRefs: ${{ needs.build.outputs.images }}
@@ -173,9 +184,11 @@ jobs:
       aws-role-arn-to-assume: ${{ inputs.aws-role-arn-to-assume }}
       aws-role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
       aws-role-session-name: ${{ inputs.aws-role-session-name }}
+      registryGhcrUsernameOverride: ${{ inputs.registryGhcrUsernameOverride }}
   image-promotion:
     if: ${{ contains(fromJSON('["workflow_call", "push", "schedule"]'), github.event_name) && github.ref == 'refs/heads/main' && startsWith(github.repository, 'GeoNet/') != false && inputs.imagePromotionEnabled == true }}
     uses: GeoNet/Actions/.github/workflows/reusable-container-image-promotion.yml@main
+    secrets: inherit
     with:
       registryOverride: ${{ inputs.registryOverride }}
       configPath: ${{ inputs.imagePromotionConfigPath }}
@@ -184,6 +197,7 @@ jobs:
       aws-role-arn-to-assume: ${{ inputs.aws-role-arn-to-assume }}
       aws-role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
       aws-role-session-name: ${{ inputs.aws-role-session-name }}
+      registryGhcrUsernameOverride: ${{ inputs.registryGhcrUsernameOverride }}
   update-go-version:
     if: ${{ contains(fromJSON('["workflow_call", "schedule"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
     uses: GeoNet/Actions/.github/workflows/reusable-update-go-version.yml@main
