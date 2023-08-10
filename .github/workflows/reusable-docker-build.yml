@@ -25,6 +25,11 @@ on:
             - quay.io
             - registry.gitlab.com/somecoolproject
             - ghcr.io/somecoolproject/thing
+      registryGhcrUsernameOverride:
+        required: false
+        type: string
+        description: |
+          a container registry to use instead of ghcr.io.
       dockerfile:
         required: true
         type: string
@@ -87,7 +92,7 @@ on:
           the name of the session to use for AssumeRole(WithWebIdentity).
       timeout-mins:
         type: number
-        description: 'minutes before build will timeout'
+        description: "minutes before build will timeout"
         required: false
         default: 30
       artifact-name:
@@ -105,6 +110,9 @@ on:
         required: false
         description: |
           shell commands to setup the build environment
+    secrets:
+      GH_CI_USER_TOKEN:
+        required: false
     outputs:
       image:
         value: ${{ jobs.build.outputs.image }}
@@ -197,6 +205,13 @@ jobs:
         if: ${{ inputs.push == true && inputs.aws-region != '' && inputs.aws-role-arn-to-assume != '' && inputs.aws-role-duration-seconds != '' && steps.get-session-name.outputs.session-name != '' }}
         run: |
           aws ecr get-login-password --region ${{ inputs.aws-region }} | crane auth login ${{ inputs.registryOverride }} -u AWS --password-stdin
+      - name: override login to ghcr
+        env:
+          registryGhcrUsernameOverride: ${{ inputs.registryGhcrUsernameOverride }}
+          registryGhcrPasswordOverride: ${{ secrets.GH_CI_USER_TOKEN }}
+        if: ${{ inputs.push == true && env.registryGhcrUsernameOverride != '' && env.registryGhcrPasswordOverride != '' }}
+        run: |
+          echo "${{ env.registryGhcrPasswordOverride }}" | crane auth login ghcr.io -u ${{ env.registryGhcrUsernameOverride }} --password-stdin
       - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         if: ${{ inputs.artifact-name != '' && inputs.artifact-path != '' }}
         with:

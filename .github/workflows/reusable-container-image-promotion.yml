@@ -12,6 +12,11 @@ on:
           e.g:
             - quay.io
             - ghcr.io/GeoNet
+      registryGhcrUsernameOverride:
+        required: false
+        type: string
+        description: |
+          a container registry to use instead of ghcr.io.
       configLiteral:
         required: false
         type: string
@@ -83,6 +88,9 @@ on:
         required: false
         description: |
           the name of the session to use for AssumeRole(WithWebIdentity).
+    secrets:
+      GH_CI_USER_TOKEN:
+        required: false
 jobs:
   prepare:
     runs-on: ubuntu-latest
@@ -163,6 +171,13 @@ jobs:
         if: ${{ inputs.aws-region != '' && inputs.aws-role-arn-to-assume != '' && inputs.aws-role-duration-seconds != '' && steps.get-session-name.outputs.session-name != '' }}
         run: |
           aws ecr get-login-password --region ${{ inputs.aws-region }} | crane auth login ${{ inputs.registryOverride }} -u AWS --password-stdin
+      - name: override login to ghcr
+        env:
+          registryGhcrUsernameOverride: ${{ inputs.registryGhcrUsernameOverride }}
+          registryGhcrPasswordOverride: ${{ secrets.GH_CI_USER_TOKEN }}
+        if: ${{ inputs.push == true && env.registryGhcrUsernameOverride != '' && env.registryGhcrPasswordOverride != '' }}
+        run: |
+          echo "${{ env.registryGhcrPasswordOverride }}" | crane auth login ghcr.io -u ${{ env.registryGhcrUsernameOverride }} --password-stdin
       - id: run-info
         name: collect job run info
         env:
@@ -238,6 +253,13 @@ jobs:
           registry: quay.io
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_ROBOT_TOKEN }}
+      - name: override login to ghcr
+        env:
+          registryGhcrUsernameOverride: ${{ inputs.registryGhcrUsernameOverride }}
+          registryGhcrPasswordOverride: ${{ secrets.GH_CI_USER_TOKEN }}
+        if: ${{ inputs.push == true && env.registryGhcrUsernameOverride != '' && env.registryGhcrPasswordOverride != '' }}
+        run: |
+          echo "${{ env.registryGhcrPasswordOverride }}" | crane auth login ghcr.io -u ${{ env.registryGhcrUsernameOverride }} --password-stdin
       - name: write to config
         env:
           RELEASE_VERSION: ${{ github.event.release.tag_name }}
