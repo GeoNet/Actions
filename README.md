@@ -4,13 +4,10 @@
   - [Workflows](#workflows)
     - [Ko build](#ko-build)
       - [Ko build container image signing](#ko-build-container-image-signing)
-      - [Pushing to quay.io](#pushing-to-quayio)
     - [Docker build](#docker-build)
       - [Docker build container image signing](#docker-build-container-image-signing)
-      - [Pushing to quay.io](#pushing-to-quayio-1)
     - [Dockerfile lint](#dockerfile-lint)
     - [Container image promotion](#container-image-promotion)
-      - [Pushing to quay.io](#pushing-to-quayio-2)
     - [Container image scan](#container-image-scan)
     - [Update Go version](#update-go-version)
     - [Terraform management](#terraform-management)
@@ -114,10 +111,6 @@ for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-k
 #### Ko build container image signing
 
 see [container image signing](#container-image-signing).
-
-#### Pushing to quay.io
-
-this has not been implemented yet and only supports pushing to ghcr.io (GitHub Container Registry), see internal discussion [here](https://github.com/GeoNet/tickets/issues/12418).
 
 ### Docker build
 
@@ -343,10 +336,6 @@ for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-d
 
 see [container image signing](#container-image-signing).
 
-#### Pushing to quay.io
-
-in the target repo, set the actions secrets (repo -> Settings -> Security -> Secrets and variables -> Actions) `QUAY_USERNAME` and `QUAY_ROBOT_TOKEN`, then set the input (under `with`) for `registryOverride` to `quay.io/geonet`
-
 ### Dockerfile lint
 
 ```yaml
@@ -386,7 +375,7 @@ jobs:
     uses: GeoNet/Actions/.github/workflows/reusable-container-image-promotion.yml@main
     with:
       configPath: ./path/to/config.yaml
-    #   registryOverride: quay.io/geonet
+    #   registryOverride: ghcr.io/geonet
     #   configLiteral: |
     #     ...
 ```
@@ -416,10 +405,6 @@ for more information, read the [versioning for container images info](#versionin
 format implementation inspired by [Kubernetes sig-release promotion tools](https://github.com/kubernetes-sigs/promo-tools).
 
 On release, if using `configPath` and not `configLiteral`, a PR will be automatically created which adds the release tags to be promoted per each image built.
-
-#### Pushing to quay.io
-
-in the target repo, set the actions secrets (repo -> Settings -> Security -> Secrets and variables -> Actions) `QUAY_USERNAME` and `QUAY_ROBOT_TOKEN`, then set the input (under `with`) for `registryOverride` to `quay.io/geonet`
 
 ### Container image scan
 
