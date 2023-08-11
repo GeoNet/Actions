@@ -177,16 +177,6 @@ jobs:
             SESSION_NAME="$AWS_ROLE_SESSION_NAME"
           fi
           echo "session-name=$SESSION_NAME" >> $GITHUB_OUTPUT
-      - name: Login to quay.io
-        uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc # v2.2.0
-        env:
-          quay-robot-token: ${{ secrets.QUAY_ROBOT_TOKEN }}
-          quay-username: ${{ secrets.QUAY_USERNAME }}
-        if: ${{ env.quay-robot-token != null && env.quay-username != null }}
-        with:
-          registry: quay.io
-          username: ${{ secrets.QUAY_USERNAME }}
-          password: ${{ secrets.QUAY_ROBOT_TOKEN }}
       - name: Login to ghcr.io
         uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc # v2.2.0
         with:

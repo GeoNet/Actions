@@ -45,13 +45,6 @@ jobs:
       - uses: GeoNet/setup-crane@00c9e93efa4e1138c9a7a5c594acd6c75a2fbf0c # main
         with:
           version: ${{ env.VERSION_CRANE }}
-      - name: quay crane login
-        env:
-          quay-robot-token: ${{ secrets.QUAY_ROBOT_TOKEN }}
-          quay-username: ${{ secrets.QUAY_USERNAME }}
-        if: ${{ env.quay-robot-token != null && env.quay-username != null }}
-        run: |
-          echo "${{ env.quay-robot-token }}" | crane auth login --password-stdin quay.io ${{ env.quay-username }}
       - name: Login to ghcr.io
         uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc # v2.2.0
         with:
