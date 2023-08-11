@@ -19,6 +19,11 @@ on:
         required: false
         description: |
           shell commands to setup the test environment
+      goTestExtraArgs:
+        required: false
+        type: string
+        description: |
+          extra args to pass `go test`
 jobs:
   go-build:
     if: ${{ contains(fromJSON('["workflow_call", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
@@ -36,6 +41,7 @@ jobs:
     uses: GeoNet/Actions/.github/workflows/reusable-go-test.yml@main
     with:
       setup: ${{ inputs.testSetup }}
+      extraArgs: ${{ inputs.goTestExtraArgs }}
   go-vet:
     if: ${{ contains(fromJSON('["workflow_call", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
     uses: GeoNet/Actions/.github/workflows/reusable-go-vet.yml@main

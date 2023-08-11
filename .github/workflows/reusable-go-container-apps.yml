@@ -122,6 +122,11 @@ on:
         required: false
         description: |
           the name of the session to use for AssumeRole(WithWebIdentity).
+      goTestExtraArgs:
+        required: false
+        type: string
+        description: |
+          extra args to pass `go test`
     secrets:
       GH_CI_USER_TOKEN:
         required: false
@@ -163,6 +168,7 @@ jobs:
     uses: GeoNet/Actions/.github/workflows/reusable-go-test.yml@main
     with:
       setup: ${{ inputs.testSetup }}
+      extraArgs: ${{ inputs.goTestExtraArgs }}
   go-vet:
     if: ${{ contains(fromJSON('["workflow_call", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
     uses: GeoNet/Actions/.github/workflows/reusable-go-vet.yml@main
