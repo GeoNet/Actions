@@ -53,6 +53,12 @@ on:
         required: false
         description: |
           the name of the session to use for AssumeRole(WithWebIdentity).
+      sign:
+        type: boolean
+        required: false
+        default: false
+        description: |
+          sign image and attestations
     secrets:
       GH_CI_USER_TOKEN:
         required: false
@@ -142,7 +148,7 @@ jobs:
           IMAGES="$(ko build --push=$PUSH --base-import-paths $IMAGES_PATH)"
           echo "images=$(echo $IMAGES | tr ' ' ',')" >> $GITHUB_OUTPUT
       - id: sign-images-and-attest-sbom
-        if: ${{ inputs.push }}
+        if: ${{ inputs.push == true && inputs.sign == true }}
         env:
           COSIGN_YES: "true"
           IMAGE: ${{ steps.build.outputs.images }}
