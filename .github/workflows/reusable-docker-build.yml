@@ -110,6 +110,12 @@ on:
         required: false
         description: |
           shell commands to setup the build environment
+      sign:
+        type: boolean
+        required: false
+        default: false
+        description: |
+          sign image and attestations
     secrets:
       GH_CI_USER_TOKEN:
         required: false
@@ -235,19 +241,19 @@ jobs:
           ) | column -t
           echo "destination=${DESTINATION_DIGEST}" >> $GITHUB_OUTPUT
       - name: Sign image
-        if: ${{ inputs.push == true }}
+        if: ${{ inputs.push == true && inputs.sign == true }}
         env:
           COSIGN_YES: "true"
         run: |
           cosign sign ${{ steps.run-info.outputs.image }}@${{ steps.get-digests.outputs.destination }} -y --recursive
       - uses: anchore/sbom-action@78fc58e266e87a38d4194b2137a3d4e9bcaf7ca1 # v0.14.3
-        if: ${{ inputs.push == true }}
+        if: ${{ inputs.push == true && inputs.sign == true }}
         with:
           image: ${{ steps.run-info.outputs.image }}@${{ steps.get-digests.outputs.destination }}
           artifact-name: sbom-spdx.json
           output-file: /tmp/sbom-spdx.json
       - name: publish sbom blob as blob
-        if: ${{ inputs.push == true }}
+        if: ${{ inputs.push == true && inputs.sign == true }}
         env:
           COSIGN_YES: "true"
         run: |
