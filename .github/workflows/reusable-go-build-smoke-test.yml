@@ -13,6 +13,11 @@ on:
         type: string
         description: |
           shell commands to setup the test environment
+      working-directory:
+        required: false
+        type: string
+        description: |
+          the working directory to run the build
 jobs:
   go-build-smoke-test:
     runs-on: ubuntu-latest
@@ -23,6 +28,7 @@ jobs:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
       - id: run-info
         name: collect job run info
+        working-directory: ${{ inputs.working-directory }}
         run: |
           if [ -n "${{ inputs.paths }}" ]; then
             echo "paths=$(echo '${{ inputs.paths }}' | tr '\n' ' ')" >> $GITHUB_OUTPUT
@@ -36,9 +42,11 @@ jobs:
           cache-dependency-path: go.sum
           check-latest: true
       - name: setup
+        working-directory: ${{ inputs.working-directory }}
         run: |
           eval '${{ inputs.setup }}'
       - id: build
+        working-directory: ${{ inputs.working-directory }}
         env:
           PATHS: ${{ steps.run-info.outputs.paths }}
         run: |
