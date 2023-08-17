@@ -16,6 +16,12 @@ on:
         description: |
           the short name for image builds.
           e.g: nginx
+      dockerfile:
+        required: true
+        type: string
+        default: ./Dockerfile
+        description: |
+          path to the image dockerfile.
       registryOverride:
         required: false
         type: string
@@ -30,12 +36,6 @@ on:
         type: string
         description: |
           a container registry to use instead of ghcr.io.
-      dockerfile:
-        required: true
-        type: string
-        default: ./Dockerfile
-        description: |
-          path to the image dockerfile.
       tags:
         required: false
         type: string

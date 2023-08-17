@@ -1,3 +1,7 @@
+# DEPRECATED (for now)
+# this workflow does not yet match the way
+# that the teams work
+
 name: reusable update go version
 on:
   workflow_call:
