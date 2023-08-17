@@ -39,7 +39,7 @@ on:
             dmap:
               "sha256:efdb4ab576f4028e8319733890af8e7c49eed7f43bfe33e078052a1d0763ef89": ["v1"]
       imagePromotionEnabled:
-        required: true
+        required: false
         default: true
         type: boolean
         description: |
