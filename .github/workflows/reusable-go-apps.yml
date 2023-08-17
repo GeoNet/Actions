@@ -8,6 +8,7 @@ on:
         description: |
           the Go entrypoint paths for applications, where there they have `package main`
           e.g: ./cmd/thing1 ./cmd/thing2
+      # DEPRECATED input
       updateGoVersionAutoMerge:
         type: boolean
         default: false
@@ -19,6 +20,11 @@ on:
         required: false
         description: |
           shell commands to setup the test environment
+      golangciSetup:
+        type: string
+        required: false
+        description: |
+          shell commands to setup the golangci-lint environment
       goTestExtraArgs:
         required: false
         type: string
@@ -36,6 +42,8 @@ jobs:
   golangci-lint:
     if: ${{ contains(fromJSON('["workflow_call", "workflow_dispatch", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
     uses: GeoNet/Actions/.github/workflows/reusable-golangci-lint.yml@main
+    with:
+      setup: ${{ inputs.golangciSetup }}
   go-test:
     if: ${{ contains(fromJSON('["workflow_call", "workflow_dispatch", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
     uses: GeoNet/Actions/.github/workflows/reusable-go-test.yml@main
@@ -51,8 +59,3 @@ jobs:
   goimports:
     if: ${{ contains(fromJSON('["workflow_call", "workflow_dispatch", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
     uses: GeoNet/Actions/.github/workflows/reusable-goimports.yml@main
-  update-go-version:
-    if: ${{ contains(fromJSON('["workflow_call", "workflow_dispatch", "schedule"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
-    uses: GeoNet/Actions/.github/workflows/reusable-update-go-version.yml@main
-    with:
-      autoMerge: ${{ inputs.updateGoVersionAutoMerge }}

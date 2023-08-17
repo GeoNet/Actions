@@ -2,11 +2,15 @@ name: Terraform management
 on:
   workflow_call:
     inputs:
+      # DEPRECATED input
+      # workflow will only validate
       validateOnly:
         type: boolean
         default: false
         description: |
           only check the Terrform code.
+      # DEPRECATED input
+      # workflow will only validate
       allowApply:
         type: boolean
         default: false
@@ -60,48 +64,12 @@ jobs:
         run: |
           exit 1
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
-      - name: check for access token
-        env:
-          TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
-          VALIDATE_ONLY: ${{ inputs.validateOnly }}
-          ALLOW_APPLY: ${{ inputs.allowApply }}
-        run: |
-          if [ -z "$TF_API_TOKEN" ] && ( [ ! "$VALIDATE_ONLY" = "true" ] || [ "$ALLOW_APPLY" = "true" ] ); then
-            echo "echo TF_API_TOKEN value must be set" >/dev/stderr
-            exit 1
-          fi
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@633666f66e0061ca3b725c73b2ec20cd13a8fdd1 # v2.0.3
-        with:
-          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
       - name: Terraform Format
         id: format
         run: terraform fmt -check -diff=true -recursive
-      - name: Terraform Init
-        if: ${{ inputs.validateOnly != true }}
-        id: init
-        run: terraform init
       - name: Terraform Validate
         id: validate
-        if: github.event_name == 'pull_request' && inputs.validateOnly != true
+        if: ${{ github.event_name == 'pull_request' && inputs.validateOnly != true }}
         run: terraform validate -no-color
-        continue-on-error: true
-      - name: Terraform Plan
-        id: plan
-        if: github.event_name == 'pull_request' && inputs.validateOnly != true
-        run: terraform plan -no-color -input=false
-        continue-on-error: true
-      - name: Update Pull Request
-        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
-        if: github.event_name == 'pull_request' && inputs.validateOnly != true
-        env:
-          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: "const output = `#### Terraform Format and Style \U0001F58C\\`${{ steps.format.outcome }}\\`\n#### Terraform Initialization ⚙️\\`${{ steps.init.outcome }}\\`\n#### Terraform Plan \U0001F4D6\\`${{ steps.plan.outcome }}\\`\n#### Terraform Validation \U0001F916\\`${{ steps.validate.outcome }}\\`\n<details><summary>Show Plan</summary>\n\\`\\`\\`\\n\n${process.env.PLAN}\n\\`\\`\\`\n</details>\n*Pushed by: @${{ github.actor }}, Action: \\`${{ github.event_name }}\\`*\n<!-- tfmgmnt -->\n`;\ngithub.rest.issues.createComment({\n  issue_number: context.issue.number,\n  owner: context.repo.owner,\n  repo: context.repo.repo,\n  body: output\n})\n"
-      - name: Terraform Plan Status
-        if: steps.plan.outcome == 'failure' && inputs.validateOnly != true
-        run: exit 1
-      - name: Terraform Apply
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push' && inputs.allowApply == true && inputs.validateOnly != true
-        run: terraform apply -auto-approve -input=false

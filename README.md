@@ -42,7 +42,17 @@ The workflows are not publicly supported and come with absolutely no warranty.
 
 ## Workflows
 
+There are three types of workflows in this repo
+
+- reusable: GeoNet downstream implementations of existing actions or common patterns
+- reusable _apps_: combined function workflows which include several other reusable workflows
+- GeoNet/Actions maintainability: workflows which support the consistency of the workflows in this repo
+
+the workflows are intended to work with and around the maintainers of GeoNet software for automations which are valuable to the project.
+
 ### Ko build
+
+STATUS: stable
 
 Generic build for containerised Go applications with [Ko](https://ko.build) and signing the container images and SBOMs with [cosign](https://docs.sigstore.dev/cosign/overview/)
 
@@ -113,6 +123,8 @@ for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-k
 see [container image signing](#container-image-signing).
 
 ### Docker build
+
+STATUS: stable
 
 Generic container image build with Docker and signing container images and SBOMs with [cosign](https://docs.sigstore.dev/cosign/overview/)
 
@@ -338,6 +350,8 @@ see [container image signing](#container-image-signing).
 
 ### Dockerfile lint
 
+STATUS: stable
+
 ```yaml
 name: dockerfile lint
 on:
@@ -352,6 +366,8 @@ jobs:
 ```
 
 ### Container image promotion
+
+STATUS: deprecated
 
 Promote container images from digests to tags.
 
@@ -408,6 +424,8 @@ On release, if using `configPath` and not `configLiteral`, a PR will be automati
 
 ### Container image scan
 
+STATUS: stable
+
 Scan a (set of) container image(s) and upload the results to GitHub's Security code scanning center.
 
 Basic usage (non-integrated):
@@ -432,6 +450,8 @@ jobs:
 `inputs.imageRefs` is a comma separated list of container image refs.
 
 ### Update Go version
+
+STATUS: deprecated
 
 Automatically create a PR to update a project's required Go version to the latest
 
@@ -463,6 +483,8 @@ Works great along side [reusable ko build](#ko-build).
 
 ### Terraform management
 
+STATUS: stable
+
 Trigger a `terraform plan` (and optionally `terraform apply`) against Terraform located in the repo, starting at the repo root.
 
 Example:
@@ -488,6 +510,8 @@ for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-t
 
 ### Presubmit Actions workflow require commit digest vet
 
+STATUS: stable
+
 Require Actions to use external actions by their commit digest on presubmit pull requests
 
 ```yaml
@@ -505,6 +529,8 @@ jobs:
 ```
 
 ### Presubmit Go code lint
+
+STATUS: stable
 
 Require pull requests for Go projects to have no linting errors
 
@@ -538,6 +564,8 @@ for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-g
 
 ### Go vet
 
+STATUS: stable
+
 Run `go vet` against the codebase
 
 ```yaml
@@ -553,6 +581,8 @@ jobs:
 
 ### Go fmt
 
+STATUS: stable
+
 Run `gofmt` against the codebase
 
 ```yaml
@@ -567,6 +597,8 @@ jobs:
 ```
 
 ### Go test
+
+STATUS: stable
 
 Run `go test` against the codebase
 
@@ -585,6 +617,8 @@ test coverage results upload to job artifacts, found at the bottom of a job summ
 
 ### Go vulnerability check
 
+STATUS: stable
+
 Run `govulncheck` against the codebase
 
 ```yaml
@@ -599,6 +633,8 @@ jobs:
 ```
 
 ### Go build smoke test
+
+STATUS: stable
 
 Performs `go build -o /dev/null $PATH` to ensure that the programs compile.
 Note: does not cache or push the binary artifacts anywhere.
@@ -623,6 +659,8 @@ for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-g
 
 ### goimports
 
+STATUS: stable
+
 Run `goimports` against the codebase
 
 ```yaml
@@ -637,6 +675,8 @@ jobs:
 ```
 
 ### Presubmit commit policy conformance
+
+STATUS: stable
 
 Add policy enforcement to PRs.
 
@@ -713,6 +753,8 @@ links:
 
 ### Stale submission
 
+STATUS: deprecated
+
 marks an issue or PR as stale after 90 days and then closes it after a further 30 days
 
 ```yaml
@@ -729,6 +771,8 @@ jobs:
 ```
 
 ### Go container apps
+
+STATUS: stable
 
 a workflow which combines the following workflows
 
@@ -787,6 +831,8 @@ for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-g
 
 ### Go apps
 
+STATUS: stable
+
 a workflow which combines the following workflows
 
 - go-build-smoke-test
@@ -830,6 +876,8 @@ for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-g
 
 ### Bash shellcheck
 
+STATUS: stable
+
 Runs shellcheck against all known shell scripts.
 
 ```yaml
@@ -845,6 +893,8 @@ jobs:
 
 ### Presubmit README table of contents
 
+STATUS: stable
+
 Ensure that the table of contents is updated in README.md, when titles are added/changed/removed.
 
 ```yaml
@@ -859,6 +909,8 @@ jobs:
 
 ### Presubmit GitHub Actions workflow validator
 
+STATUS: stable
+
 A workflow to validate all the workflows in the repo
 
 ```yaml
@@ -872,6 +924,8 @@ jobs:
 ```
 
 ### Markdown lint
+
+STATUS: stable
 
 Lints markdown files
 
@@ -888,6 +942,8 @@ jobs:
 ```
 
 ### Copy to S3
+
+STATUS: stable
 
 A workflow to copy or sync a local directory to an S3 bucket
 

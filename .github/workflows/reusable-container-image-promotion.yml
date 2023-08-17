@@ -1,3 +1,7 @@
+# DEPRECATED (for now)
+# this workflow does not yet match the way
+# that the teams work
+
 name: reusable container image promotion
 env:
   VERSION_CRANE: v0.16.1
