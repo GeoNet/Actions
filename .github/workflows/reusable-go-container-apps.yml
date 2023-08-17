@@ -135,12 +135,12 @@ on:
         value: ${{ jobs.build.outputs.images }}
 jobs:
   go-build:
-    if: ${{ contains(fromJSON('["workflow_call", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
+    if: ${{ contains(fromJSON('["workflow_call", "workflow_dispatch", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
     uses: GeoNet/Actions/.github/workflows/reusable-go-build-smoke-test.yml@main
     with:
       paths: ${{ inputs.paths }}
   build:
-    if: ${{ contains(fromJSON('["workflow_call", "push", "release"]'), github.event_name) && inputs.containerBuildEnabled && startsWith(github.repository, 'GeoNet/') != false }}
+    if: ${{ contains(fromJSON('["workflow_call", "workflow_dispatch", "push", "release"]'), github.event_name) && inputs.containerBuildEnabled && startsWith(github.repository, 'GeoNet/') != false }}
     uses: GeoNet/Actions/.github/workflows/reusable-ko-build.yml@main
     secrets: inherit
     with:
@@ -152,35 +152,35 @@ jobs:
       aws-role-session-name: ${{ inputs.aws-role-session-name }}
       registryGhcrUsernameOverride: ${{ inputs.registryGhcrUsernameOverride }}
   scan:
-    if: ${{ contains(fromJSON('["workflow_call", "push", "release"]'), github.event_name) && inputs.containerScanningEnabled && startsWith(github.repository, 'GeoNet/') != false }}
+    if: ${{ contains(fromJSON('["workflow_call", "workflow_dispatch", "push", "release"]'), github.event_name) && inputs.containerScanningEnabled && startsWith(github.repository, 'GeoNet/') != false }}
     needs: build
     uses: GeoNet/Actions/.github/workflows/reusable-container-image-scan.yml@main
     with:
       imageRefs: ${{ needs.build.outputs.images }}
   gofmt:
-    if: ${{ contains(fromJSON('["workflow_call", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
+    if: ${{ contains(fromJSON('["workflow_call", "workflow_dispatch", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
     uses: GeoNet/Actions/.github/workflows/reusable-gofmt.yml@main
   golangci-lint:
-    if: ${{ contains(fromJSON('["workflow_call", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
+    if: ${{ contains(fromJSON('["workflow_call", "workflow_dispatch", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
     uses: GeoNet/Actions/.github/workflows/reusable-golangci-lint.yml@main
   go-test:
-    if: ${{ contains(fromJSON('["workflow_call", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
+    if: ${{ contains(fromJSON('["workflow_call", "workflow_dispatch", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
     uses: GeoNet/Actions/.github/workflows/reusable-go-test.yml@main
     with:
       setup: ${{ inputs.testSetup }}
       extraArgs: ${{ inputs.goTestExtraArgs }}
   go-vet:
-    if: ${{ contains(fromJSON('["workflow_call", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
+    if: ${{ contains(fromJSON('["workflow_call", "workflow_dispatch", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
     uses: GeoNet/Actions/.github/workflows/reusable-go-vet.yml@main
   govulncheck:
-    if: ${{ contains(fromJSON('["workflow_call", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
+    if: ${{ contains(fromJSON('["workflow_call", "workflow_dispatch", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
     uses: GeoNet/Actions/.github/workflows/reusable-govulncheck.yml@main
   goimports:
-    if: ${{ contains(fromJSON('["workflow_call", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
+    if: ${{ contains(fromJSON('["workflow_call", "workflow_dispatch", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
     uses: GeoNet/Actions/.github/workflows/reusable-goimports.yml@main
   image-promotion-in-config-on-release:
     needs: build
-    if: ${{ contains(fromJSON('["workflow_call", "release"]'), github.event_name) && inputs.imagePromotionConfigLiteral == null && startsWith(github.repository, 'GeoNet/') != false && inputs.imagePromotionEnabled == true }}
+    if: ${{ contains(fromJSON('["workflow_call", "workflow_dispatch", "release"]'), github.event_name) && inputs.imagePromotionConfigLiteral == null && startsWith(github.repository, 'GeoNet/') != false && inputs.imagePromotionEnabled == true }}
     uses: GeoNet/Actions/.github/workflows/reusable-container-image-promotion.yml@main
     secrets: inherit
     with:
@@ -192,7 +192,7 @@ jobs:
       aws-role-session-name: ${{ inputs.aws-role-session-name }}
       registryGhcrUsernameOverride: ${{ inputs.registryGhcrUsernameOverride }}
   image-promotion:
-    if: ${{ contains(fromJSON('["workflow_call", "push", "schedule"]'), github.event_name) && github.ref == 'refs/heads/main' && startsWith(github.repository, 'GeoNet/') != false && inputs.imagePromotionEnabled == true }}
+    if: ${{ contains(fromJSON('["workflow_call", "workflow_dispatch", "push", "schedule"]'), github.event_name) && github.ref == 'refs/heads/main' && startsWith(github.repository, 'GeoNet/') != false && inputs.imagePromotionEnabled == true }}
     uses: GeoNet/Actions/.github/workflows/reusable-container-image-promotion.yml@main
     secrets: inherit
     with:
@@ -205,7 +205,7 @@ jobs:
       aws-role-session-name: ${{ inputs.aws-role-session-name }}
       registryGhcrUsernameOverride: ${{ inputs.registryGhcrUsernameOverride }}
   update-go-version:
-    if: ${{ contains(fromJSON('["workflow_call", "schedule"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
+    if: ${{ contains(fromJSON('["workflow_call", "workflow_dispatch", "schedule"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
     uses: GeoNet/Actions/.github/workflows/reusable-update-go-version.yml@main
     with:
       autoMerge: ${{ inputs.updateGoVersionAutoMerge }}

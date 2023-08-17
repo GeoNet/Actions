@@ -94,7 +94,7 @@ on:
 jobs:
   prepare:
     runs-on: ubuntu-latest
-    if: ${{ contains(fromJSON('["workflow_call", "push", "schedule"]'), github.event_name) }}
+    if: ${{ contains(fromJSON('["workflow_call", "workflow_dispatch", "push", "schedule"]'), github.event_name) }}
     env:
       TRANSFORM_EXPRESSION: |
         .[] | . as $version | .name as $name | .dmap | keys | .[] | . as $digest | $version.dmap[$digest] as $tags | $tags[] | {"name": $name, "digest":$digest, "tag":.}
@@ -117,7 +117,7 @@ jobs:
         run: |
           jq . <<< '${{ steps.set.outputs.matrix }}'
   promote:
-    if: ${{ contains(fromJSON('["workflow_call", "push", "schedule"]'), github.event_name) && fromJSON(needs.prepare.outputs.matrix) != null }}
+    if: ${{ contains(fromJSON('["workflow_call", "workflow_dispatch", "push", "schedule"]'), github.event_name) && fromJSON(needs.prepare.outputs.matrix) != null }}
     needs: prepare
     runs-on: ubuntu-latest
     strategy:
@@ -207,7 +207,7 @@ jobs:
         run: |
           crane cp $SOURCE $DESTINATION
   promote-in-config-on-release:
-    if: ${{ contains(fromJSON('["workflow_call", "release"]'), github.event_name) && inputs.configLiteral == null && inputs.configPath != null }}
+    if: ${{ contains(fromJSON('["workflow_call", "workflow_dispatch", "release"]'), github.event_name) && inputs.configLiteral == null && inputs.configPath != null }}
     runs-on: ubuntu-latest
     steps:
       - if: ${{ startsWith(github.repository, 'GeoNet/') == false }}
