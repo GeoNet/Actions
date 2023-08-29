@@ -38,5 +38,5 @@ jobs:
       - name: golangci-lint
         uses: GeoNet/golangci-lint-action@f76d5e859fe0815b3ba71fc6c45066932309e9da # master
         with:
-          version: v1.52.2
+          version: v1.54.2
           args: --timeout 30m -E gosec
