@@ -50,6 +50,41 @@ There are three types of workflows in this repo
 
 the workflows are intended to work with and around the maintainers of GeoNet software for automations which are valuable to the project.
 
+<!-- TEMPLATE
+
+### <NAME>
+
+<DESCRIPTION AND PURPOSE>
+
+Example:
+
+\```yaml
+name: build
+
+on:
+  push: {}
+  release:
+    types: [published]
+  workflow_dispatch: {}
+
+permissions:
+  packages: write
+  id-token: write
+
+jobs:
+  build:
+    uses: GeoNet/Actions/.github/workflows/reusable-WORKFLOW-FILE-NAME.yml@main
+    # with:
+    #   KEY: VALUE
+\```
+
+<ADDITIONAL INFORMATION>
+<ADDITIONAL EXTERNAL CONFIG EXAMPLE>
+
+for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-WORKFLOW-FILE-NAME.yml](.github/workflows/reusable-WORKFLOW-FILE-NAME.yml).
+
+-->
+
 ### Ko build
 
 STATUS: stable
