@@ -1,6 +1,7 @@
 name: Reusable Ko build
 env:
   VERSION_CRANE: v0.16.1
+  KO_DEFAULTBASEIMAGE: ghcr.io/geonet/base-images/static:latest
 on:
   workflow_call:
     inputs:
@@ -145,6 +146,7 @@ jobs:
           IMAGES_PATH: ${{ steps.run-info.outputs.paths }}
           PUSH: ${{ inputs.push }}
         run: |
+          echo "NOTICE: using default base image $KO_DEFAULTBASEIMAGE"
           IMAGES="$(ko build --push=$PUSH --base-import-paths $IMAGES_PATH)"
           echo "images=$(echo $IMAGES | tr ' ' ',')" >> $GITHUB_OUTPUT
       - id: sign-images-and-attest-sbom
