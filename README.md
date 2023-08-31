@@ -54,6 +54,8 @@ the workflows are intended to work with and around the maintainers of GeoNet sof
 
 ### <NAME>
 
+STATUS: <deprecated|alpha|beta|stable>
+
 <DESCRIPTION AND PURPOSE>
 
 Example:
