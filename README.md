@@ -120,6 +120,8 @@ jobs:
     #   aws-region: ap-southeast-2
     #   aws-role-arn-to-assume: arn:aws:iam::ACCOUNT_ID:role/github-actions-ROLE_NAME
     #   aws-role-duration-seconds: "3600"
+    #   setup: |
+    #     sudo apt install -y something-needed-for-build
 ```
 
 - dynamic build of images based on entrypoints (where there is a `package main`), unless if _inputs.paths_ is set
@@ -862,6 +864,8 @@ jobs:
     #   aws-region: ap-southeast-2
     #   aws-role-arn-to-assume: arn:aws:iam::$ACCOUNT:role/$ROLE_NAME
     #   aws-role-duration-seconds: "3600"
+    #   buildSetup: |
+    #     sudo apt install -y something-needed-for-build
 ```
 
 for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-go-container-apps.yml](.github/workflows/reusable-go-container-apps.yml).

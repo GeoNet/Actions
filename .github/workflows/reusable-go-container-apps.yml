@@ -139,6 +139,11 @@ on:
         type: string
         description: |
           extra args to pass `go test`
+      buildSetup:
+        required: false
+        type: string
+        description: |
+          shell commands to setup the build environment
     secrets:
       GH_CI_USER_TOKEN:
         required: false
@@ -163,6 +168,7 @@ jobs:
       aws-role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
       aws-role-session-name: ${{ inputs.aws-role-session-name }}
       registryGhcrUsernameOverride: ${{ inputs.registryGhcrUsernameOverride }}
+      setup: ${{ inputs.buildSetup }}
   scan:
     if: ${{ contains(fromJSON('["workflow_call", "workflow_dispatch", "push", "release"]'), github.event_name) && inputs.containerScanningEnabled && startsWith(github.repository, 'GeoNet/') != false }}
     needs: build
