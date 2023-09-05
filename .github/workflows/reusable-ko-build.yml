@@ -59,6 +59,11 @@ on:
         default: false
         description: |
           sign image and attestations
+      setup:
+        required: false
+        type: string
+        description: |
+          shell commands to setup the build environment
     secrets:
       GH_CI_USER_TOKEN:
         required: false
@@ -107,6 +112,9 @@ jobs:
         with:
           version: ${{ env.VERSION_CRANE }}
       - uses: GeoNet/setup-ko@f3c6980bb213dc8bb4856f52598a9230d910d06f # main
+      - name: setup
+        run: |
+          eval '${{ inputs.setup }}'
       - name: get session name
         id: get-session-name
         if: ${{ inputs.aws-region != '' && inputs.aws-role-arn-to-assume != '' && inputs.aws-role-duration-seconds != '' && inputs.registryOverride != '' }}
