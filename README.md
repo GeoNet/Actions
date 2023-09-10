@@ -29,6 +29,7 @@
     - [Markdown lint](#markdown-lint)
     - [Copy to S3](#copy-to-s3)
   - [Other documentation](#other-documentation)
+    - [Dependabot and Actions workflow imports](#dependabot-and-actions-workflow-imports)
     - [Container image signing](#container-image-signing)
     - [Versioning for container images](#versioning-for-container-images)
 <!-- /toc -->
@@ -1100,6 +1101,13 @@ GitHub Actions artifacts are used to bring state between jobs, this is not possi
 for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-copy-to-s3.yml](.github/workflows/reusable-copy-to-s3.yml).
 
 ## Other documentation
+
+### Dependabot and Actions workflow imports
+
+Dependabot is enabled for this repo, see the config in [.github/dependabot.yml](./.github/dependabot.yml).
+It will automatically update create PRs to update the Actions workflow imports once a week in a seemingly staggered way.
+
+To force an update of every external import, run `hack/update-actions-imports.sh` and commit the changes in a new PR.
 
 ### Container image signing
 
