@@ -108,7 +108,7 @@ jobs:
       - if: ${{ startsWith(github.repository, 'GeoNet/') == false }}
         run: |
           exit 1
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
       - uses: GeoNet/yq@bbe305500687a5fe8498d74883c17f0f06431ac4 # master
       - id: set
         run: |
@@ -130,7 +130,7 @@ jobs:
       - if: ${{ startsWith(github.repository, 'GeoNet/') == false }}
         run: |
           exit 1
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -217,7 +217,7 @@ jobs:
       - if: ${{ startsWith(github.repository, 'GeoNet/') == false }}
         run: |
           exit 1
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
+      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
       - uses: GeoNet/yq@bbe305500687a5fe8498d74883c17f0f06431ac4 # master
       - name: configure system
         run: |
