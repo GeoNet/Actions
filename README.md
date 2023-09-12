@@ -409,7 +409,7 @@ jobs:
 
 STATUS: deprecated
 
-Promote container images from digests to tags.
+Promote container images from digests to tags
 
 ```yaml
 name: container image promotion
@@ -466,7 +466,7 @@ On release, if using `configPath` and not `configLiteral`, a PR will be automati
 
 STATUS: stable
 
-Scan a (set of) container image(s) and upload the results to GitHub's Security code scanning center.
+Scan a (set of) container image(s) and upload the results to GitHub's Security code scanning center
 
 Basic usage (non-integrated):
 
@@ -525,7 +525,7 @@ Works great along side [reusable ko build](#ko-build).
 
 STATUS: stable
 
-Trigger a `terraform plan` (and optionally `terraform apply`) against Terraform located in the repo, starting at the repo root.
+Trigger a `terraform plan` (and optionally `terraform apply`) against Terraform located in the repo, starting at the repo root
 
 Example:
 
@@ -606,7 +606,7 @@ for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-g
 
 STATUS: stable
 
-Run `go vet` against the codebase
+Run `go vet` against the codebase for static code analysis
 
 ```yaml
 name: go vet
@@ -623,7 +623,7 @@ jobs:
 
 STATUS: stable
 
-Run `gofmt` against the codebase
+Run `gofmt` against the codebase to format the Go code
 
 ```yaml
 name: gofmt
@@ -640,7 +640,7 @@ jobs:
 
 STATUS: stable
 
-Run `go test` against the codebase
+Run `go test` against the codebase to run unit tests
 
 ```yaml
 name: go test
@@ -659,7 +659,7 @@ test coverage results upload to job artifacts, found at the bottom of a job summ
 
 STATUS: stable
 
-Run `govulncheck` against the codebase
+Run `govulncheck` against the codebase to scan and report vulnerable packages in use
 
 ```yaml
 name: govulncheck
@@ -676,8 +676,7 @@ jobs:
 
 STATUS: stable
 
-Performs `go build -o /dev/null $PATH` to ensure that the programs compile.
-Note: does not cache or push the binary artifacts anywhere.
+Performs `go build -o /dev/null $PATH` to ensure that the programs compile
 
 Example:
 
@@ -695,13 +694,15 @@ jobs:
     #   paths: ./cmd/coolapp
 ```
 
+Note: does not cache or push the binary artifacts anywhere.
+
 for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-go-build-smoke-test.yml](.github/workflows/reusable-go-build-smoke-test.yml).
 
 ### goimports
 
 STATUS: stable
 
-Run `goimports` against the codebase
+Run `goimports` against the codebase to ensure that the imports are structured correctly
 
 ```yaml
 name: goimports
@@ -718,7 +719,7 @@ jobs:
 
 STATUS: stable
 
-Add policy enforcement to PRs.
+Checks commits in PRs for agreed qualities, such as conventionalcommits and style
 
 ```yaml
 name: policy conformance
@@ -795,7 +796,7 @@ links:
 
 STATUS: deprecated
 
-marks an issue or PR as stale after 90 days and then closes it after a further 30 days
+Marks an issue or PR as stale after 90 days and then closes it after a further 30 days
 
 ```yaml
 name: stale submission
@@ -823,8 +824,6 @@ a workflow which combines the following workflows
 - golangci-lint
 - go-test
 - go-vet
-- image-promotion
-- update-go-version
 - govulncheck
 
 ```yaml
@@ -920,7 +919,7 @@ for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-g
 
 STATUS: stable
 
-Runs shellcheck against all known shell scripts.
+Runs shellcheck against all known shell scripts
 
 ```yaml
 name: bash shellcheck
@@ -937,7 +936,7 @@ jobs:
 
 STATUS: stable
 
-Ensure that the table of contents is updated in README.md, when titles are added/changed/removed.
+Ensure that the table of contents is updated in README.md, when sections and titles are modified
 
 ```yaml
 name: presubmit README table of contents
