@@ -1046,6 +1046,7 @@ jobs:
         with:
           name: cool-numbers
           path: ./outputs/**
+          retention-days: 1
   copy-to-s3:
     needs: generate-cool-numbers
     uses: GeoNet/Actions/.github/workflows/reusable-copy-to-s3.yml@main
