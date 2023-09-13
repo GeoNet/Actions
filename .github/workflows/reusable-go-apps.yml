@@ -8,13 +8,6 @@ on:
         description: |
           the Go entrypoint paths for applications, where there they have `package main`
           e.g: ./cmd/thing1 ./cmd/thing2
-      # DEPRECATED input
-      updateGoVersionAutoMerge:
-        type: boolean
-        default: false
-        required: false
-        description: |
-          specifies whether to auto merge PRs for Go version updates to go.mod files
       testSetup:
         type: string
         required: false

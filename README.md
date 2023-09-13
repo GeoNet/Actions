@@ -7,9 +7,7 @@
     - [Docker build](#docker-build)
       - [Docker build container image signing](#docker-build-container-image-signing)
     - [Dockerfile lint](#dockerfile-lint)
-    - [Container image promotion](#container-image-promotion)
     - [Container image scan](#container-image-scan)
-    - [Update Go version](#update-go-version)
     - [Terraform management](#terraform-management)
     - [Presubmit Actions workflow require commit digest vet](#presubmit-actions-workflow-require-commit-digest-vet)
     - [Presubmit Go code lint](#presubmit-go-code-lint)
@@ -20,7 +18,6 @@
     - [Go build smoke test](#go-build-smoke-test)
     - [goimports](#goimports)
     - [Presubmit commit policy conformance](#presubmit-commit-policy-conformance)
-    - [Stale submission](#stale-submission)
     - [Go container apps](#go-container-apps)
     - [Go apps](#go-apps)
     - [Bash shellcheck](#bash-shellcheck)
@@ -405,63 +402,6 @@ jobs:
     #     ...
 ```
 
-### Container image promotion
-
-STATUS: deprecated
-
-Promote container images from digests to tags
-
-```yaml
-name: container image promotion
-
-on:
-  push:
-    paths:
-      - images/config.yaml
-  schedule:
-    - cron: "0 0 * * MON"
-  workflow_dispatch: {}
-
-permissions:
-  packages: write
-  id-token: write
-
-jobs:
-  promote:
-    uses: GeoNet/Actions/.github/workflows/reusable-container-image-promotion.yml@main
-    with:
-      configPath: ./path/to/config.yaml
-    #   registryOverride: ghcr.io/geonet
-    #   configLiteral: |
-    #     ...
-```
-
-with a config.yaml in the format of
-
-```yaml
-- name: coolest-serverless-app
-  dmap:
-    "sha256:8246383b7fd0ca87cbac28e6b99d84cda5487f0e80d2c93f16c2f42366160a40": ["v1", "v1.0", "v1.0.0"]
-- name: mission-critical-service
-  dmap:
-    "sha256:a479f33cb7f5fe7d5149de44848bcbc38d5f107d7b47a962df7749259eef49eb": ["v1"]
-    "sha256:84f35de222e8a598dcb8c4cd6ad60df93360a020c6a0647c2500735683d01944": ["2023-04-24", "v2.3.1"]
-- name: webthingy
-  dmap:
-    "sha256:efdb4ab576f4028e8319733890af8e7c49eed7f43bfe33e078052a1d0763ef89": ["v1"]
-    "sha256:f0f843ca0c2b55210555af3f929b3d6ecd156485acc6eaefa59f6f11468b6061": ["2023-04-24", "v1.0.1"]
-```
-
-name being the image name under the $REGISTRY, keys under dmap being the digests to use and it's content being an array of tags to push to.
-
-for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-container-image-promotion.yml](.github/workflows/reusable-container-image-promotion.yml).
-
-for more information, read the [versioning for container images info](#versioning-for-container-images)
-
-format implementation inspired by [Kubernetes sig-release promotion tools](https://github.com/kubernetes-sigs/promo-tools).
-
-On release, if using `configPath` and not `configLiteral`, a PR will be automatically created which adds the release tags to be promoted per each image built.
-
 ### Container image scan
 
 STATUS: stable
@@ -488,38 +428,6 @@ jobs:
 ```
 
 `inputs.imageRefs` is a comma separated list of container image refs.
-
-### Update Go version
-
-STATUS: deprecated
-
-Automatically create a PR to update a project's required Go version to the latest
-
-Example:
-
-```yaml
-name: update-go-version
-
-on:
-  workflow_dispatch: {}
-  schedule:
-    - cron: "0 0 * * MON"
-
-permissions:
-  pull_requests: write
-  contents: write
-  pull-requests: write
-
-jobs:
-  update-go-version:
-    uses: GeoNet/Actions/.github/workflows/reusable-update-go-version.yml@main
-    with:
-      modfile: go.mod
-```
-
-for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-update-go-version.yml](.github/workflows/reusable-update-go-version.yml).
-
-Works great along side [reusable ko build](#ko-build).
 
 ### Terraform management
 
@@ -791,25 +699,6 @@ links:
 
 - https://github.com/siderolabs/conform
 - https://www.conventionalcommits.org/en/v1.0.0/
-
-### Stale submission
-
-STATUS: deprecated
-
-Marks an issue or PR as stale after 90 days and then closes it after a further 30 days
-
-```yaml
-name: stale submission
-on:
-  schedule:
-  - cron: '0 1 * * *'
-jobs:
-  stale:
-    uses: GeoNet/Actions/.github/workflows/reusable-stale-submission.yml@main
-    # with:
-    #   days-before-stale: number
-    #   days-before-close: number
-```
 
 ### Go container apps
 

@@ -1,25 +1,6 @@
 name: Terraform management
 on:
-  workflow_call:
-    inputs:
-      # DEPRECATED input
-      # workflow will only validate
-      validateOnly:
-        type: boolean
-        default: false
-        description: |
-          only check the Terrform code.
-      # DEPRECATED input
-      # workflow will only validate
-      allowApply:
-        type: boolean
-        default: false
-        required: false
-        description: |
-          when this is set to true, it will use `terraform apply -auto-approve` to apply without prompt when on main.
-    secrets:
-      TF_API_TOKEN:
-        required: false
+  workflow_call: {}
 jobs:
   tflint:
     name: tflint
