@@ -89,6 +89,11 @@ jobs:
           gh auth login --with-token < <(echo ${{ secrets.GITHUB_TOKEN }})
           gh auth status
       - uses: sigstore/cosign-installer@11086d25041f77fe8fe7b9ea4e48e3b9192b8f19 # v3.1.2
+      - uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+          check-latest: true
       - id: run-info
         name: collect job run info
         env:
@@ -104,11 +109,6 @@ jobs:
             PATHS="$(go list -json ./... | jq -r -s '.[] | select (.Name == "main") | .ImportPath' | xargs)"
             echo "paths="$PATHS"" >> $GITHUB_OUTPUT
           fi
-      - uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
-        with:
-          go-version-file: go.mod
-          cache-dependency-path: go.sum
-          check-latest: true
       - uses: GeoNet/setup-crane@00c9e93efa4e1138c9a7a5c594acd6c75a2fbf0c # main
         with:
           version: ${{ env.VERSION_CRANE }}
