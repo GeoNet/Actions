@@ -23,6 +23,7 @@
     - [Bash shellcheck](#bash-shellcheck)
     - [Presubmit README table of contents](#presubmit-readme-table-of-contents)
     - [Presubmit GitHub Actions workflow validator](#presubmit-github-actions-workflow-validator)
+    - [GitHub Actions action validator](#github-actions-action-validator)
     - [Markdown lint](#markdown-lint)
     - [Copy to S3](#copy-to-s3)
   - [Other documentation](#other-documentation)
@@ -851,6 +852,24 @@ on:
 jobs:
   presubmit-github-actions-workflow-validator:
     uses: GeoNet/Actions/.github/workflows/reusable-presubmit-github-actions-workflow-validator.yml@main
+```
+
+### GitHub Actions action validator
+
+STATUS: stable
+
+A workflow to validate a GitHub action (not reusable workflow)
+
+```yaml
+name: presubmit GitHub Actions action validator
+on:
+  pull_request: {}
+  workflow_dispatch: {}
+jobs:
+  presubmit-github-actions-action-validator:
+    uses: GeoNet/Actions/.github/workflows/reusable-github-actions-action-validator.yml@main
+    with:
+      actionPaths: ./action.yml
 ```
 
 ### Markdown lint
