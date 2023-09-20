@@ -1,6 +1,7 @@
 name: Reusable Docker build
 env:
   VERSION_CRANE: v0.16.1
+  COSIGN_ARGS: --recursive --yes --tlog-upload=false
 on:
   workflow_call:
     inputs:
@@ -90,6 +91,12 @@ on:
         required: false
         description: |
           the name of the session to use for AssumeRole(WithWebIdentity).
+      runs-on:
+        type: string
+        description: |
+          machine type to run on
+        required: false
+        default: ubuntu-latest
       timeout-mins:
         type: number
         description: "minutes before build will timeout"
@@ -105,17 +112,22 @@ on:
         required: false
         description: |
           the path in the GitHub Actions artifact to download
+      target:
+        type: string
+        required: false
+        description: |
+          the name of the target stage to build
       setup:
         type: string
         required: false
         description: |
           shell commands to setup the build environment
-      sign:
-        type: boolean
+      test:
+        type: string
         required: false
-        default: false
         description: |
-          sign image and attestations
+          shell commands to test the built image.
+          use the special variables '$IMAGE' and '$PUSH' to use the locally built CI image for testing
     secrets:
       GH_CI_USER_TOKEN:
         required: false
@@ -124,7 +136,7 @@ on:
         value: ${{ jobs.build.outputs.image }}
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runs-on }}
     timeout-minutes: ${{ inputs.timeout-mins }}
     outputs:
       image: ${{ steps.image.outputs.image }}
@@ -146,6 +158,66 @@ jobs:
         uses: docker/setup-qemu-action@68827325e0b33c7199eb31dd4e31fbe9023e06e3 # v3.0.0
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # v3.0.0
+      - name: validate
+        env:
+          CONTEXT: ${{ inputs.context }}
+          IMAGE_NAME: ${{ inputs.imageName }}
+          DOCKERFILE: ${{ inputs.dockerfile }}
+          REGISTRY_OVERRIDE: ${{ inputs.registryOverride }}
+          REGISTRY_GHCR_USERNAME_OVERRIDE: ${{ inputs.registryGhcrUsernameOverride }}
+          TAGS: ${{ inputs.tags }}
+          BUILD_ARGS: ${{ inputs.buildArgs }}
+          PLATFORMS: ${{ inputs.platforms }}
+          PUSH: ${{ inputs.push }}
+          AWS_REGION: ${{ inputs.aws-region }}
+          AWS_ROLE_ARN_TO_ASSUME: ${{ inputs.aws-role-arn-to-assume }}
+          AWS_ROLE_DURATION_SECONDS: ${{ inputs.aws-role-duration-seconds }}
+          AWS_ROLE_SESSION_NAME: ${{ inputs.aws-role-session-name }}
+          TIMEOUT_MINS: ${{ inputs.timeout-mins }}
+          ARTIFACT_NAME: ${{ inputs.artifact-name }}
+          ARTIFACT_PATH: ${{ inputs.artifact-path }}
+          SETUP: ${{ inputs.setup }}
+          TEST: ${{ inputs.test }}
+        run: |
+          FAIL=false
+          if [ ! -d "$CONTEXT" ]; then
+            echo "error: context input path '$CONTEXT' not found" >/dev/stderr
+            FAIL=true
+          fi
+          # TODO IMAGE_NAME regexp validate
+          if [ ! -f "$DOCKERFILE" ]; then
+            echo "error: dockerfile input path '$DOCKERFILE' not found" >/dev/stderr
+            FAIL=true
+          fi
+          # TODO REGISTRY_OVERRIDE regexp validate
+          # TODO TAGS regexp validate
+          # TODO PLATFORMS regexp validate
+          case "$PUSH" in
+            true|false)
+
+            ;;
+            *)
+              echo "error: push input must be true or false" >/dev/stderr
+              FAIL=true
+          esac
+          if [ -z "$REGISTRY_OVERRIDE" ] && \
+            ! ( [ -z "$AWS_REGION" ] || [ -z "$AWS_ROLE_ARN_TO_ASSUME" ] || [ -z "$AWS_ROLE_DURATION_SECONDS" ] ); then
+            echo "error: registryOverride input must be set when using aws-region, aws-role-arn-to-assume and aws-role-duration-seconds" >/dev/stderr
+            FAIL=true
+          fi
+          if [ -z "$TIMEOUT_MINS" ] && ! [[ "$TIMEOUT_MINS" =~ '^[0-9]+$' ]]; then
+            echo "error: timeout-mins input must be a number" >/dev/stderr
+            FAIL=true
+          fi
+          if ( [ ! -z "$ARTIFACT_NAME" ] && [ -z "$ARTIFACT_PATH" ] ) || \
+            ( [ -z "$ARTIFACT_NAME" ] && [ ! -z "$ARTIFACT_PATH" ] ); then
+            echo "error: artifact-name and artifact-path inputs must be set together" >/dev/stderr
+            FAIL=true
+          fi
+
+          if [ "$FAIL" = true ]; then
+            exit 1
+          fi
       - name: setup
         run: |
           eval '${{ inputs.setup }}'
@@ -160,6 +232,7 @@ jobs:
           TAGS="${TAGS:-latest}"
           REGISTRY="${GHCR_DOCKER_REPO,,}"
           [ -z "$REGISTRY_OVERRIDE" ] || REGISTRY="$REGISTRY_OVERRIDE"
+          IMAGE_WITH_TAG_FOR_TEST=""
           IMAGES_WITH_TAGS=""
           for TAG in $(echo $TAGS | tr ',' ' '); do
             NEW_TAG="$REGISTRY/$IMAGE_NAME:$TAG"
@@ -168,9 +241,13 @@ jobs:
             else
               IMAGES_WITH_TAGS="$NEW_TAG"
             fi
+            if [ -z "$IMAGE_WITH_TAG_FOR_TEST" ]; then
+              IMAGE_WITH_TAG_FOR_TEST="$NEW_TAG"
+            fi
           done
           echo "image=$REGISTRY/$IMAGE_NAME" >> $GITHUB_OUTPUT
           echo "images-with-tags=$IMAGES_WITH_TAGS" >> $GITHUB_OUTPUT
+          echo "image-with-tag-for-test=$IMAGE_WITH_TAG_FOR_TEST" >> $GITHUB_OUTPUT
       - name: get session name
         id: get-session-name
         if: ${{ inputs.aws-region != '' && inputs.aws-role-arn-to-assume != '' && inputs.aws-role-duration-seconds != '' && inputs.registryOverride != '' }}
@@ -228,6 +305,14 @@ jobs:
             org.opencontainers.image.name=${{ inputs.imageName }}
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.source=${{ github.repositoryUrl }}
+          target: ${{ inputs.target }}
+      - name: test
+        if: ${{ inputs.test != '' }}
+        env:
+          IMAGE: ${{ steps.run-info.outputs.image-with-tag-for-test }}
+          PUSH: ${{ inputs.push }}
+        run: |
+          eval '${{ inputs.test }}'
       - name: get-digests
         id: get-digests
         if: ${{ inputs.push == true }}
@@ -241,23 +326,26 @@ jobs:
           ) | column -t
           echo "destination=${DESTINATION_DIGEST}" >> $GITHUB_OUTPUT
       - name: Sign image
-        if: ${{ inputs.push == true && inputs.sign == true }}
+        if: ${{ inputs.push == true }}
         env:
           COSIGN_YES: "true"
+          IMAGE: ${{ steps.run-info.outputs.image }}@${{ steps.get-digests.outputs.destination }}
         run: |
-          cosign sign ${{ steps.run-info.outputs.image }}@${{ steps.get-digests.outputs.destination }} -y --recursive
+          cosign sign $COSIGN_ARGS $IMAGE
+          echo "signed image: $IMAGE"
       - uses: anchore/sbom-action@78fc58e266e87a38d4194b2137a3d4e9bcaf7ca1 # v0.14.3
-        if: ${{ inputs.push == true && inputs.sign == true }}
+        if: ${{ inputs.push == true }}
         with:
           image: ${{ steps.run-info.outputs.image }}@${{ steps.get-digests.outputs.destination }}
           artifact-name: sbom-spdx.json
           output-file: /tmp/sbom-spdx.json
       - name: publish sbom blob as blob
-        if: ${{ inputs.push == true && inputs.sign == true }}
+        if: ${{ inputs.push == true }}
         env:
           COSIGN_YES: "true"
         run: |
-          cosign attest --predicate /tmp/sbom-spdx.json ${{ steps.run-info.outputs.image }}@${{ steps.get-digests.outputs.destination }} --recursive
+          cosign attest $COSIGN_ARGS --predicate /tmp/sbom-spdx.json ${{ steps.run-info.outputs.image }}@${{ steps.get-digests.outputs.destination }}
+          echo "predicated: SBOM in image attestation"
       - name: image
         if: ${{ inputs.push == true }}
         id: image

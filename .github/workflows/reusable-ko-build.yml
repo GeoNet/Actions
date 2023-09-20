@@ -2,6 +2,7 @@ name: Reusable Ko build
 env:
   VERSION_CRANE: v0.16.1
   KO_DEFAULTBASEIMAGE: ghcr.io/geonet/base-images/static:latest
+  COSIGN_ARGS: --recursive --yes --tlog-upload=false
 on:
   workflow_call:
     inputs:
@@ -54,12 +55,6 @@ on:
         required: false
         description: |
           the name of the session to use for AssumeRole(WithWebIdentity).
-      sign:
-        type: boolean
-        required: false
-        default: false
-        description: |
-          sign image and attestations
       setup:
         required: false
         type: string
@@ -158,15 +153,17 @@ jobs:
           IMAGES="$(ko build --push=$PUSH --base-import-paths $IMAGES_PATH)"
           echo "images=$(echo $IMAGES | tr ' ' ',')" >> $GITHUB_OUTPUT
       - id: sign-images-and-attest-sbom
-        if: ${{ inputs.push == true && inputs.sign == true }}
+        if: ${{ inputs.push == true }}
         env:
           COSIGN_YES: "true"
           IMAGE: ${{ steps.build.outputs.images }}
         run: |
           for IMAGE in $(echo ${{ steps.build.outputs.images }} | tr ',' ' '); do
-            cosign sign $IMAGE -y --recursive
+            cosign sign $COSIGN_ARGS $IMAGE
+            echo "signed image: $IMAGE"
             cosign download sbom $IMAGE > /tmp/sbom-spdx.json
-            cosign attest --predicate /tmp/sbom-spdx.json $IMAGE -y --recursive
+            cosign attest $COSIGN_ARGS --predicate /tmp/sbom-spdx.json $IMAGE
+            echo "predicated SBOM in image attestation"
           done
       - name: image result
         if: ${{ inputs.push }}
