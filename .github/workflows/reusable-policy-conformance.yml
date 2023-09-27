@@ -42,6 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - if: ${{ startsWith(github.repository, 'GeoNet/') == false }}
+        name: require GeoNet org
         run: |
           exit 1
       - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
@@ -49,6 +50,7 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.head_ref }}
       - id: determine-existing-config
+        name: discover existing config
         run: |
           if [ -f .conform.yaml ]; then
             echo "exists=true" >> $GITHUB_OUTPUT

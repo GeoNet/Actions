@@ -1,0 +1,66 @@
+name: presubmit workflow lint
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch: {}
+
+jobs:
+  validate-schema:
+    uses: GeoNet/Actions/.github/workflows/reusable-presubmit-github-actions-workflow-validator.yml@main
+  commit-digest-vet:
+    uses: GeoNet/Actions/.github/workflows/reusable-presubmit-actions-workflow-require-commit-digest-vet.yml@main
+  require-actions-run-from-GeoNet-org:
+    runs-on: ubuntu-latest
+    env:
+      REQUIRED_STRING_GENERIC: "startsWith(github.repository, 'GeoNet/') == false" # use the steps field and exit 1
+      REQUIRED_STRING_APPS: "startsWith(github.repository, 'GeoNet/') != false" # use existing if statements for the chained reuse of workflows, since there's no steps field
+    steps:
+      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+      - name: check for GeoNet org requirement
+        run: |
+          FAILURES=false
+          for WORKFLOW in $(find .github/workflows -name 'reusable*' | xargs); do
+            if ! ( grep -q "$REQUIRED_STRING_GENERIC" "$WORKFLOW" \
+              || ( echo "$WORKFLOW" | grep -q apps && grep -q "$REQUIRED_STRING_APPS" "$WORKFLOW" ) ); then
+              echo "Reusable workflow must be restricted to only run from GeoNet org: $WORKFLOW"
+              FAILURES=true
+            fi
+          done
+          if [ "$FAILURES" = true ]; then
+            exit 1
+          fi
+  require-reusable-workflow-is-documented:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+      - name: check workflow is documented
+        run: |
+          FAILURES=false
+          for WORKFLOW in $(find .github/workflows -name 'reusable*' | xargs); do
+            if ! grep -q "$WORKFLOW" README.md; then
+              echo "Not found in README: $WORKFLOW"
+              FAILURES=true
+            fi
+          done
+          if [ "$FAILURES" = true ]; then
+            exit 1
+          fi
+  require-jobs-run-steps-have-name:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+      - uses: GeoNet/yq@bbe305500687a5fe8498d74883c17f0f06431ac4 # master
+      - name: check for run steps without name
+        run: |
+          FAILURES=false
+          for WORKFLOW in $(find .github/workflows -type f | xargs); do
+            if yq e -o json '.jobs.*.steps[]' "$WORKFLOW" -P               \
+              | jq -rc --arg WORKFLOW "$WORKFLOW" 'select(.run!=null) | select(.name==null) | "workflow (" + $WORKFLOW + ") missing name in step with run\n" + .run' \
+              | grep -z "missing name"; then
+              FAILURES=true
+            fi
+          done
+          if [ "$FAILURES" = true ]; then
+            exit 1
+          fi

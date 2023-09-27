@@ -142,6 +142,7 @@ jobs:
       image: ${{ steps.image.outputs.image }}
     steps:
       - if: ${{ startsWith(github.repository, 'GeoNet/') == false }}
+        name: require GeoNet org
         run: |
           exit 1
       - uses: GeoNet/yq@bbe305500687a5fe8498d74883c17f0f06431ac4 # master

@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - if: ${{ startsWith(github.repository, 'GeoNet/') == false }}
+        name: require GeoNet org
         run: |
           exit 1
       - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
@@ -21,7 +22,7 @@ jobs:
             git check-ignore -q "$script" || all_shell_scripts+=("$script")
           done < <(grep -irl '#!.*sh' . --exclude-dir={_\*,.git\*,vendor\*})
           echo "scripts=${all_shell_scripts[@]}" >> $GITHUB_OUTPUT
-      - id: shellcheck
+      - name: shellcheck
         if: ${{ steps.run-info.outputs.scripts }}
         run: |
           docker run \
