@@ -74,6 +74,7 @@ jobs:
       images: ${{ steps.build.outputs.images }}
     steps:
       - if: ${{ startsWith(github.repository, 'GeoNet/') == false }}
+        name: require GeoNet org
         run: |
           exit 1
       - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
@@ -152,7 +153,8 @@ jobs:
           echo "NOTICE: using default base image $KO_DEFAULTBASEIMAGE"
           IMAGES="$(ko build --push=$PUSH --base-import-paths $IMAGES_PATH)"
           echo "images=$(echo $IMAGES | tr ' ' ',')" >> $GITHUB_OUTPUT
-      - id: sign-images-and-attest-sbom
+      - name: sign images and attest SBOM
+        id: sign-images-and-attest-sbom
         if: ${{ inputs.push == true }}
         env:
           COSIGN_YES: "true"
@@ -168,5 +170,7 @@ jobs:
       - name: image result
         if: ${{ inputs.push }}
         id: result
+        env:
+          IMAGES: ${{ steps.build.outputs.images }}
         run: |
-          echo -e "Built, pushed and signed:\n\n$(echo ${{ steps.build.outputs.images }} | sed 's/,/\n/g' | sed 's/^/- /g')"
+          echo -e "Built, pushed and signed:\n$(echo "$IMAGES" | sed 's/,/\n/g' | sed 's/^/- /g')"
