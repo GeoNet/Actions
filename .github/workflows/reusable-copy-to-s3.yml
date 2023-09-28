@@ -103,7 +103,7 @@ jobs:
           name: ${{ inputs.artifact-name }}
           path: ${{ inputs.artifact-path }}
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@8c3f20df09ac63af7b3ae3d7c91f105f857d8497 # v4.0.0
+        uses: aws-actions/configure-aws-credentials@976d0ba04bcc49ba2c0b4e86991eee80d35136c0 # v4.0.0
         with:
           aws-region: ${{ inputs.aws-region }}
           role-to-assume: ${{ inputs.aws-role-arn-to-assume }}
