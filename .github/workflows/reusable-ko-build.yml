@@ -108,7 +108,7 @@ jobs:
       - uses: GeoNet/setup-crane@00c9e93efa4e1138c9a7a5c594acd6c75a2fbf0c # main
         with:
           version: ${{ env.VERSION_CRANE }}
-      - uses: GeoNet/setup-ko@f3c6980bb213dc8bb4856f52598a9230d910d06f # main
+      - uses: GeoNet/setup-ko@190558b6b0e4ebe7e2caa5d99309563d1bceaa8d # main
       - name: setup
         run: |
           eval '${{ inputs.setup }}'
@@ -126,7 +126,7 @@ jobs:
           echo "session-name=$SESSION_NAME" >> $GITHUB_OUTPUT
       - name: Configure AWS Credentials
         if: ${{ inputs.push == true && inputs.aws-region != '' && inputs.aws-role-arn-to-assume != '' && inputs.aws-role-duration-seconds != '' && steps.get-session-name.outputs.session-name != '' && inputs.registryOverride != '' }}
-        uses: aws-actions/configure-aws-credentials@8c3f20df09ac63af7b3ae3d7c91f105f857d8497 # v2.0.0
+        uses: aws-actions/configure-aws-credentials@976d0ba04bcc49ba2c0b4e86991eee80d35136c0 # v4.0.0
         with:
           aws-region: ${{ inputs.aws-region }}
           role-to-assume: ${{ inputs.aws-role-arn-to-assume }}
