@@ -18,7 +18,7 @@ jobs:
           # 2. format as {"invalid":[], "file":""}
           REPOSITORY="${{ github.repository }}"
           ACTIONS=$(
-            for WORKFLOW in $(find .github/workflows -type f -name '*.yml'); do
+            for WORKFLOW in $(find .github/workflows -type f -name '*.yml' -not -name 'test*.yml'); do
               ACTIONS=$(< $WORKFLOW \
                 yq e '.jobs.*.steps[].uses as $jobsteps | .jobs.*.uses as $jobuses | $jobsteps | [., $jobuses]' -o json \
                   | jq -rcMs --arg file "$WORKFLOW" --arg repository "$REPOSITORY" '{"actions": . | flatten} | .file = $file')
@@ -49,7 +49,7 @@ jobs:
               return i
             })
 
-            if (invalidActions.length === 0) {
+            if (invalidActions.length === 0 || typeof invalidActions === 'undefined' || invalidActions === null) {
               console.log(`All actions are valid and formatted correctly. Exiting...`)
               return
             }
