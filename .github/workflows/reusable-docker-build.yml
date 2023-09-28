@@ -229,6 +229,8 @@ jobs:
           GHCR_DOCKER_REPO: ghcr.io/${{ github.repository }}
           IMAGE_NAME: ${{ inputs.imageName }}
           TAGS: ${{ inputs.tags }}
+          PLATFORMS: ${{ inputs.platforms }}
+          PUSH: ${{ inputs.push }}
         run: |
           TAGS="${TAGS:-latest}"
           REGISTRY="${GHCR_DOCKER_REPO,,}"
@@ -246,6 +248,12 @@ jobs:
               IMAGE_WITH_TAG_FOR_TEST="$NEW_TAG"
             fi
           done
+          # NOTE docker buildx --load doesn't support multiple architectures
+          #      just use linux/amd64 when using test
+          if [ "$PUSH" = "false" ]; then
+            PLATFORMS=linux/amd64
+          fi
+          echo "platforms=$PLATFORMS" >> $GITHUB_OUTPUT
           echo "image=$REGISTRY/$IMAGE_NAME" >> $GITHUB_OUTPUT
           echo "images-with-tags=$IMAGES_WITH_TAGS" >> $GITHUB_OUTPUT
           echo "image-with-tag-for-test=$IMAGE_WITH_TAG_FOR_TEST" >> $GITHUB_OUTPUT
@@ -293,6 +301,7 @@ jobs:
           path: ${{ inputs.artifact-path }}
           retention-days: 1
       - name: Build
+        if: ${{ inputs.push == false }}
         uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
         id: build
         with:
@@ -300,7 +309,7 @@ jobs:
           load: true
           tags: ${{ steps.run-info.outputs.images-with-tags }}
           context: ${{ inputs.context }}
-          platforms: ${{ inputs.platforms }}
+          platforms: ${{ steps.run-info.outputs.platforms }}
           file: ${{ inputs.dockerfile }}
           build-args: ${{ inputs.buildArgs }}
           labels: |
@@ -309,7 +318,7 @@ jobs:
             org.opencontainers.image.source=${{ github.repositoryUrl }}
           target: ${{ inputs.target }}
       - name: test
-        if: ${{ inputs.test != '' }}
+        if: ${{ inputs.test != '' && inputs.push == false }}
         env:
           IMAGE: ${{ steps.run-info.outputs.image-with-tag-for-test }}
           PUSH: ${{ inputs.push }}

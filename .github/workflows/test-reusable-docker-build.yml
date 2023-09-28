@@ -1,0 +1,221 @@
+name: test reusable-docker-build
+env:
+  VERSION_CRANE: v0.16.1
+on:
+  pull_request: {}
+  workflow_dispatch: {}
+
+# LIMITATIONS
+# - this workflow cannot run in parallel between PRs; retries are required (for now).
+#   this is due to non-unique image names. having unique image names tends to cause needing to retry more times due to some sort of internal container artifact "registration" behaviour
+
+# TESTCASES
+# - t0: basic
+# - t1: use-test
+# - t2: artifact-pull
+# - t3: multi-arch
+# - t4: push-to-ecr  # TODO need test ECR
+# - t5: pull-from-s3 # TODO need test bucket
+# - t6: auth-with-geonetci
+# - t7: use-setup
+# - t8: use-tags
+# - t9: no-push
+
+permissions:
+  packages: write
+  contents: read
+  id-token: write
+jobs:
+  t0-basic:
+    uses: ./.github/workflows/reusable-docker-build.yml
+    with:
+      context: ./testdata/t0-basic
+      dockerfile: ./testdata/t0-basic/Dockerfile
+      imageName: testimage-t0-basic
+      platforms: linux/amd64
+      push: ${{ github.ref != 'refs/heads/main' }}
+  t0-basic-check:
+    needs: t0-basic
+    runs-on: ubuntu-latest
+    steps:
+      - uses: GeoNet/setup-crane@00c9e93efa4e1138c9a7a5c594acd6c75a2fbf0c # main
+        with:
+          version: ${{ env.VERSION_CRANE }}
+      - name: check for image
+        env:
+          IMAGE: ${{ needs.t0-basic.outputs.image }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          crane manifest $IMAGE
+          crane manifest $IMAGE | jq -r '.manifests[] | select(.annotations."vnd.docker.reference.type" != "attestation-manifest") | .platform.architecture' | xargs | grep -E '^amd64$'
+          gh api -X DELETE /orgs/GeoNet/packages/container/actions%2Ftestimage-t0-basic || true
+  t1-use-test:
+    uses: ./.github/workflows/reusable-docker-build.yml
+    with:
+      context: ./testdata/t1-use-test
+      dockerfile: ./testdata/t1-use-test/Dockerfile
+      imageName: testimage-t1-use-test
+      platforms: linux/amd64
+      push: ${{ github.ref != 'refs/heads/main' }}
+      test: |
+        date
+        crane append ghcr.io/geonet/actions/t1-use-test-${{ github.sha }}-success --new_tag --new_layer <(tar cvf $(mktemp))
+  t1-use-test-check:
+    needs: t1-use-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: GeoNet/setup-crane@00c9e93efa4e1138c9a7a5c594acd6c75a2fbf0c # main
+        with:
+          version: ${{ env.VERSION_CRANE }}
+      - name: check for image
+        env:
+          IMAGE: ${{ needs.t1-use-test.outputs.image }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          crane manifest $IMAGE
+          crane manifest $IMAGE | jq -r '.manifests[] | select(.annotations."vnd.docker.reference.type" != "attestation-manifest") | .platform.architecture' | xargs | grep -E '^amd64'
+          gh api -X DELETE /orgs/GeoNet/packages/container/actions%2Ftestimage-t1-use-test || true
+          gh api -X DELETE /orgs/GeoNet/packages/container/actions%2Ftestimage-t1-use-test-${{ github.sha }}-success || true
+  t2-artifact-pull-prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - name: make file
+        run: |
+          mkdir -p ./testdata/t2-artifact-pull/something/
+          date > ./testdata/t2-artifact-pull/something/something.txt
+      - uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
+        with:
+          name: t2-artifact-pull-something
+          path: ./testdata/t2-artifact-pull/something
+          retention-days: 1
+  t2-artifact-pull:
+    needs: t2-artifact-pull-prepare
+    uses: ./.github/workflows/reusable-docker-build.yml
+    with:
+      context: ./testdata/t2-artifact-pull
+      dockerfile: ./testdata/t2-artifact-pull/Dockerfile
+      imageName: testimage-t2-artifact-pull
+      platforms: linux/amd64
+      push: false
+      artifact-name: t2-artifact-pull-something
+      artifact-path: ./testdata/t2-artifact-pull/something/
+      test: |
+        find ./testdata/t2-artifact-pull/something/ | grep -qE 'something.txt$'
+  t2-artifact-pull-cleanup:
+    needs: t2-artifact-pull
+    runs-on: ubuntu-latest
+    steps:
+      - name: check for image
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api /repos/GeoNet/Actions/actions/artifacts --jq '.artifacts[] | select(.name=="t2-artifact-pull-something") | .id' | xargs -I{} -n 1 gh api -X DELETE /repos/GeoNet/ac-tools/actions/artifacts/{} || true
+  t3-multi-arch:
+    uses: ./.github/workflows/reusable-docker-build.yml
+    with:
+      context: ./testdata/t3-multi-arch
+      dockerfile: ./testdata/t3-multi-arch/Dockerfile
+      imageName: testimage-t3-multi-arch
+      platforms: 'linux/amd64,linux/arm64'
+      push: ${{ github.ref != 'refs/heads/main' }}
+  t3-multi-arch-check:
+    needs: t3-multi-arch
+    runs-on: ubuntu-latest
+    steps:
+      - uses: GeoNet/setup-crane@00c9e93efa4e1138c9a7a5c594acd6c75a2fbf0c # main
+        with:
+          version: ${{ env.VERSION_CRANE }}
+      - name: check for image
+        env:
+          IMAGE: ${{ needs.t3-multi-arch.outputs.image }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          crane manifest $IMAGE
+          crane manifest $IMAGE | jq -r '.manifests[] | select(.annotations."vnd.docker.reference.type" != "attestation-manifest") | .platform.architecture' | xargs | grep -E '^amd64 arm64$'
+          gh api -X DELETE /orgs/GeoNet/packages/container/actions%2Ftestimage-t3-multi-arch
+  t6-auth-with-geonetci:
+    uses: ./.github/workflows/reusable-docker-build.yml
+    secrets: inherit
+    with:
+      context: ./testdata/t6-auth-with-geonetci
+      dockerfile: ./testdata/t6-auth-with-geonetci/Dockerfile
+      imageName: testimage-t6-auth-with-geonetci
+      platforms: linux/amd64
+      push: ${{ github.ref != 'refs/heads/main' }}
+      registryGhcrUsernameOverride: geonetci
+  t6-auth-with-geonetci-check:
+    needs: t6-auth-with-geonetci
+    runs-on: ubuntu-latest
+    steps:
+      - uses: GeoNet/setup-crane@00c9e93efa4e1138c9a7a5c594acd6c75a2fbf0c # main
+        with:
+          version: ${{ env.VERSION_CRANE }}
+      - name: check for image
+        env:
+          IMAGE: ${{ needs.t6-auth-with-geonetci.outputs.image }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          crane manifest $IMAGE
+          crane manifest $IMAGE | jq -r '.manifests[] | select(.annotations."vnd.docker.reference.type" != "attestation-manifest") | .platform.architecture' | xargs | grep -E '^amd64$'
+          gh api -X DELETE /orgs/GeoNet/packages/container/actions%2Ftestimage-t6-auth-with-geonetci || true
+  t7-use-setup:
+    uses: ./.github/workflows/reusable-docker-build.yml
+    with:
+      push: false
+      context: ./testdata/t7-use-setup
+      dockerfile: ./testdata/t7-use-setup/Dockerfile
+      imageName: testimage-t7-use-setup
+      platforms: linux/amd64
+      setup: |
+        echo 'test-complete' > ./test-file.txt
+      test: |
+        < ./test-file.txt grep -qE '^test-complete$'
+  t8-use-tags:
+    uses: ./.github/workflows/reusable-docker-build.yml
+    with:
+      context: ./testdata/t8-use-tags
+      dockerfile: ./testdata/t8-use-tags/Dockerfile
+      imageName: testimage-t8-use-tags
+      platforms: linux/amd64
+      push: ${{ github.ref != 'refs/heads/main' }}
+      tags: a,b
+  t8-use-tags-check:
+    needs: t8-use-tags
+    runs-on: ubuntu-latest
+    steps:
+      - uses: GeoNet/setup-crane@00c9e93efa4e1138c9a7a5c594acd6c75a2fbf0c # main
+        with:
+          version: ${{ env.VERSION_CRANE }}
+      - name: check for image
+        env:
+          IMAGE: ${{ needs.t8-use-tags.outputs.image }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          crane manifest $IMAGE
+          crane ls ghcr.io/geonet/actions/testimage-t8-use-tags | grep -vE '^sha256-' | sort | xargs | grep -E '^a b$'
+          crane manifest $IMAGE | jq -r '.manifests[] | select(.annotations."vnd.docker.reference.type" != "attestation-manifest") | .platform.architecture' | xargs | grep -E '^amd64$'
+          gh api -X DELETE /orgs/GeoNet/packages/container/actions%2Ftestimage-t8-use-tags || true
+  t9-no-push:
+    uses: ./.github/workflows/reusable-docker-build.yml
+    with:
+      context: ./testdata/t9-no-push
+      dockerfile: ./testdata/t9-no-push/Dockerfile
+      imageName: testimage-t9-no-push
+      platforms: linux/amd64
+      push: false
+  t9-no-push-check:
+    needs: t9-no-push
+    runs-on: ubuntu-latest
+    steps:
+      - uses: GeoNet/setup-crane@00c9e93efa4e1138c9a7a5c594acd6c75a2fbf0c # main
+        with:
+          version: ${{ env.VERSION_CRANE }}
+      - name: check for image
+        env:
+          IMAGE: ${{ needs.t9-no-push.outputs.image }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ! crane manifest $IMAGE || \
+          (
+          gh api -X DELETE /orgs/GeoNet/packages/container/actions%2Ftestimage-t9-no-push || true
+          )
