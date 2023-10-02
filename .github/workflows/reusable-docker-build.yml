@@ -292,7 +292,7 @@ jobs:
         env:
           registryGhcrUsernameOverride: ${{ inputs.registryGhcrUsernameOverride }}
           registryGhcrPasswordOverride: ${{ secrets.GH_CI_USER_TOKEN }}
-        if: ${{ inputs.push == true && env.registryGhcrUsernameOverride != '' && env.registryGhcrPasswordOverride != '' }}
+        if: ${{ env.registryGhcrUsernameOverride != '' && env.registryGhcrPasswordOverride != '' }}
         run: |
           echo "${{ env.registryGhcrPasswordOverride }}" | crane auth login ghcr.io -u ${{ env.registryGhcrUsernameOverride }} --password-stdin
       - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
