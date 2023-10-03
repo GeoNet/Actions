@@ -49,7 +49,7 @@ get_status_checks() {
         __debug_echo "  - PR commit: $COMMIT"
         while read CONTEXT; do
             checks+=("$CONTEXT")
-        done < <(gh api "repos/$REPO/commits/$COMMIT/status" --jq '.statuses[].context')
+        done < <(gh api "repos/$REPO/commits/$COMMIT/status" --jq '.statuses[].context' | grep -vi travis)
     done
     CHECKS+=("${checks[@]}")
 }
@@ -66,7 +66,7 @@ get_workflow_checks() {
             while read RUN; do
                 __debug_echo "      - Check run: $RUN"
                 checks+=("$RUN")
-            done < <(gh api "repos/$REPO/check-suites/$SUITE/check-runs" --jq .check_runs[].name)
+            done < <(gh api "repos/$REPO/check-suites/$SUITE/check-runs" --jq .check_runs[].name | sed 's/(.*) //' | grep -vi travis)
         done < <(gh api "repos/$REPO/commits/$COMMIT/check-suites" --jq .check_suites[].id)
     done
     CHECKS+=("${checks[@]}")
@@ -74,10 +74,15 @@ get_workflow_checks() {
 
 get_checks() {
     REPO="$1"
-    echo "$REPO:"
+    printf "$REPO:"
     CHECKS=()
     get_status_checks "$REPO"
     get_workflow_checks "$REPO"
+    if [[ -z ${CHECKS[*]} ]]; then
+        echo ' []'
+    else
+        echo
+    fi
     (
         for CHECK in "${CHECKS[@]}"; do
             echo "  - $CHECK"

@@ -23,8 +23,10 @@ which may be set to provide check-based branch merge protection.
 List checks for all GeoNet repos
 
 ```sh
-./hack/list-checks.sh
+./hack/list-checks.sh | tee /tmp/list-checks.yaml
 ```
+
+and append the output to a yaml file.
 
 List checks for a specific GeoNet repos
 
