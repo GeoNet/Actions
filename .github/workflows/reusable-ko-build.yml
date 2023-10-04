@@ -32,6 +32,16 @@ on:
         type: boolean
         description: |
           set to true to push an image to a registry. When set to false, it will build and exit
+      platforms:
+        required: false
+        type: string
+        default: "linux/amd64"
+        description: |
+          comma-separated list of the target platforms for container builds.
+          e.g:
+            - all
+            - linux/amd64
+            - linux/arm64,linux/amd64
       aws-region:
         type: string
         default: ap-southeast-2
@@ -149,9 +159,10 @@ jobs:
           KO_DOCKER_REPO: ${{ steps.run-info.outputs.ko-docker-repo }}
           IMAGES_PATH: ${{ steps.run-info.outputs.paths }}
           PUSH: ${{ inputs.push }}
+          PLATFORMS: ${{ inputs.platforms }}
         run: |
           echo "NOTICE: using default base image $KO_DEFAULTBASEIMAGE"
-          IMAGES="$(ko build --push=$PUSH --base-import-paths $IMAGES_PATH)"
+          IMAGES="$(ko build --platform=$PLATFORMS --push=$PUSH --base-import-paths $IMAGES_PATH)"
           echo "images=$(echo $IMAGES | tr ' ' ',')" >> $GITHUB_OUTPUT
       - name: sign images and attest SBOM
         id: sign-images-and-attest-sbom

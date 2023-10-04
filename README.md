@@ -380,6 +380,53 @@ jobs:
     secrets: inherit
 ```
 
+Copy an image to a different container registry:
+
+```yaml
+name: build
+
+on:
+  push: {}
+  release:
+    types: [published]
+  workflow_dispatch: {}
+
+permissions:
+  packages: write
+  id-token: write
+
+env:
+  VERSION_CRANE: v0.16.1
+
+jobs:
+  build:
+    uses: GeoNet/Actions/.github/workflows/reusable-docker-build.yml@main
+    with:
+      context: .
+      dockerfile: ./Dockerfile
+      imageName: cool
+      platforms: 'linux/amd64,linux/arm64'
+      push: ${{ github.ref == 'refs/heads/main' }}
+  copy-image-to-registry:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: GeoNet/setup-crane@00c9e93efa4e1138c9a7a5c594acd6c75a2fbf0c # main
+        with:
+          version: ${{ env.VERSION_CRANE }}
+      - name: authenticate to registry
+        run: |
+          echo SOME_PASSWORD | crane auth login -u some-user --password-stdin
+      - name: copy image
+        env:
+          SOURCE: ${{ needs.build.outputs.image }}
+          DESTINATION: ghcr.io/someorg/someimage:sometag
+        run: |
+          crane cp "$SOURCE" "$DESTINATION"
+```
+
+this may be useful for things like image promotion or staging.
+
 for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-docker-build.yml](.github/workflows/reusable-docker-build.yml).
 
 #### Docker build container image signing

@@ -60,8 +60,11 @@ on:
         type: string
         default: "linux/amd64"
         description: |
-          comma-separated list of platforms to build with.
-          e.g: linux/amd64,linux/arm64
+          comma-separated list of the target platforms for container builds.
+          e.g:
+            - all
+            - linux/amd64
+            - linux/arm64,linux/amd64
       push:
         required: false
         type: boolean
