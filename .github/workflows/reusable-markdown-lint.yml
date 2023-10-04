@@ -49,5 +49,5 @@ jobs:
           done
           CONFIG_FILE="$(mktemp)"
           cat <<< "$CONFIG" > "$CONFIG_FILE"
-          npm install -g markdownlint-cli@0.29.0
+          npm install -g markdownlint-cli@0.37.0
           markdownlint '**/*.md' $IGNORE -c "$CONFIG_FILE"

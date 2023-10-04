@@ -22,6 +22,16 @@ on:
         description: |
           the Go entrypoint paths for applications, where there they have `package main`
           e.g: ./cmd/thing1 ./cmd/thing2
+      platforms:
+        required: false
+        type: string
+        default: linux/amd64
+        description: |
+          the target platforms to build containers for.
+          e.g:
+            - all
+            - linux/amd64
+            - linux/arm64,linux/amd64
       containerScanningEnabled:
         type: boolean
         default: false
@@ -108,6 +118,7 @@ jobs:
       aws-role-session-name: ${{ inputs.aws-role-session-name }}
       registryGhcrUsernameOverride: ${{ inputs.registryGhcrUsernameOverride }}
       setup: ${{ inputs.buildSetup }}
+      platforms: ${{ inputs.platforms }}
   scan:
     if: ${{ contains(fromJSON('["workflow_call", "workflow_dispatch", "push", "release"]'), github.event_name) && inputs.containerScanningEnabled && startsWith(github.repository, 'GeoNet/') != false }}
     needs: build
