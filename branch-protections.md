@@ -20,6 +20,9 @@ checks when trying to search without typing.
 Use the helper script to get a mostly-concreate set of values
 which may be set to provide check-based branch merge protection.
 
+The list of checks is discovered through the check suites published
+by GitHub Actions against the latest pull request made by a human.
+
 List checks for all GeoNet repos
 
 ```sh
@@ -39,13 +42,6 @@ Some example output may look like
 ```yaml
 GeoNet/Actions:
   - commit-digest-vet / presubmit-workflow
-  - conform/commit/commit-body
-  - conform/commit/conventional-commit
-  - conform/commit/header-case
-  - conform/commit/header-last-character
-  - conform/commit/header-length
-  - conform/commit/imperative-mood
-  - conform/commit/spellcheck
   - conform / conform
   - lint-markdown / markdown-lint
   - presubmit-readme-toc / presubmit-readme-toc
@@ -70,4 +66,16 @@ GeoNet/Actions:
   - t9-no-push-check
   - validate-schema / validate-github-actions
 GeoNet/base-images:
+  - conform / conform
+  - presubmit-github-actions-workflow-validator / validate-github-actions
+  - presubmit-image-documented
+  - presubmit-image-exists
+  - presubmit-image-format
+  - presubmit-readme-toc / presubmit-readme-toc
+```
+
+Protection rules can be applied directly from what checks are present in the latest PR with
+
+```sh
+./hack/list-checks.sh Actions base-images | ./hack/set-checks.sh
 ```
