@@ -4,42 +4,51 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-REPOS="${@}"
+ORG="${GH_ORG:-GeoNet}"
+REPOS="${*}"
 
-DEBUG=false
+# given DEBUG set to true, log special outputs
 __debug_echo() {
-    if [ ! "$DEBUG" = true ]; then
+    if [ ! "${DEBUG:-false}" = true ]; then
         return
     fi
     echo "${@}"
 }
 
+# return a list under the ORG of repos with GitHub Actions workflows
 get_repos_with_actions() {
-    repos=($(gh api orgs/GeoNet/repos --jq '.[] | select(.fork==false) | select(.archived==false) | .name' --paginate \
+    repos=($(gh api "orgs/$ORG/repos" --jq '.[] | select(.fork==false) | select(.archived==false) | .name' --paginate \
     | sort \
     | tr ' ' '\n' \
     | xargs -I{} \
-      sh -c 'gh api "repos/GeoNet/{}/contents/.github/workflows" --jq ". | length | . > 0" 2>&1>/dev/null && echo GeoNet/{}' \
-      | grep -E '^GeoNet/.*' | cat))
+      sh -c "gh api \"repos/$ORG/{}/contents/.github/workflows\" --jq \". | length | . > 0\" 2>&1>/dev/null && echo $ORG/{}" \
+      | grep -E "^$ORG/.*" | cat))
     echo "${repos[@]}"
 }
 
+# given a repo and offset, return the number of the latest merged PR made by a human
 get_pull_request_numbers() {
     REPO="$1"
-    PULL_REQUEST_NUMBERS=()
-    while read NUMBER; do
-        PULL_REQUEST_NUMBERS+=("$NUMBER")
-    done < <(gh api -X GET "repos/$REPO/pulls" -f state=all --jq .[0].number)
-    echo "${PULL_REQUEST_NUMBERS[@]}"
+    LIST_OFFSET="${2:-1}"
+    NUMBERS="$(gh api -X GET "repos/$REPO/pulls" -f state=closed \
+        --jq '.[] | select(.merged_at!=null) | select(.user.Bot!="type") | select(.user.login!="github-actions[bot]") | select(.user.login!="dependabot[bot]") | .number')"
+    if [ -z "$NUMBERS" ]; then
+        echo 0
+        return
+    fi
+    echo "$NUMBERS" | head -n"${LIST_OFFSET}" | tail -n1
 }
 
+# given a repo and a PR number, return the latest commit digest
 get_head_ref_commit() {
     REPO="$1"
     NUMBER="$2"
-    commit="$(gh api "repos/$REPO/pulls/$NUMBER/commits" --jq '.[0].sha')"
+    commit="$(gh api "repos/$REPO/pulls/$NUMBER/commits" --jq 'last(. | to_entries[]) | .value.sha')"
     echo "$commit"
 }
 
+# given a repo, return status checks
+# NOTE not currently used
 get_status_checks() {
     REPO="$1"
     checks=()
@@ -54,29 +63,46 @@ get_status_checks() {
     CHECKS+=("${checks[@]}")
 }
 
+# given a repo, return a list of workflow checks
 get_workflow_checks() {
     REPO="$1"
     checks=()
-    for PR in $(get_pull_request_numbers "$REPO"); do
-        __debug_echo "$REPO/pull/$PR"
-        COMMIT="$(get_head_ref_commit "$REPO" "$PR")"
-        __debug_echo "  - PR commit: $COMMIT"
-        while read SUITE; do
-            __debug_echo "    - Check suite: $SUITE"
-            while read RUN; do
-                __debug_echo "      - Check run: $RUN"
-                checks+=("$RUN")
-            done < <(gh api "repos/$REPO/check-suites/$SUITE/check-runs" --jq .check_runs[].name | sed 's/(.*) //' | grep -vi travis)
-        done < <(gh api "repos/$REPO/commits/$COMMIT/check-suites" --jq .check_suites[].id)
+    PR_NUMBER_OFFSET=1
+    HAS_CHECKS=false
+    until [ "${HAS_CHECKS:-false}" = true ]; do
+        for PR in $(get_pull_request_numbers "$REPO" "$PR_NUMBER_OFFSET"); do
+            # exit get_workflow_checks if
+            # - there are no PRs for the repo
+            # - up to five earlier than the latest PR still have no checks
+            if [ "$PR" = "0" ] || [ "$PR_NUMBER_OFFSET" = "5" ]; then
+                break 2
+            fi
+            __debug_echo "$REPO/pull/$PR"
+            COMMIT="$(get_head_ref_commit "$REPO" "$PR")"
+            __debug_echo "  - PR commit: $COMMIT"
+            while read SUITE; do
+                __debug_echo "    - Check suite: $SUITE"
+                while read RUN; do
+                    __debug_echo "      - Check run: $RUN"
+                    checks+=("$RUN")
+                done < <(gh api "repos/$REPO/check-suites/$SUITE/check-runs" --jq .check_runs[].name | grep -vi travis)
+            done < <(gh api "repos/$REPO/commits/$COMMIT/check-suites" --jq .check_suites[].id)
+        done
+        # if no checks are found, try one earlier than the latest PR
+        if [ "$(echo "${checks[@]}" | tr ' ' '\n' | wc -l)" = "1" ]; then
+            PR_NUMBER_OFFSET=$((PR_NUMBER_OFFSET+=1))
+            continue
+        fi
+        HAS_CHECKS=true
+        CHECKS+=("${checks[@]}")
     done
-    CHECKS+=("${checks[@]}")
 }
 
+# given a repo, return a list of checks
 get_checks() {
     REPO="$1"
     printf "$REPO:"
     CHECKS=()
-    get_status_checks "$REPO"
     get_workflow_checks "$REPO"
     if [[ -z ${CHECKS[*]} ]]; then
         echo ' []'
@@ -92,7 +118,7 @@ get_checks() {
 
 if [ -n "$REPOS" ]; then
     for REPO in $REPOS; do
-        get_checks "GeoNet/$REPO"
+        get_checks "$ORG/$REPO"
     done
     exit $?
 fi
