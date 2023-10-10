@@ -15,6 +15,14 @@ required for protection until it's run.
 The search is unhelpful due to it not populating the list of
 checks when trying to search without typing.
 
+## GitHub tokens
+
+A GitHub token is needed for applying branch protection.
+The permissions required are:
+
+- admin:org
+- repo
+
 ## Determine a list of checks
 
 Use the helper script to get a mostly-concreate set of values
@@ -77,5 +85,44 @@ GeoNet/base-images:
 Protection rules can be applied directly from what checks are present in the latest PR with
 
 ```sh
-./hack/list-checks.sh Actions base-images | ./hack/set-checks.sh
+./hack/list-checks.sh | ./hack/set-bp-yaml-checks.sh bp-config.yaml sow
+```
+
+every subsequent time, a command such as the following should be used to only update the check contexts
+
+```sh
+./hack/list-checks.sh | ./hack/set-bp-yaml-checks.sh bp-config.yaml update
+```
+
+## Applying the checks with branchprotector
+
+the branch protection rules are able to be applied with
+
+`go run`:
+
+```sh
+go run k8s.io/test-infra/prow/cmd/branchprotector@acf4a2e26b --github-token-path PATH_TO_TOKEN --config-path PATH_TO_CONFIG.yaml # --confirm
+```
+
+or with the container image
+
+```sh
+podman run -it --rm \
+  -v "PATH_TO_TOKEN:PATH_TO_TOKEN:row" \
+  -v "PATH_TO_CONFIG:PATH_TO_CONFIG:ro" \
+  gcr.io/k8s-prow/branchprotector:v20231011-acf4a2e26b \
+    --github-token-path PATH_TO_TOKEN \
+    --config-path PATH_TO_CONFIG.yaml # --confirm
+```
+
+ghproxy can also be used to cache the GitHub responses to save on tokens
+
+```sh
+podman run -it --rm -v ghproxy:/cache -p 8888:8888 gcr.io/k8s-prow/ghproxy:v20231011-33fbc60185 --cache-dir=/cache --cache-sizeGB=99
+```
+
+then add the following args to branchprotector
+
+```sh
+--github-endpoint=http://localhost:8888 --github-endpoint=https://github.com
 ```

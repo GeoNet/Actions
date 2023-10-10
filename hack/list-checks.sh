@@ -16,14 +16,18 @@ __debug_echo() {
 }
 
 # return a list under the ORG of repos with GitHub Actions workflows
-get_repos_with_actions() {
-    repos=($(gh api "orgs/$ORG/repos" --jq '.[] | select(.fork==false) | select(.archived==false) | .name' --paginate \
-    | sort \
-    | tr ' ' '\n' \
-    | xargs -I{} \
-      sh -c "gh api \"repos/$ORG/{}/contents/.github/workflows\" --jq \". | length | . > 0\" 2>&1>/dev/null && echo $ORG/{}" \
-      | grep -E "^$ORG/.*" | cat))
+get_repos() {
+    repos=($(gh api "orgs/$ORG/repos" --jq '.[] | select(.fork==false) | select(.archived==false) | .owner.login + "/" + .name' --paginate | sort))
     echo "${repos[@]}"
+}
+
+has_repo_github_actions() {
+    REPO="$1"
+    if gh api "repos/$REPO/contents/.github/workflows" --jq ". | length | . > 0" >/dev/null 2>&1; then
+        echo true
+        return
+    fi
+    echo false
 }
 
 # given a repo and offset, return the number of the latest merged PR made by a human
@@ -58,7 +62,7 @@ get_status_checks() {
         __debug_echo "  - PR commit: $COMMIT"
         while read CONTEXT; do
             checks+=("$CONTEXT")
-        done < <(gh api "repos/$REPO/commits/$COMMIT/status" --jq '.statuses[].context' | grep -vi travis)
+        done < <(gh api "repos/$REPO/commits/$COMMIT/status" --jq '.statuses[].context' | grep -viE '^travis|conform/')
     done
     CHECKS+=("${checks[@]}")
 }
@@ -85,7 +89,7 @@ get_workflow_checks() {
                 while read RUN; do
                     __debug_echo "      - Check run: $RUN"
                     checks+=("$RUN")
-                done < <(gh api "repos/$REPO/check-suites/$SUITE/check-runs" --jq .check_runs[].name | grep -vi travis)
+                done < <(gh api "repos/$REPO/check-suites/$SUITE/check-runs" --jq '.check_runs[].name' | grep -viE 'travis|\$\{\{ matrix..* \}\}')
             done < <(gh api "repos/$REPO/commits/$COMMIT/check-suites" --jq .check_suites[].id)
         done
         # if no checks are found, try one earlier than the latest PR
@@ -103,7 +107,12 @@ get_checks() {
     REPO="$1"
     printf "$REPO:"
     CHECKS=()
-    get_workflow_checks "$REPO"
+    if [ ! "$(get_pull_request_numbers "$REPO")" = "0" ]; then
+        get_status_checks "$REPO"
+        if [ $(has_repo_github_actions "$REPO") = true ]; then
+            get_workflow_checks "$REPO"
+        fi
+    fi
     if [[ -z ${CHECKS[*]} ]]; then
         echo ' []'
     else
@@ -123,6 +132,6 @@ if [ -n "$REPOS" ]; then
     exit $?
 fi
 
-for REPO in $(get_repos_with_actions); do
+for REPO in $(get_repos); do
     get_checks "$REPO"
 done
