@@ -287,6 +287,12 @@ jobs:
       - run: |
           mkdir -p ./apps/cool-ng/assets
           echo 'hello!' > ./apps/cool-ng/assets/index.html
+      - name: upload the cool numbers
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        with:
+          name: cool-ng
+          path: ./apps/cool-ng/assets
+          retention-days: 1
   build:
     needs: prepare
     uses: GeoNet/Actions/.github/workflows/reusable-docker-build.yml@main
