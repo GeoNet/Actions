@@ -885,6 +885,24 @@ jobs:
     uses: GeoNet/Actions/.github/workflows/reusable-presubmit-readme-toc.yml@main
 ```
 
+**important** to note: a markdown file must contain the following
+
+```text
+<!-- generate TOC using `go run sigs.k8s.io/mdtoc@latest --inplace README.md` -->
+<!-- toc -->
+<!-- /toc -->
+```
+
+given a markdown file (e.g: `README.md`) and the contents above included
+in the markdown file, the table of contents can be generated with the command
+in that comment:
+
+```shell
+go run sigs.k8s.io/mdtoc@latest --inplace README.md
+```
+
+note: requires Go to be installed
+
 ### Presubmit GitHub Actions workflow validator
 
 STATUS: stable
