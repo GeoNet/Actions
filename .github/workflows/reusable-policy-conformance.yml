@@ -15,7 +15,7 @@ on:
                   required: false
                   gitHubOrganization: GeoNet
                 spellcheck:
-                  locale: UK
+                  locale: kiwi
                 maximumOfOneCommit: false
                 header:
                   length: 89
