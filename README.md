@@ -3,9 +3,7 @@
 - [Actions](#actions)
   - [Workflows](#workflows)
     - [Ko build](#ko-build)
-      - [Ko build container image signing](#ko-build-container-image-signing)
     - [Docker build](#docker-build)
-      - [Docker build container image signing](#docker-build-container-image-signing)
     - [Dockerfile lint](#dockerfile-lint)
     - [Container image scan](#container-image-scan)
     - [Terraform management](#terraform-management)
@@ -28,7 +26,6 @@
     - [Copy to S3](#copy-to-s3)
   - [Other documentation](#other-documentation)
     - [Dependabot and Actions workflow imports](#dependabot-and-actions-workflow-imports)
-    - [Container image signing](#container-image-signing)
     - [Versioning for container images](#versioning-for-container-images)
 <!-- /toc -->
 
@@ -90,7 +87,7 @@ for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-W
 
 STATUS: stable
 
-Generic build for containerised Go applications with [Ko](https://ko.build) and signing the container images and SBOMs with [cosign](https://docs.sigstore.dev/cosign/overview/)
+Generic build for containerised Go applications with [Ko](https://ko.build).
 
 Example:
 
@@ -124,9 +121,6 @@ jobs:
 ```
 
 - dynamic build of images based on entrypoints (where there is a `package main`), unless if _inputs.paths_ is set
-- sign with Cosign
-  - image
-  - SBOM
 - fast!
 
 Pushing to ECR example:
@@ -156,15 +150,11 @@ jobs:
 
 for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-ko-build.yml](.github/workflows/reusable-ko-build.yml).
 
-#### Ko build container image signing
-
-see [container image signing](#container-image-signing).
-
 ### Docker build
 
 STATUS: stable
 
-Generic container image build with Docker and signing container images and SBOMs with [cosign](https://docs.sigstore.dev/cosign/overview/)
+Generic container image build with Docker.
 
 Single use example:
 
@@ -428,10 +418,6 @@ jobs:
 this may be useful for things like image promotion or staging.
 
 for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-docker-build.yml](.github/workflows/reusable-docker-build.yml).
-
-#### Docker build container image signing
-
-see [container image signing](#container-image-signing).
 
 ### Dockerfile lint
 
@@ -1064,41 +1050,6 @@ It will automatically update create PRs to update the Actions workflow imports o
 
 To force an update of every external import, run `hack/update-actions-imports.sh` and commit the changes in a new PR.
 
-### Container image signing
-
-Container images and their SBOMs are signed to prove and verify that they were built in a trusted environment by us.
-
-See security supply chain related artifacts for an image:
-
-```shell
-cosign tree IMAGE_REF
-
-# e.g:
-cosign tree registry.k8s.io/pause:3.9
-```
-
-Verify a signed image:
-
-```yaml
-cosign verify IMAGE_REF --certificate-identity-regexp "https://github.com/GeoNet/Actions/.github/workflows/reusable-(docker|ko-)([-])?build.yml@.*" --certificate-oidc-issuer "https://token.actions.githubusercontent.com"
-```
-
-View the [SPDX-JSON](https://spdx.org) formatted SBOM:
-
-```yaml
-cosign verify-attestation IMAGE_REF --certificate-identity-regexp "https://github.com/GeoNet/Actions/.github/workflows/reusable-(docker|ko|)([-])?build.yml@refs/heads/main" --certificate-oidc-issuer "https://token.actions.githubusercontent.com" | jq -r .payload | base64 -d | jq -r .predicate.Data
-```
-
-See the SBOM contents using the [`bom`](https://github.com/kubernetes-sigs/bom) utility from the Kubernetes community:
-
-```shell
-go install sigs.k8s.io/bom/cmd/bom@latest
-
-cosign verify-attestation IMAGE_REF --certificate-identity-regexp "https://github.com/GeoNet/Actions/.github/workflows/reusable-(docker|ko|)([-])?build.yml@.*" --certificate-oidc-issuer "https://token.actions.githubusercontent.com" | jq -r .payload | base64 -d | jq -r .predicate.Data | bom document outline -
-```
-
-for more information, see https://docs.sigstore.dev
-
 ### Versioning for container images
 
 Container registries utilise content addressed storage, meaning to get some data (blob, image), you must request what it's digest is (the process behind tags).
@@ -1113,5 +1064,3 @@ crane digest IMAGE_REF
 
 or in the logs of the workflow run.
 
-With the image promotion action, versions are able to be pinned with tags in a declarative way.
-This method is much safer than more traditional options with using the affects of `docker tag SRC DEST` and secure supply chain related artifacts are automatically resolved from the digest (no need to generate or sign the new tag).

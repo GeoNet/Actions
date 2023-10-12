@@ -1,7 +1,6 @@
 name: Reusable Docker build
 env:
   VERSION_CRANE: v0.16.1
-  COSIGN_ARGS: --recursive --yes --tlog-upload=false
 on:
   workflow_call:
     inputs:
@@ -152,7 +151,6 @@ jobs:
         with:
           go-version: stable
           check-latest: true
-      - uses: sigstore/cosign-installer@11086d25041f77fe8fe7b9ea4e48e3b9192b8f19 # v3.1.2
       - uses: GeoNet/setup-crane@00c9e93efa4e1138c9a7a5c594acd6c75a2fbf0c # main
         with:
           version: ${{ env.VERSION_CRANE }}
@@ -356,27 +354,6 @@ jobs:
             echo "${DESTINATION_DIGEST}"
           ) | column -t
           echo "destination=${DESTINATION_DIGEST}" >> $GITHUB_OUTPUT
-      - name: Sign image
-        if: ${{ inputs.push == true }}
-        env:
-          COSIGN_YES: "true"
-          IMAGE: ${{ steps.run-info.outputs.image }}@${{ steps.get-digests.outputs.destination }}
-        run: |
-          cosign sign $COSIGN_ARGS $IMAGE
-          echo "signed image: $IMAGE"
-      - uses: anchore/sbom-action@78fc58e266e87a38d4194b2137a3d4e9bcaf7ca1 # v0.14.3
-        if: ${{ inputs.push == true }}
-        with:
-          image: ${{ steps.run-info.outputs.image }}@${{ steps.get-digests.outputs.destination }}
-          artifact-name: sbom-spdx.json
-          output-file: /tmp/sbom-spdx.json
-      - name: publish sbom blob as blob
-        if: ${{ inputs.push == true }}
-        env:
-          COSIGN_YES: "true"
-        run: |
-          cosign attest $COSIGN_ARGS --predicate /tmp/sbom-spdx.json ${{ steps.run-info.outputs.image }}@${{ steps.get-digests.outputs.destination }}
-          echo "predicated: SBOM in image attestation"
       - name: image
         if: ${{ inputs.push == true }}
         id: image
@@ -388,4 +365,4 @@ jobs:
         env:
           IMAGE: ${{ steps.image.outputs.image }}
         run: |
-          echo -e "Built, pushed and signed:\n\n$(echo "$IMAGE" | sed 's/,/\n/g' | sed 's/^/- /g')"
+          echo -e "Built and pushed:\n\n$(echo "$IMAGE" | sed 's/,/\n/g' | sed 's/^/- /g')"

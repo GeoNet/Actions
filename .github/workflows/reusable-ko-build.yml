@@ -2,7 +2,6 @@ name: Reusable Ko build
 env:
   VERSION_CRANE: v0.16.1
   KO_DEFAULTBASEIMAGE: ghcr.io/geonet/base-images/static:latest
-  COSIGN_ARGS: --recursive --yes --tlog-upload=false
 on:
   workflow_call:
     inputs:
@@ -94,7 +93,6 @@ jobs:
           git config user.email 'github-actions[bot]@users.noreply.github.com'
           gh auth login --with-token < <(echo ${{ secrets.GITHUB_TOKEN }})
           gh auth status
-      - uses: sigstore/cosign-installer@11086d25041f77fe8fe7b9ea4e48e3b9192b8f19 # v3.1.2
       - uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
         with:
           go-version-file: go.mod
@@ -164,24 +162,10 @@ jobs:
           echo "NOTICE: using default base image $KO_DEFAULTBASEIMAGE"
           IMAGES="$(ko build --platform=$PLATFORMS --push=$PUSH --base-import-paths $IMAGES_PATH)"
           echo "images=$(echo $IMAGES | tr ' ' ',')" >> $GITHUB_OUTPUT
-      - name: sign images and attest SBOM
-        id: sign-images-and-attest-sbom
-        if: ${{ inputs.push == true }}
-        env:
-          COSIGN_YES: "true"
-          IMAGE: ${{ steps.build.outputs.images }}
-        run: |
-          for IMAGE in $(echo ${{ steps.build.outputs.images }} | tr ',' ' '); do
-            cosign sign $COSIGN_ARGS $IMAGE
-            echo "signed image: $IMAGE"
-            cosign download sbom $IMAGE > /tmp/sbom-spdx.json
-            cosign attest $COSIGN_ARGS --predicate /tmp/sbom-spdx.json $IMAGE
-            echo "predicated SBOM in image attestation"
-          done
       - name: image result
         if: ${{ inputs.push }}
         id: result
         env:
           IMAGES: ${{ steps.build.outputs.images }}
         run: |
-          echo -e "Built, pushed and signed:\n$(echo "$IMAGES" | sed 's/,/\n/g' | sed 's/^/- /g')"
+          echo -e "Built and pushed:\n$(echo "$IMAGES" | sed 's/,/\n/g' | sed 's/^/- /g')"
