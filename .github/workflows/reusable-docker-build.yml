@@ -40,7 +40,7 @@ on:
       tags:
         required: false
         type: string
-        default: latest
+        default: latest,git-${{ github.sha }}
         description: |
           a comma separated list of tags to image tags.
           e.g:

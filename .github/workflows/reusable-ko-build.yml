@@ -104,9 +104,11 @@ jobs:
         name: collect job run info
         env:
           KO_DOCKER_REPO: ghcr.io/${{ github.repository }}
+          REGISTRY_OVERRIDE: ${{ inputs.registryOverride }}
+          TAGS: latest,git-${{ github.sha }}
         run: |
-          if [ -n "${{ inputs.registryOverride }}" ]; then
-            KO_DOCKER_REPO="${{ inputs.registryOverride }}"
+          if [ -n "$REGISTRY_OVERRIDE" ]; then
+            KO_DOCKER_REPO="$REGISTRY_OVERRIDE"
           fi
           echo "ko-docker-repo=${KO_DOCKER_REPO,,}" >> $GITHUB_OUTPUT
           if [ -n "${{ inputs.paths }}" ]; then
@@ -115,6 +117,7 @@ jobs:
             PATHS="$(go list -json ./... | jq -r -s '.[] | select (.Name == "main") | .ImportPath' | xargs)"
             echo "paths="$PATHS"" >> $GITHUB_OUTPUT
           fi
+          echo "tags=$TAGS" >> $GITHUB_OUTPUT
       - uses: GeoNet/setup-crane@00c9e93efa4e1138c9a7a5c594acd6c75a2fbf0c # main
         with:
           version: ${{ env.VERSION_CRANE }}
@@ -158,11 +161,12 @@ jobs:
         env:
           KO_DOCKER_REPO: ${{ steps.run-info.outputs.ko-docker-repo }}
           IMAGES_PATH: ${{ steps.run-info.outputs.paths }}
+          TAGS: ${{ steps.run-info.outputs.tags }}
           PUSH: ${{ inputs.push }}
           PLATFORMS: ${{ inputs.platforms }}
         run: |
           echo "NOTICE: using default base image $KO_DEFAULTBASEIMAGE"
-          IMAGES="$(ko build --platform=$PLATFORMS --push=$PUSH --base-import-paths $IMAGES_PATH)"
+          IMAGES="$(ko build --platform=$PLATFORMS --push=$PUSH --tags "$TAGS" --base-import-paths $IMAGES_PATH)"
           echo "images=$(echo $IMAGES | tr ' ' ',')" >> $GITHUB_OUTPUT
       - name: sign images and attest SBOM
         id: sign-images-and-attest-sbom

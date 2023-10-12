@@ -45,8 +45,11 @@ jobs:
         env:
           IMAGE: ${{ needs.t0-basic.outputs.image }}
           GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.sha }}
         run: |
           crane manifest $IMAGE
+          REPO="$(echo "$IMAGE" | cut -d'@' -f1)"
+          crane ls "$REPO" | grep -vE '\.(sbom|sig|att)$' | xargs | grep -E "^git-$SHA latest$"
           crane manifest $IMAGE | jq -r '.manifests[] | select(.annotations."vnd.docker.reference.type" != "attestation-manifest") | .platform.architecture' | xargs | grep -E '^amd64$'
           gh api -X DELETE /orgs/GeoNet/packages/container/actions%2Ftestimage-t0-basic || true
   t1-use-test:
