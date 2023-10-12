@@ -59,10 +59,11 @@ jobs:
       dockerfile: ./testdata/t1-use-test/Dockerfile
       imageName: testimage-t1-use-test
       platforms: linux/amd64
-      push: ${{ github.ref != 'refs/heads/main' }}
+      push: false
+      # do something stateful that's detectable and removable in a 2nd step
       test: |
         date
-        crane append ghcr.io/geonet/actions/t1-use-test-${{ github.sha }}-success --new_tag --new_layer <(tar cvf $(mktemp))
+        crane append --new_tag ghcr.io/geonet/actions/t1-use-test-success:latest --new_layer <(tar cvf - $(mktemp -d))
   t1-use-test-check:
     needs: t1-use-test
     runs-on: ubuntu-latest
@@ -72,13 +73,10 @@ jobs:
           version: ${{ env.VERSION_CRANE }}
       - name: check for image
         env:
-          IMAGE: ${{ needs.t1-use-test.outputs.image }}
           GH_TOKEN: ${{ github.token }}
         run: |
-          crane manifest $IMAGE
-          crane manifest $IMAGE | jq -r '.manifests[] | select(.annotations."vnd.docker.reference.type" != "attestation-manifest") | .platform.architecture' | xargs | grep -E '^amd64'
-          gh api -X DELETE /orgs/GeoNet/packages/container/actions%2Ftestimage-t1-use-test || true
-          gh api -X DELETE /orgs/GeoNet/packages/container/actions%2Ftestimage-t1-use-test-${{ github.sha }}-success || true
+          crane manifest ghcr.io/geonet/actions/t1-use-test-success
+          gh api -X DELETE /orgs/GeoNet/packages/container/actions%2Ftestimage-t1-use-test-success || true
   t2-artifact-pull-prepare:
     runs-on: ubuntu-latest
     steps:

@@ -1,0 +1,137 @@
+name: Go Docker apps ECR legacy
+on:
+  workflow_call:
+    inputs:
+      folder:
+        type: string
+        default: ./cmd
+        description: |
+          the folder to discover entrypoints to build
+      exclude:
+        type: string
+        default: '\?\?\?'
+        description: |
+          a regex string to match what package names to not include in building
+      dockerfile-template-path:
+        type: string
+        default: ./Dockerfile.tmplate
+        description: |
+          the path to the dockerfile to append CMD to
+      setup:
+        type: string
+        description: |
+          shell commands to setup the environment, such as installing dependencies
+      extra-build-args:
+        type: string
+        description: |
+          multi-lined input for build-args
+      test:
+        type: boolean
+        default: true
+        description: |
+          whether to enable built-in test
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      image-tags: ${{ steps.image-tags.outputs.image-tags }}
+      role-arn: ${{ (github.ref == 'refs/heads/main') && 'arn:aws:iam::862640294325:role/github-actions-geonet-ecr-push' || 'arn:aws:iam::615890063537:role/github-actions-geonet-ecr-push' }}
+      registry: ${{ (github.ref == 'refs/heads/main') && '862640294325.dkr.ecr.ap-southeast-2.amazonaws.com' || '615890063537.dkr.ecr.ap-southeast-2.amazonaws.com' }}
+      git-rev: ${{ steps.git-rev.outputs.git-rev }}
+      matrix: ${{ steps.set.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      - uses: GeoNet/yq@bbe305500687a5fe8498d74883c17f0f06431ac4 # master
+      - id: git-rev
+        name: get git-rev
+        env:
+          GIT_SHA: ${{ github.sha }}
+        run: |
+          echo "git-rev=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      - id: image-tags
+        name: get image tags
+        env:
+          REF: ${{ github.ref }}
+          RELEASE: ${{ github.event.release.tag_name }}
+          GIT_REV: ${{ steps.git-rev.outputs.git-rev }}
+        run: |
+          TIMESTAMP="$(git log -n1 --pretty='format:%cd' --date=format:'%Y%m%d-%H%M')"
+          TAGS=("git-$GIT_REV" "$TIMESTAMP")
+          LATEST_TAG=latest
+          BRANCH="${REF#refs/heads/}"
+          if [ ! "$BRANCH" = "main" ]; then
+            LATEST_TAG="latest-$BRANCH"
+          fi
+          TAGS+=("$LATEST_TAG")
+          if [ -n "$RELEASE" ]; then
+            TAGS+=("$RELEASE")
+          fi
+          TAGS="$(echo "${TAGS[*]}" | tr ' ' ',')"
+          echo "image-tags=$TAGS" >> $GITHUB_OUTPUT
+      - id: set
+        name: build matrix
+        env:
+          FOLDER: ${{ inputs.folder }}
+          EXCLUDE: ${{ inputs.exclude }}
+        run: |
+          echo "matrix=$(find $FOLDER -mindepth 1 -maxdepth 1 -type d | grep -Ewv "$EXCLUDE" - | xargs -n 1 basename | xargs | yq 'split(" ")|.[]|{"target":.,"folder":env(FOLDER)+"/"+.}' -ojson | jq -rcM -s '{"include":.}')" >> $GITHUB_OUTPUT
+      - name: check output
+        run: |
+          jq . <<< '${{ steps.set.outputs.matrix }}'
+          echo 'git-rev: ${{ steps.git-rev.outputs.git-rev }}'
+          echo 'image-tags: ${{ steps.image-tags.outputs.image-tags }}'
+  build:
+    needs: prepare
+    strategy:
+      matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
+    uses: GeoNet/Actions/.github/workflows/reusable-docker-build.yml@main
+    with:
+      setup: |
+        # this is an anti-pattern
+        mkdir -p "${{ fromJSON(toJSON(matrix)).folder }}/assets"
+        DOCKERFILE="${{ fromJSON(toJSON(matrix)).folder }}/${{ fromJSON(toJSON(matrix)).target }}.Dockerfile"
+        if [ -f "${{ fromJSON(toJSON(matrix)).folder }}/Dockerfile" ]; then
+          echo "using existing"
+          cp "${{ fromJSON(toJSON(matrix)).folder }}/Dockerfile" "$DOCKERFILE"
+        else
+          echo "copy-editing template"
+          cp ${{ inputs.dockerfile-template-path }} "$DOCKERFILE"
+          cat << EOF >> "$DOCKERFILE"
+        CMD ["${{ fromJSON(toJSON(matrix)).target }}"]
+        EOF
+        fi
+      context: .
+      buildArgs: |
+        BUILD=${{ fromJSON(toJSON(matrix)).target }}
+        VERSION=git-${{ needs.prepare.outputs.git-rev }}
+        ASSET_DIR=${{ fromJSON(toJSON(matrix)).folder }}/assets
+        GIT_COMMIT_SHA=${{ needs.prepare.outputs.git-rev }}
+        ${{ inputs.extra-build-args }}
+      dockerfile: ${{ fromJSON(toJSON(matrix)).folder }}/${{ fromJSON(toJSON(matrix)).target }}.Dockerfile
+      imageName: ${{ fromJSON(toJSON(matrix)).target }}
+      platforms: linux/amd64
+      push: true
+      tags: ${{ needs.prepare.outputs.image-tags }}
+      registryOverride: ${{ needs.prepare.outputs.registry }}
+      aws-region: ap-southeast-2
+      aws-role-arn-to-assume: ${{ needs.prepare.outputs.role-arn }}
+      aws-role-duration-seconds: "3600"
+  go-build:
+    if: ${{ contains(fromJSON('["workflow_call", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
+    uses: GeoNet/Actions/.github/workflows/reusable-go-build-smoke-test.yml@main
+    with:
+      paths: ${{ inputs.paths }}
+      setup: ${{ inputs.setup }}
+  gofmt:
+    if: ${{ contains(fromJSON('["workflow_call", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
+    uses: GeoNet/Actions/.github/workflows/reusable-gofmt.yml@main
+  golangci-lint:
+    if: ${{ contains(fromJSON('["workflow_call", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
+    uses: GeoNet/Actions/.github/workflows/reusable-golangci-lint.yml@main
+    with:
+      setup: ${{ inputs.setup }}
+  go-test:
+    if: ${{ contains(fromJSON('["workflow_call", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false && inputs.test == true }}
+    uses: GeoNet/Actions/.github/workflows/reusable-go-test.yml@main
+    with:
+      setup: ${{ inputs.setup }}

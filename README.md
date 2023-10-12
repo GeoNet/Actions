@@ -18,6 +18,7 @@
     - [Presubmit commit policy conformance](#presubmit-commit-policy-conformance)
     - [Go container apps](#go-container-apps)
     - [Go apps](#go-apps)
+  - [Go Docker apps ECR legacy](#go-docker-apps-ecr-legacy)
     - [Bash shellcheck](#bash-shellcheck)
     - [Presubmit README table of contents](#presubmit-readme-table-of-contents)
     - [Presubmit GitHub Actions workflow validator](#presubmit-github-actions-workflow-validator)
@@ -840,6 +841,55 @@ jobs:
 ```
 
 for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-go-container-apps.yml](.github/workflows/reusable-go-container-apps.yml).
+
+## Go Docker apps ECR legacy
+
+A workflow to hide the complexity of current multi-image build workflows.
+
+This workflow
+
+- discovers entrypoints from a directory
+- templates a Dockerfile by appending a CMD statement
+- pushes to ECR
+- includes
+  - go-build
+  - gofmt
+  - golangci-lint
+  - go-test
+
+and is intended as an intermediary step between manual 
+implementations of this workflow and Go container apps,
+it also continues the pattern of replicating the previous Travis behaviours.
+
+```yaml
+name: go docker apps ecr legacy
+
+on:
+  push:
+    branches:
+      - main
+  pull_request: {}
+  workflow_dispatch: {}
+
+permissions:
+  actions: read
+  packages: write
+  contents: write
+  id-token: write
+
+jobs:
+  go-docker-apps-ecr-legacy:
+    uses: GeoNet/Actions/.github/workflows/reusable-go-docker-apps-ecr-legacy.yml@main
+    # with:
+    #   folder: ./cmd
+    #   exclude: ^my-app|this-one$
+    #   dockerfile-template-path: ./template.Dockerfile
+    #   setup: |
+    #     sudo apt install -y something-needed-for-build
+    #   extra-build-args: |
+    #     SOMETHING=cool
+    #   test: true
+```
 
 ### Bash shellcheck
 
