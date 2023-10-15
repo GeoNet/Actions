@@ -93,6 +93,12 @@ on:
         type: string
         description: |
           shell commands to setup the build environment
+      koBuildConfigPath:
+        required: false
+        type: string
+        default: .ko.yaml
+        description: |
+          the path to a Ko config yaml
     secrets:
       GH_CI_USER_TOKEN:
         required: false
@@ -119,6 +125,7 @@ jobs:
       registryGhcrUsernameOverride: ${{ inputs.registryGhcrUsernameOverride }}
       setup: ${{ inputs.buildSetup }}
       platforms: ${{ inputs.platforms }}
+      configPath: ${{ inputs.koBuildConfigPath }}
   scan:
     if: ${{ contains(fromJSON('["workflow_call", "workflow_dispatch", "push", "release"]'), github.event_name) && inputs.containerScanningEnabled && startsWith(github.repository, 'GeoNet/') != false }}
     needs: build

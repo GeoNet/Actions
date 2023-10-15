@@ -118,6 +118,7 @@ jobs:
     #   aws-role-duration-seconds: "3600"
     #   setup: |
     #     sudo apt install -y something-needed-for-build
+    #   configPath: .ko.yaml
 ```
 
 - dynamic build of images based on entrypoints (where there is a `package main`), unless if _inputs.paths_ is set
@@ -789,6 +790,7 @@ jobs:
     #   aws-role-duration-seconds: "3600"
     #   buildSetup: |
     #     sudo apt install -y something-needed-for-build
+    #   koBuildConfigPath: .ko.yaml
 ```
 
 for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-go-container-apps.yml](.github/workflows/reusable-go-container-apps.yml).
