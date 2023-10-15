@@ -69,6 +69,12 @@ on:
         type: string
         description: |
           shell commands to setup the build environment
+      configPath:
+        required: false
+        type: string
+        default: .ko.yaml
+        description: |
+          the path to a Ko config yaml
     secrets:
       GH_CI_USER_TOKEN:
         required: false
@@ -155,6 +161,7 @@ jobs:
         name: build
         env:
           KO_DOCKER_REPO: ${{ steps.run-info.outputs.ko-docker-repo }}
+          KO_CONFIG_PATH: ${{ inputs.configPath }}
           IMAGES_PATH: ${{ steps.run-info.outputs.paths }}
           PUSH: ${{ inputs.push }}
           PLATFORMS: ${{ inputs.platforms }}
