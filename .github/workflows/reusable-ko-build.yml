@@ -154,10 +154,10 @@ jobs:
         run: |
           aws ecr get-login-password --region ${{ inputs.aws-region }} | crane auth login ${{ inputs.registryOverride }} -u AWS --password-stdin
       - name: override login to ghcr
+        if: ${{ env.registryGhcrUsernameOverride != '' && env.registryGhcrPasswordOverride != '' }}
         env:
           registryGhcrUsernameOverride: ${{ inputs.registryGhcrUsernameOverride }}
           registryGhcrPasswordOverride: ${{ secrets.GH_CI_USER_TOKEN }}
-        if: ${{ inputs.push == true && env.registryGhcrUsernameOverride != '' && env.registryGhcrPasswordOverride != '' }}
         run: |
           echo "${{ env.registryGhcrPasswordOverride }}" | crane auth login ghcr.io -u ${{ env.registryGhcrUsernameOverride }} --password-stdin
       - id: build
