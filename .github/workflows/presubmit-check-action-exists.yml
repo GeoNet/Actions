@@ -1,0 +1,14 @@
+name: check actions exist
+on:
+  pull_request: {}
+  workflow_dispatch: {}
+jobs:
+  check-actions-exist:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+      - name: run check-actions-exist.sh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ./hack/check-actions-exist.sh
