@@ -1,0 +1,49 @@
+name: Reusable container image cleanup
+on:
+  workflow_call:
+      inputs:
+        package-name:
+          type: string
+          required: true
+          description: |
+           name of package/container to remove
+           starts with repository name e.g. base-images/centos
+        ignored-regex:
+          type: string
+          required: true
+          description: |
+            regex which is applied against image tags to ignore/keep those versions
+        number-kept:
+          type: number
+          required: true
+          default: 3
+          description: |
+            number of untagged versions to keep in package history
+jobs:
+  clean:
+    runs-on: ubuntu-latest
+    steps:
+      - if: ${{ startsWith(github.repository, 'GeoNet/') == false }}
+        name: require GeoNet org
+        run: |
+          exit 1
+      - uses: actions/delete-package-versions@0d39a63126868f5eefaa47169615edd3c0f61e20 #v4.1.1
+        with:
+        # Can be a single package version id, or a comma separated list of package version ids.
+        # Defaults to an empty string.
+          ignore-versions: ${{ inputs.ignored-regex }}
+          # Owner of the package.
+          # Defaults to the owner of the repo executing the workflow.
+          # Required if deleting a version from a package hosted in a different org than the one executing the workflow.
+          owner: geonet
+          # Name of the package.
+          # Required
+          package-name: ${{ inputs.package-name }}
+          # Type of the package. Can be one of container, maven, npm, nuget, or rubygems.
+          # Required
+          package-type: container
+          # The number of latest versions to keep.
+          # This cannot be specified with `num-old-versions-to-delete`. By default, `min-versions-to-keep` takes precedence over `num-old-versions-to-delete`.
+          # When set to 0, all deletable versions will be deleted.
+          # When set greater than 0, all deletable package versions except the specified number will be deleted.
+          min-versions-to-keep: ${{ inputs.number-kept }}

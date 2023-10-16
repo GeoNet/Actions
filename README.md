@@ -24,6 +24,7 @@
     - [GitHub Actions action validator](#github-actions-action-validator)
     - [Markdown lint](#markdown-lint)
     - [Copy to S3](#copy-to-s3)
+    - [Clean container versions](#clean-container-versions)
   - [Other documentation](#other-documentation)
     - [Dependabot and Actions workflow imports](#dependabot-and-actions-workflow-imports)
     - [Versioning for container images](#versioning-for-container-images)
@@ -682,9 +683,9 @@ jobs:
 each repo where this action is applied must contain a `.conform.yaml` in the root of the repo.
 Conform configuration examples:
 
-- https://github.com/siderolabs/talos/blob/main/.conform.yaml
-- https://github.com/siderolabs/conform/blob/main/.conform.yaml
-- https://github.com/BobyMCbobs/sample-ko-monorepo/blob/main/.conform.yaml
+- <https://github.com/siderolabs/talos/blob/main/.conform.yaml>
+- <https://github.com/siderolabs/conform/blob/main/.conform.yaml>
+- <https://github.com/BobyMCbobs/sample-ko-monorepo/blob/main/.conform.yaml>
 
 here's an in-line example
 
@@ -730,10 +731,10 @@ notes:
   - _feat_
   - _fix_
 
-links: 
+links:
 
-- https://github.com/siderolabs/conform
-- https://www.conventionalcommits.org/en/v1.0.0/
+- <https://github.com/siderolabs/conform>
+- <https://www.conventionalcommits.org/en/v1.0.0/>
 
 ### Go container apps
 
@@ -1061,6 +1062,28 @@ GitHub Actions artifacts are used to bring state between jobs, this is not possi
 
 for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-copy-to-s3.yml](.github/workflows/reusable-copy-to-s3.yml).
 
+### Clean container versions
+
+STATUS: stable
+
+```yaml
+name: clean-images
+permissions:
+  packages: write
+on:
+  schedule:
+    - cron:  '30 11,23 * * *'
+  workflow_dispatch: {}
+jobs:
+  clean:
+    runs-on: ubuntu-latest
+    uses: GeoNet/Actions/.github/workflows/reusable-clean-containers.yml@main
+    with:
+      package-name: base-images/fedora
+      ignored-regex: '(stable)|(38)'
+      number-kept: 7
+```
+
 ## Other documentation
 
 ### Dependabot and Actions workflow imports
@@ -1083,4 +1106,3 @@ crane digest IMAGE_REF
 ```
 
 or in the logs of the workflow run.
-
