@@ -15,7 +15,7 @@ jobs:
       REQUIRED_STRING_GENERIC: "startsWith(github.repository, 'GeoNet/') == false" # use the steps field and exit 1
       REQUIRED_STRING_APPS: "startsWith(github.repository, 'GeoNet/') != false" # use existing if statements for the chained reuse of workflows, since there's no steps field
     steps:
-      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       - name: check for GeoNet org requirement
         run: |
           FAILURES=false
@@ -32,7 +32,7 @@ jobs:
   require-reusable-workflow-is-documented:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       - name: check workflow is documented
         run: |
           FAILURES=false
@@ -48,7 +48,7 @@ jobs:
   require-jobs-run-steps-have-name:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       - name: check for run steps without name
         run: |
           FAILURES=false
