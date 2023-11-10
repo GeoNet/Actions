@@ -32,12 +32,12 @@ jobs:
             BRANCH=$(gh api \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            /repos/${FORK} | jq -rc .default_branch)
+            /repos/${FORKS[$FORK]} | jq -rc .default_branch)
 
             gh api \
             --method POST \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            /repos/OWNER/REPO/merge-upstream \
+            /repos/${FORKS[$FORK]}/merge-upstream \
             -f branch="${BRANCH}"
           done
