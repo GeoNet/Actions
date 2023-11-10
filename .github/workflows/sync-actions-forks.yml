@@ -15,13 +15,11 @@ jobs:
         exit 1
   sync-forks:
     env:
-      FORKS: (GeoNet/setup-ko GeoNet/setup-crane GeoNet/chainguard-dev-actions GeoNet/golangci-lint-action GeoNet/conform-actions GeoNet/chainguard-images-actions GeoNet/terraform-linters-setup-tflint)
+      FORKS: (mountainmoss/setup-ko mountainmoss/setup-crane mountainmoss/chainguard-dev-actions mountainmoss/golangci-lint-action mountainmoss/conform-actions mountainmoss/chainguard-images-actions mountainmoss/terraform-linters-setup-tflint)
     runs-on: ubuntu-latest
     steps:
       - name: configure system
         run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email 'github-actions[bot]@users.noreply.github.com'
           gh auth login --with-token < <(echo ${{ secrets.GITHUB_TOKEN }})
           gh auth status
       - name: determine changes
