@@ -22,22 +22,8 @@ jobs:
         run: |
           gh auth login --with-token < <(echo ${{ secrets.GITHUB_TOKEN }})
           gh auth status
-      - name: determine changes
-        id: determine-changes
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - name: run sync
+        id: run-sync
         run: |
-          set -x
-          for FORK in "${!FORKS[@]}";
-          do
-          printf "fork:%s\n" ${FORKS[$FORK]}
-            BRANCH=$(gh api \
-            -H "Accept: application/vnd.github+json" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            /repos/${FORKS[$FORK]} | jq -rc .default_branch)
-            echo "${BRANCH}"
-            gh api \
-            --method POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            "/repos/${FORKS[$FORK]}/merge-upstream" \
-            -f branch="${BRANCH}"
-          done
+          ./hack/sync-forks.sh
