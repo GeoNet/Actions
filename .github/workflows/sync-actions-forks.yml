@@ -25,6 +25,7 @@ jobs:
       - name: determine changes
         id: determine-changes
         run: |
+          set +x
           for FORK in "${!FORKS[@]}";
           do
             BRANCH=$(gh api \
