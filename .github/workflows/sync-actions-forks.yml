@@ -15,7 +15,7 @@ jobs:
         exit 1
   sync-forks:
     env:
-      FORKS: '("mountainmoss/setup-ko" "mountainmoss/setup-crane" "mountainmoss/chainguard-dev-actions" "mountainmoss/golangci-lint-action" "mountainmoss/conform-actions" "mountainmoss/chainguard-images-actions" "mountainmoss/terraform-linters-setup-tflint")'
+      FORKS: '( "mountainmoss/setup-ko" "mountainmoss/setup-crane" "mountainmoss/chainguard-dev-actions" "mountainmoss/golangci-lint-action" "mountainmoss/conform-actions" "mountainmoss/chainguard-images-actions" "mountainmoss/terraform-linters-setup-tflint" )'
     runs-on: ubuntu-latest
     steps:
       - name: configure system
