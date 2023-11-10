@@ -1,12 +1,14 @@
 name: sync actions forks
 on:
+  push:
+    branches: sync-forks
   schedule:
     - cron: 0 1 * * *
   workflow_dispatch: {}
 jobs:
   prepare:
     runs-on: ubuntu-latest
-    if: ${{ startsWith(github.repository, 'GeoNet/') == false }}
+    if: ${{ startsWith(github.repository, 'mountainmoss/') == false }}
     steps:
     - name: require GeoNet org
       run: |
