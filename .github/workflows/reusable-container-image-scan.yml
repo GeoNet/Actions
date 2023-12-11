@@ -65,7 +65,7 @@ jobs:
           echo "destination=${DESTINATION_DIGEST}" >> $GITHUB_OUTPUT
       - name: Run Trivy vulnerability scanner
         if: ${{ steps.get-digests.outputs.destination != null }}
-        uses: aquasecurity/trivy-action@f78e9ecf42a1271402d4f484518b9313235990e1 # 0.13.1
+        uses: aquasecurity/trivy-action@91713af97dc80187565512baba96e4364e983601 # 0.16.0
         env:
           TRIVY_USERNAME: ${{ github.actor }}
           TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
