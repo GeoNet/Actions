@@ -302,7 +302,6 @@ jobs:
           name: ${{ inputs.artifact-name }}
           path: ${{ inputs.artifact-path }}
       - name: Build
-        if: ${{ inputs.push == false }}
         uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
         id: build
         with:
@@ -319,7 +318,7 @@ jobs:
             org.opencontainers.image.source=${{ github.repositoryUrl }}
           target: ${{ inputs.target }}
       - name: test
-        if: ${{ inputs.test != '' && inputs.push == false }}
+        if: ${{ inputs.test != '' }}
         env:
           IMAGE: ${{ steps.run-info.outputs.image-with-tag-for-test }}
           PUSH: ${{ inputs.push }}
