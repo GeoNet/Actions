@@ -12,9 +12,17 @@ on:
         type: string
         description: |
           extra args to pass `go test`
+      working-directory:
+        required: false
+        type: string
+        default: '.'
+        description: |
+          the working directory of the application
 jobs:
   go-test:
     runs-on: ubuntu-latest
+    env:
+      WORK_DIR: ${{ inputs.working-directory }}
     steps:
       - if: ${{ startsWith(github.repository, 'GeoNet/') == false }}
         name: require GeoNet org
@@ -23,8 +31,8 @@ jobs:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
         with:
-          go-version-file: go.mod
-          cache-dependency-path: go.sum
+          go-version-file: ${{ inputs.working-directory }}/go.mod
+          cache-dependency-path: ${{ inputs.working-directory }}/go.sum
           check-latest: true
       - name: setup
         run: |
@@ -34,11 +42,11 @@ jobs:
         env:
           EXTRA_ARGS: ${{ inputs.extraArgs }}
         run: |
-          go test $EXTRA_ARGS -v -coverprofile /tmp/coverage.out -cover ./...
+          go test -C $WORK_DIR $EXTRA_ARGS -v -coverprofile /tmp/coverage.out -cover ./...
       - name: create coverage html
         id: coverage-html
         run: |
-          go tool cover -html=/tmp/coverage.out -o /tmp/coverage.html
+          go tool -C $WORK_DIR cover -html=/tmp/coverage.out -o /tmp/coverage.html
       - name: Upload test log
         uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
         if: always()

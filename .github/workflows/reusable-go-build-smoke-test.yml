@@ -16,6 +16,7 @@ on:
       working-directory:
         required: false
         type: string
+        default: '.'
         description: |
           the working directory to run the build
 jobs:
@@ -29,8 +30,8 @@ jobs:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
         with:
-          go-version-file: go.mod
-          cache-dependency-path: go.sum
+          go-version-file: ${{ inputs.working-directory }}/go.mod
+          cache-dependency-path: ${{ inputs.working-directory }}/go.sum
           check-latest: true
       - id: run-info
         name: collect job run info
