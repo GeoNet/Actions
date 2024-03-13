@@ -24,6 +24,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GH_CI_USER_TOKEN  }}
         run: |
+          gh auth status
           gh repo list geonet --no-archived --fork --json nameWithOwner --jq '.[].nameWithOwner' \
           | xargs -I{} gh api -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" /repos/{} --template '{{.full_name}},{{.default_branch}}{{"\n"}}' \
           | xargs -I{} hack/update-forks.sh {}
