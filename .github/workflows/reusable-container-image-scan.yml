@@ -74,6 +74,7 @@ jobs:
           image-ref: "${{ fromJSON(toJSON(matrix)).target }}"
           format: "sarif"
           output: "trivy-results.sarif"
+          severity: 'HIGH,CRITICAL'
       - name: Upload Trivy scan results to GitHub Security tab
         if: ${{ steps.get-digests.outputs.destination != null }}
         uses: github/codeql-action/upload-sarif@3ab4101902695724f9365a384f86c1074d94e18c # 3.24.7
