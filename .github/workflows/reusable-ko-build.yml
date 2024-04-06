@@ -74,6 +74,11 @@ on:
         type: string
         description: |
           the path to a Ko config yaml
+      goflags:
+        required: false
+        type: string
+        description: |
+          set a GOFLAGS environment variable
     secrets:
       GH_CI_USER_TOKEN:
         required: false
@@ -180,6 +185,7 @@ jobs:
           TAGS: ${{ steps.run-info.outputs.tags }}
           PUSH: ${{ inputs.push }}
           PLATFORMS: ${{ inputs.platforms }}
+          GOFLAGS: "${{ inputs.goflags }}"
         run: |
           echo "NOTICE: using default base image $KO_DEFAULTBASEIMAGE"
           IMAGES="$(ko build --platform=$PLATFORMS --push=$PUSH --tags "$TAGS" --base-import-paths $IMAGES_PATH)"
