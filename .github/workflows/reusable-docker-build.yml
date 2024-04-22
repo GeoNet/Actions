@@ -296,7 +296,7 @@ jobs:
           registryGhcrPasswordOverride: ${{ secrets.GH_CI_USER_TOKEN }}
         run: |
           echo "${{ env.registryGhcrPasswordOverride }}" | crane auth login ghcr.io -u ${{ env.registryGhcrUsernameOverride }} --password-stdin
-      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+      - uses: actions/download-artifact@8caf195ad4b1dee92908e23f56eeb0696f1dd42d # v4.1.5
         if: ${{ inputs.artifact-name != '' && inputs.artifact-path != '' }}
         with:
           name: ${{ inputs.artifact-name }}
