@@ -54,6 +54,12 @@ on:
           e.g: |
               THING1=a
               THING2=b
+      provenance:
+        required: false
+        type: boolean
+        default: true
+        description: |
+          set to false to not create provenance attestations for the build process.
       platforms:
         required: false
         type: string
@@ -173,6 +179,7 @@ jobs:
           REGISTRY_GHCR_USERNAME_OVERRIDE: ${{ inputs.registryGhcrUsernameOverride }}
           TAGS: ${{ inputs.tags }}
           BUILD_ARGS: ${{ inputs.buildArgs }}
+          PROVENANCE: ${{ inputs.provenance }}
           PLATFORMS: ${{ inputs.platforms }}
           PUSH: ${{ inputs.push }}
           AWS_REGION: ${{ inputs.aws-region }}
@@ -312,6 +319,7 @@ jobs:
           platforms: ${{ steps.run-info.outputs.platforms }}
           file: ${{ inputs.dockerfile }}
           build-args: ${{ inputs.buildArgs }}
+          provenance: ${{ inputs.provenance }}
           labels: |
             org.opencontainers.image.name=${{ inputs.imageName }}
             org.opencontainers.image.revision=${{ github.sha }}
