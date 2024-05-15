@@ -8,16 +8,16 @@ on:
         description: |
           the Go entrypoint paths for applications, where there they have `package main`
           e.g: ./cmd/thing1 ./cmd/thing2
+      buildSetup:
+        type: string
+        required: false
+        description: |
+          shell commands to setup the build environment
       testSetup:
         type: string
         required: false
         description: |
           shell commands to setup the test environment
-      golangciSetup:
-        type: string
-        required: false
-        description: |
-          shell commands to setup the golangci-lint environment
       goTestExtraArgs:
         required: false
         type: string
@@ -28,6 +28,7 @@ jobs:
     if: ${{ contains(fromJSON('["workflow_call", "workflow_dispatch", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
     uses: GeoNet/Actions/.github/workflows/reusable-go-build-smoke-test.yml@main
     with:
+      setup: ${{ inputs.buildSetup }}
       paths: ${{ inputs.paths }}
   gofmt:
     if: ${{ contains(fromJSON('["workflow_call", "workflow_dispatch", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
@@ -36,7 +37,7 @@ jobs:
     if: ${{ contains(fromJSON('["workflow_call", "workflow_dispatch", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
     uses: GeoNet/Actions/.github/workflows/reusable-golangci-lint.yml@main
     with:
-      setup: ${{ inputs.golangciSetup }}
+      setup: ${{ inputs.buildSetup }}
   go-test:
     if: ${{ contains(fromJSON('["workflow_call", "workflow_dispatch", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
     uses: GeoNet/Actions/.github/workflows/reusable-go-test.yml@main
@@ -46,9 +47,13 @@ jobs:
   go-vet:
     if: ${{ contains(fromJSON('["workflow_call", "workflow_dispatch", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
     uses: GeoNet/Actions/.github/workflows/reusable-go-vet.yml@main
+    with:
+      setup: ${{ inputs.buildSetup }}
   govulncheck:
     if: ${{ contains(fromJSON('["workflow_call", "workflow_dispatch", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
     uses: GeoNet/Actions/.github/workflows/reusable-govulncheck.yml@main
+    with:
+      setup: ${{ inputs.buildSetup }}
   goimports:
     if: ${{ contains(fromJSON('["workflow_call", "workflow_dispatch", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
     uses: GeoNet/Actions/.github/workflows/reusable-goimports.yml@main
