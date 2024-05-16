@@ -25,6 +25,8 @@
     - [Markdown lint](#markdown-lint)
     - [Copy to S3](#copy-to-s3)
     - [Clean container versions](#clean-container-versions)
+  - [Composite Actions](#composite-actions)
+    - [Tagging](#tagging)
   - [Other documentation](#other-documentation)
     - [Dependabot and Actions workflow imports](#dependabot-and-actions-workflow-imports)
     - [Versioning for container images](#versioning-for-container-images)
@@ -1088,6 +1090,35 @@ jobs:
       package-name: base-images/fedora
       ignored-regex: '(stable)|(38)'
       number-kept: 7
+```
+
+## Composite Actions
+
+### Tagging
+
+STATUS: stable
+
+Generic container tagging.
+
+Generally will be used in the reusable workflows, but if one needed to use the action directly:
+
+```yaml
+on: [push]
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: steps.tagging.outputs.tag
+    steps:
+      - uses: actions/checkout@v4
+      - id: tagging
+        uses: GeoNet/Actions/.github/actions/tagging@main
+  build:
+    needs: prepare
+    uses: GeoNet/Actions/.github/workflows/reusable-docker-build.yml@main
+    with:
+      tag: ${{ needs.prepare.outputs.tag }}
 ```
 
 ## Other documentation
