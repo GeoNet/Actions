@@ -1,0 +1,28 @@
+name: Tagging
+description: Consistent and unique container tagging, suitable for immutable tagging
+outputs:
+  relevant-sha:
+    description: |
+      Short commit sha based on last commit of pull request, or the last merge commit
+    value: ${{ steps.tags.outputs.relevant-sha }}
+  timestamp:
+    description: |
+      UTC time of when this action was run
+    value: ${{ steps.tags.outputs.timestamp }}
+  tag:
+    description: |
+      Recommended container tag, using commit sha and timestamp
+    value:
+      ${{ format('{0}-git{1}', steps.tags.outputs.timestamp, steps.tags.outputs.relevant-sha) }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Generate tags
+      id: tags
+      env:
+        RELEVANT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      shell: bash
+      run: |
+        echo "relevant-sha=$(git rev-parse --short $RELEVANT_SHA)" >> $GITHUB_OUTPUT
+        echo "timestamp=$(date -u +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
