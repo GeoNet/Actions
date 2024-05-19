@@ -42,7 +42,7 @@ jobs:
     if: ${{ contains(fromJSON('["workflow_call", "workflow_dispatch", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
     uses: GeoNet/Actions/.github/workflows/reusable-go-test.yml@main
     with:
-      setup: ${{ inputs.testSetup }}
+      setup: ${{ inputs.testSetup || inputs.buildSetup }}
       extraArgs: ${{ inputs.goTestExtraArgs }}
   go-vet:
     if: ${{ contains(fromJSON('["workflow_call", "workflow_dispatch", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
