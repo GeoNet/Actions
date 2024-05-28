@@ -46,6 +46,11 @@ on:
             - latest,20230607,git-deadb33f
             - cooltag,v2.0.2
             - latest
+      deploymentTagOverride:
+        required: false
+        type: string
+        description: |
+          overrides the default deployment tag.
       buildArgs:
         required: false
         type: string
@@ -136,6 +141,9 @@ on:
     outputs:
       image:
         value: ${{ jobs.build.outputs.image }}
+        description: |
+          image uri based on deployment tag
+
 jobs:
   build:
     runs-on: ${{ inputs.runs-on }}
@@ -155,6 +163,12 @@ jobs:
         with:
           version: ${{ env.VERSION_CRANE }}
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - id: default-deployment-tag
+        uses: GeoNet/Actions/.github/actions/tagging@main
+      - name: Generate deployment tag # TODO can this be combined with default-deployment-tag step?
+        id: deployment-tag
+        run: |
+          echo "tag=${{ inputs.deploymentTagOverride == '' && steps.default-deployment-tag.outputs.tag || inputs.deploymentTagOverride }}" >> $GITHUB_OUTPUT
       - name: Set up QEMU
         uses: docker/setup-qemu-action@68827325e0b33c7199eb31dd4e31fbe9023e06e3 # v3.0.0
         with:
@@ -171,7 +185,7 @@ jobs:
           DOCKERFILE: ${{ inputs.dockerfile }}
           REGISTRY_OVERRIDE: ${{ inputs.registryOverride }}
           REGISTRY_GHCR_USERNAME_OVERRIDE: ${{ inputs.registryGhcrUsernameOverride }}
-          TAGS: ${{ inputs.tags }}
+          TAGS: ${{ format('{0},{1}', inputs.tags, steps.deployment-tag.outputs.tag) }}
           BUILD_ARGS: ${{ inputs.buildArgs }}
           PLATFORMS: ${{ inputs.platforms }}
           PUSH: ${{ inputs.push }}
@@ -230,7 +244,7 @@ jobs:
           REGISTRY_OVERRIDE: ${{ inputs.registryOverride }}
           GHCR_DOCKER_REPO: ghcr.io/${{ github.repository }}
           IMAGE_NAME: ${{ inputs.imageName }}
-          TAGS: ${{ inputs.tags }}
+          TAGS: ${{ format('{0},{1}', inputs.tags, steps.deployment-tag.outputs.tag) }}
           PLATFORMS: ${{ inputs.platforms }}
           PUSH: ${{ inputs.push }}
         run: |
@@ -352,11 +366,20 @@ jobs:
             echo "${DESTINATION_DIGEST}"
           ) | column -t
           echo "destination=${DESTINATION_DIGEST}" >> $GITHUB_OUTPUT
-      - name: image
-        if: ${{ inputs.push == true }}
+      - name: Generate image URI
         id: image
+        env:
+          IMAGE_URI: ${{ steps.run-info.outputs.image }}:${{ steps.deployment-tag.outputs.tag }}
         run: |
-          echo "image=${{ steps.run-info.outputs.image }}@${{ steps.get-digests.outputs.destination }}" >> $GITHUB_OUTPUT
+          echo "image=$IMAGE_URI" >> $GITHUB_OUTPUT
+          echo $IMAGE_URI > imageinfo_${{ inputs.imageName}}${{ github.run_id }}${{ github.run_attempt }}.txt
+      - name: Upload imageinfo
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+        with:
+          name: ${{ inputs.imageName }}${{ github.run_id }}${{ github.run_attempt }}
+          path: imageinfo_${{ inputs.imageName }}${{ github.run_id }}${{ github.run_attempt }}.txt
+          if-no-files-found: error
+          retention-days: 1
       - name: image result
         if: ${{ inputs.push == true }}
         id: result
