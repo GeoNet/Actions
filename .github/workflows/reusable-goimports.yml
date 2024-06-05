@@ -19,7 +19,9 @@ jobs:
         id: goimports
         run: |
           go install golang.org/x/tools/cmd/goimports@latest
-          find . -type f -name '*.go' -not -path '*/vendor/*' | xargs -I{} goimports -w {}
+          BASE_CMD="find . -type f -name '*.go'"
+          VENDOR_PATH_ARGS=$(for i in $(find . -type d -name vendor -exec test -e '{}'/modules.txt \; -print); do echo -n "-not -path \"$i/*\" "; done)
+          eval $BASE_CMD $VENDOR_PATH_ARGS | xargs -I{} goimports -w {}
       - name: determine changes
         id: determine-changes
         run: |
@@ -30,5 +32,5 @@ jobs:
         if: ${{ steps.determine-changes.outputs.changes == 'true' }}
         run: |
           echo "changes detected" >/dev/stderr
-          echo "Please run 'find . -type f -name '*.go' -not -path '*/vendor/*' | xargs -I{} goimports -w {}' and commit again."
+          echo "Please run 'eval "find . -type f -name '*.go'" $(for i in $(find . -type d -name vendor -exec test -e '{}'/modules.txt \; -print); do echo -n "-not -path \"$i/*\" "; done) | xargs -I{} goimports -w {}' and commit again."
           exit 1
