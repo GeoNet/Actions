@@ -25,6 +25,7 @@
     - [Markdown lint](#markdown-lint)
     - [Copy to S3](#copy-to-s3)
     - [Clean container versions](#clean-container-versions)
+    - [ESLint](#eslint)
   - [Composite Actions](#composite-actions)
     - [Tagging](#tagging)
   - [Other documentation](#other-documentation)
@@ -1091,6 +1092,30 @@ jobs:
       ignored-regex: '(stable)|(38)'
       number-kept: 7
 ```
+
+### ESLint
+
+STATUS: alpha
+
+Used to run ESLint on one or more directories. The paths specified
+should have a package.json with eslint defined, alongside an eslint config
+file named eslint.config.mjs.
+
+```yaml
+name: eslint
+on:
+  push: {}
+  pull_request: {}
+  workflow_dispatch: {}
+jobs:
+  eslint:
+    uses: GeoNet/Actions/.github/workflows/reusable-eslint.yml@main
+    with:
+      paths: |
+        ./root/folder/one
+        ./cool/root/folder/two
+```
+
 
 ## Composite Actions
 
