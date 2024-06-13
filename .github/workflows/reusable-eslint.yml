@@ -28,16 +28,20 @@ jobs:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
         with:
-          node-version: '20.x'
+          node-version: "20.x"
       - name: Install Node modules
         id: install-node-modules
         env:
-          PATHS: ${{ steps.parse-paths.outputs.paths }}
+          PATHS: ${{ inputs.paths }}
         run: |
-          echo "$PATHS" | tr ' ' '\n' | xargs -i -n 1 npm install --prefix '{}'
+          for path in $PATHS; do
+            npm install --prefix $path
+          done
       - name: Run ESLint
         id: eslint
         env:
-          PATHS: ${{ steps.parse-paths.outputs.paths }}
+          PATHS: ${{ inputs.paths }}
         run: |
-          echo "$PATHS" | tr ' ' '\n' | xargs -I '{}' -n 1 sh -c 'ESLINT_USE_FLAT_CONFIG=true $1/node_modules/.bin/eslint -c $1/eslint.config.mjs "$1"' _ '{}'
+          for path in $PATHS; do
+            ESLINT_USE_FLAT_CONFIG=true $path/node_modules/.bin/eslint -c $path/eslint.config.mjs
+          done
