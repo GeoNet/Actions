@@ -16,7 +16,8 @@ on:
           e.g: arn:aws:iam::ACCOUNT_ID:role/github-actions-ROLE_NAME
       aws-role-duration-seconds:
         type: string
-        required: true
+        required: false
+        default: 3600
         description: |
           the amount of seconds to hold a session open for.
       aws-role-session-name:
