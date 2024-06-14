@@ -30,6 +30,12 @@ on:
         required: false
         description: |
           the command to use, whether cp (copy) or sync
+      single-file:
+        type: boolean
+        default: false
+        required: false
+        description: |
+          single file copy (only for `cp`, no effect for `sync`)
       direction:
         type: string
         default: to
@@ -119,7 +125,9 @@ jobs:
           ARGS=()
           case "$CP_OR_SYNC" in
             cp)
-              ARGS+=(--recursive)
+              if [ ${{ inputs.single-file }} = false ]; then
+                ARGS+=(--recursive)
+              fi
             ;;
             sync)
 
