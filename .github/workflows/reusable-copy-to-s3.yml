@@ -19,7 +19,7 @@ on:
         required: false
         default: 3600
         description: |
-          the amount of seconds to hold a session open for.
+          the number of seconds to hold a session open for.
       aws-role-session-name:
         type: string
         required: false
