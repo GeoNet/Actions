@@ -19,6 +19,16 @@ on:
         type: string
         description: |
           the GitHub username to use for ghcr auth override.
+      tags:
+        required: false
+        type: string
+        default: latest,git-${{ github.sha }}
+        description: |
+          a comma separated list of tags to image tags.
+          e.g:
+            - latest,20230607,git-deadb33f
+            - cooltag,v2.0.2
+            - latest
       paths:
         required: false
         type: string
@@ -117,7 +127,7 @@ jobs:
           KO_DOCKER_REPO: ghcr.io/${{ github.repository }}
           KO_CONFIG_PATH: ${{ inputs.configPath }}
           REGISTRY_OVERRIDE: ${{ inputs.registryOverride }}
-          TAGS: latest,git-${{ github.sha }}
+          TAGS: ${{ inputs.tags }}
         run: |
           if [ -n "$REGISTRY_OVERRIDE" ]; then
             KO_DOCKER_REPO="$REGISTRY_OVERRIDE"
