@@ -374,7 +374,7 @@ jobs:
           echo "image=$IMAGE_URI" >> $GITHUB_OUTPUT
           echo $IMAGE_URI > imageinfo_${{ inputs.imageName}}${{ github.run_id }}${{ github.run_attempt }}.txt
       - name: Upload imageinfo
-        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b # v4.3.4
         with:
           name: ${{ inputs.imageName }}${{ github.run_id }}${{ github.run_attempt }}
           path: imageinfo_${{ inputs.imageName }}${{ github.run_id }}${{ github.run_attempt }}.txt
