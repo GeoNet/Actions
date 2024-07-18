@@ -26,6 +26,7 @@
     - [Copy to S3](#copy-to-s3)
     - [Clean container versions](#clean-container-versions)
     - [ESLint](#eslint)
+    - [AWS deploy](#aws-deploy)
   - [Composite Actions](#composite-actions)
     - [Tagging](#tagging)
   - [Other documentation](#other-documentation)
@@ -1115,6 +1116,92 @@ jobs:
         ./root/folder/one
         ./cool/root/folder/two
 ```
+
+
+### AWS deploy
+
+STATUS: beta
+
+CICD-driven container image deployment, using AWS ECR and ECS.
+
+This workflow supports:
+
+- ECS service deployments
+- EventBridge rule target updates
+
+No deployment can also be specified, allowing the newly created task revision to be deployed via other mechanisms.
+
+Example:
+
+```yaml
+name: build-and-deploy
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  # build image
+  build:
+    uses: GeoNet/Actions/.github/workflows/reusable-docker-build.yml@main
+
+  # example 1: deploy - ECS service
+  deploy:
+    needs: build
+    uses: GeoNet/Actions/.github/workflows/reusable-aws-deploy.yml@main
+    with:
+      aws-role-arn-to-assume: arn:aws:iam::ACCOUNT_ID:role/github-actions-geonet-deploy-ROLE_NAME
+
+      # update task definition with new container image uri
+      task-name: my_task_name
+      container: my_task_container_name
+      image: ${{ needs.build.output.image }}
+
+      # deploy
+      deployment-type: ecs
+      service: my_service
+      cluster: my_cluster
+
+      # save deployment information
+      deployment-tag-param-name: /deployment/my_project/my_service
+
+  # example 2: deploy - EventBridge rule target
+  deploy:
+    needs: build
+    uses: GeoNet/Actions/.github/workflows/reusable-aws-deploy.yml@main
+    with:
+      aws-role-arn-to-assume: arn:aws:iam::ACCOUNT_ID:role/github-actions-geonet-deploy-ROLE_NAME
+
+      # update task definition with new container image uri
+      task-name: my_task_name
+      container: my_task_container_name
+      image: ${{ needs.build.output.image }}
+
+      # deploy
+      deployment-type: eventbridge
+      rule-name: my_rule
+
+      # save deployment information
+      deployment-tag-param-name: /deployment/my_project/my_service
+
+  # example 3: only create new task revision
+  deploy:
+    needs: build
+    uses: GeoNet/Actions/.github/workflows/reusable-aws-deploy.yml@main
+    with:
+      aws-role-arn-to-assume: arn:aws:iam::ACCOUNT_ID:role/github-actions-geonet-deploy-ROLE_NAME
+
+      # update task definition with new container image uri
+      task-name: my_task_name
+      container: my_task_container_name
+      image: ${{ needs.build.output.image }}
+      deployment-type: ''
+```
+
+The terraform module `gha_iam_ecs_deploy` can be used to setup appropriate permissions for this workflow.
+The terraform module `ecs_docker_task_ng` can be used to configure services for use with this workflow, via the `use_cicd_deployment` variable.
+
+Some example repos using this workflow: `DevTools` and `gloria`.
 
 
 ## Composite Actions

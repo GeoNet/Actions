@@ -1,0 +1,115 @@
+name: Reusable AWS Deploy
+on:
+  workflow_call:
+    inputs:
+      aws-role-arn-to-assume:
+        type: string
+        required: false
+        description: |
+          see reusable docker build workflow
+      image:
+        required: true
+        type: string
+        description: |
+          uri of the image to deploy
+      service:
+        required: false
+        type: string
+        description: |
+          name of service if deploying
+      cluster:
+        required: false
+        type: string
+        description: |
+          name of cluster if deploying
+      rule-name:
+        required: false
+        type: string
+        description: |
+          name of EventBridge rule to update, if deploying
+      container:
+        required: true
+        type: string
+        description: |
+          name of container
+      task-name:
+        required: true
+        type: string
+        description: |
+          name of task definition
+      deployment-type:
+        required: false
+        type: string
+        description: |
+          type of deployment, valid values are
+          ecs, eventbridge, or empty for no deployment
+        default: ''
+      deployment-tag-param-name:
+        required: false
+        type: string
+        description: |
+          name of AWS System Store Parameter to save tag
+    outputs:
+      task-definition:
+        value: ${{ jobs.new-task-revision.outputs.task-definition }}
+
+permissions:
+  id-token: write
+
+jobs:
+  deploy-task-revision:
+    runs-on: ubuntu-latest
+    outputs:
+      task-definition: ${{ steps.task-def.outputs.task-definition }}
+    steps:
+      - if: ${{ startsWith(github.repository, 'GeoNet/') == false }}
+        name: require GeoNet org
+        run: |
+          exit 1
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
+        with:
+          aws-region: ap-southeast-2
+          role-to-assume: ${{ inputs.aws-role-arn-to-assume }}
+      - name: Download task definition
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition ${{ inputs.task-name }} \
+            --query taskDefinition > task-definition.json
+      - name: Update task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@5f07eab76e1851cbd4e07dea0f3ed53b304475bd # v1.3.0
+        with:
+          task-definition: task-definition.json
+          container-name: ${{ inputs.container }}
+          image: ${{ inputs.image }}
+      - name: Deploy task definition
+        id: task-deploy
+        uses: aws-actions/amazon-ecs-deploy-task-definition@69e7aed9b8acdd75a6c585ac669c33831ab1b9a3 # v1.5.0
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          # if service is empty, task revision will be created, but not deployed
+          service: ${{ inputs.deployment-type == 'ecs' && inputs.service || '' }}
+          cluster: ${{ inputs.deployment-type == 'ecs' && inputs.cluster || '' }}
+          wait-for-service-stability: true
+      - name: Update EventBridge target
+        run: |
+          # get target
+          aws events list-targets-by-rule \
+            --rule ${{ inputs.rule-name }} > rule.json
+
+          # update target
+          cat rule.json | jq '.Targets[0].EcsParameters.TaskDefinitionArn = "${{ steps.task-deploy.outputs.task-definition-arn }}"' > rule-updated-target.json
+
+          # write target to aws
+          aws events put-targets \
+            --rule ${{ inputs.rule-name }} \
+            --cli-input-json file://rule-updated-target.json
+      - name: Save deployment information
+        if: inputs.deployment-type != ''
+        run: |
+          IMAGE_TAG=$(echo ${{ inputs.image }} | cut -d':' -f 2)
+          aws ssm put-parameter \
+            --name ${{ inputs.deployment-tag-param-name }} \
+            --value $(jq -cn --arg image-tag $IMAGE_TAG --arg task-arn ${{ steps.task-deploy.outputs.task-definition-arn }} '$ARGS.named') \
+            --overwrite
