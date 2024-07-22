@@ -93,6 +93,7 @@ jobs:
           cluster: ${{ inputs.deployment-type == 'ecs' && inputs.cluster || '' }}
           wait-for-service-stability: true
       - name: Update EventBridge target
+        if: inputs.deployment-type == 'eventbridge'
         run: |
           # get target
           aws events list-targets-by-rule \
