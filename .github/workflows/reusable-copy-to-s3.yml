@@ -81,7 +81,7 @@ jobs:
           echo "session-name=$SESSION_NAME" >> $GITHUB_OUTPUT
       - name: validate
         env:
-          REGEXP_S3_BUCKET: ^s3://[a-z0-9_/.-]+$
+          REGEXP_S3_BUCKET: ^s3://[a-zA-Z0-9_/.-]+$
           CP_OR_SYNC: ${{ inputs.cp-or-sync }}
           S3_BUCKET: ${{ inputs.s3-bucket }}
           DIRECTION: ${{ inputs.direction }}
