@@ -57,7 +57,7 @@ on:
         type: string
         required: true
         description: |
-          the AWS S3 bucket to use
+          the AWS S3 bucket URI to use
 jobs:
   copy-to-s3:
     runs-on: ubuntu-latest
