@@ -81,7 +81,7 @@ jobs:
           echo "session-name=$SESSION_NAME" >> $GITHUB_OUTPUT
       - name: validate
         env:
-          REGEXP_S3_BUCKET: ^s3://[a-zA-Z0-9!_.*'()/-]+$
+          REGEXP_S3_BUCKET: "^s3://[a-zA-Z0-9!_.*'()/-]+$"
           CP_OR_SYNC: ${{ inputs.cp-or-sync }}
           S3_BUCKET: ${{ inputs.s3-bucket }}
           DIRECTION: ${{ inputs.direction }}
@@ -93,7 +93,7 @@ jobs:
           fi
           # tested with
           #   for BUCKET in $(aws-vault exec prod -- aws s3 ls | awk '{print "s3://" $3}'); do echo $BUCKET | grep -q -E $REGEXP_S3_BUCKET || echo "INVALID BUCKET $BUCKET"; done
-          if ! echo "$S3_BUCKET" | grep -q -E "$REGEXP_S3_BUCKET"; then
+          if ! echo "$S3_BUCKET" | grep -q -E $REGEXP_S3_BUCKET; then
             echo "error: not valid s3 bucket URI '$S3_BUCKET'" >/dev/stderr
             ERRORS=true
           fi
