@@ -114,3 +114,7 @@ jobs:
             --name ${{ inputs.deployment-tag-param-name }} \
             --value $(jq -cn --arg image-tag $IMAGE_TAG --arg task-arn ${{ steps.task-deploy.outputs.task-definition-arn }} '$ARGS.named') \
             --overwrite
+      - name: Summary - deployment build
+        run: |
+          echo "Task revision created: ${{ steps.task-deploy.outputs.task-definition-arn }}"
+          echo "Image URI: ${{ inputs.image }}"
