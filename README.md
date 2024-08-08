@@ -719,13 +719,9 @@ policies:
       required: true
     conventional:
       types:
-        - chore
-        - docs
-        - perf
-        - refactor
-        - style
-        - test
-        - release
+        - feat
+        - fix
+        - nfc
       scopes: [".*"]
 ```
 
