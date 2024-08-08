@@ -26,16 +26,9 @@ on:
                   required: true
                 conventional:
                   types:
-                    - chore
-                    - ci
-                    - docs
                     - feat
                     - fix
-                    - refactor
-                    - release
-                    - revert
-                    - style
-                    - test
+                    - nfc
                   scopes: [".*"]
 jobs:
   conform:
