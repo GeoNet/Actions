@@ -106,13 +106,34 @@ jobs:
           aws events put-targets \
             --rule ${{ inputs.rule-name }} \
             --cli-input-json file://rule-updated-target.json
+      - name: Generate manual deployment information from build
+        run: |
+          IMAGE_TAG=$(echo ${{ inputs.image }} | cut -d':' -f 2)
+          echo "DEPLOY_INFO=$(jq -cn --arg image-tag $IMAGE_TAG --arg task-arn ${{ steps.task-deploy.outputs.task-definition-arn }} '$ARGS.named')" >> $GITHUB_ENV
+      - name: Display manual deployment information
+        run: |
+          echo "### Service: ${{ inputs.service }}" >> $GITHUB_STEP_SUMMARY
+          echo '' >> $GITHUB_STEP_SUMMARY
+          echo 'Manual deployment steps:' >> $GITHUB_STEP_SUMMARY
+          echo '' >> $GITHUB_STEP_SUMMARY
+          echo "- Update service (\`${{ inputs.service }}\`) with new task revision" >> $GITHUB_STEP_SUMMARY
+          echo "- Update the AWS SSM ParameterStore (\`${{ inputs.deployment-tag-param-name }}\`) with the new image tag used in deployment" >> $GITHUB_STEP_SUMMARY
+          echo '' >> $GITHUB_STEP_SUMMARY
+
+          echo 'CLI example:' >> $GITHUB_STEP_SUMMARY
+          echo '```shell' >> $GITHUB_STEP_SUMMARY
+          echo '# update service' >> $GITHUB_STEP_SUMMARY
+          echo "aws ecs update-service --service ${{ inputs.service }} --cluster ${{ inputs.cluster }} --task-definition ${{ steps.task-deploy.outputs.task-definition-arn }}" >> $GITHUB_STEP_SUMMARY
+          echo '' >> $GITHUB_STEP_SUMMARY
+          echo '# update ParameterStore' >> $GITHUB_STEP_SUMMARY
+          echo "aws ssm put-parameter --name ${{ inputs.deployment-tag-param-name }} --value $DEPLOY_INFO --overwrite" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
       - name: Save deployment information
         if: inputs.deployment-type != ''
         run: |
-          IMAGE_TAG=$(echo ${{ inputs.image }} | cut -d':' -f 2)
           aws ssm put-parameter \
             --name ${{ inputs.deployment-tag-param-name }} \
-            --value $(jq -cn --arg image-tag $IMAGE_TAG --arg task-arn ${{ steps.task-deploy.outputs.task-definition-arn }} '$ARGS.named') \
+            --value $DEPLOY_INFO \
             --overwrite
       - name: Summary - deployment build
         run: |
