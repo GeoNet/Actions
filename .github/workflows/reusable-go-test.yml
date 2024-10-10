@@ -67,7 +67,7 @@ jobs:
     with:
       aws-role-arn-to-assume: ${{ inputs.aws-role-arn-to-assume }}
       artifact-name: test-results
-      artifact-path: /tmp/coverage.*
+      artifact-path: ./coverage
       s3-bucket: s3://${{inputs.s3-bucket}}/test-coverage-results/${{github.repository}}/go/
       cp-or-sync: cp
       direction: to
