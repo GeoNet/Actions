@@ -310,7 +310,7 @@ jobs:
           registryGhcrPasswordOverride: ${{ secrets.GH_CI_USER_TOKEN }}
         run: |
           echo "${{ env.registryGhcrPasswordOverride }}" | crane auth login ghcr.io -u ${{ env.registryGhcrUsernameOverride }} --password-stdin
-      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+      - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
         if: ${{ inputs.artifact-name != '' && inputs.artifact-path != '' }}
         with:
           name: ${{ inputs.artifact-name }}
@@ -374,7 +374,7 @@ jobs:
           echo "image=$IMAGE_URI" >> $GITHUB_OUTPUT
           echo $IMAGE_URI > imageinfo_${{ inputs.imageName}}${{ github.run_id }}${{ github.run_attempt }}.txt
       - name: Upload imageinfo
-        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         with:
           name: ${{ inputs.imageName }}${{ github.run_id }}${{ github.run_attempt }}
           path: imageinfo_${{ inputs.imageName }}${{ github.run_id }}${{ github.run_attempt }}.txt
