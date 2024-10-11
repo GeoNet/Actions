@@ -605,13 +605,9 @@ on:
 jobs:
   go-test:
     uses: GeoNet/Actions/.github/workflows/reusable-go-test.yml@main
-    with:
-      aws-role-arn-to-assume: github-to-s3-upload-role
-      s3-bucket: my-bucket
 ```
 
 test coverage results upload to job artifacts, found at the bottom of a job summary page.
-An optional bucket and role can be provided to upload the results to S3 as well.
 
 ### Go vulnerability check
 
