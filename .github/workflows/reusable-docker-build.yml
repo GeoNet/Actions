@@ -316,7 +316,7 @@ jobs:
           name: ${{ inputs.artifact-name }}
           path: ${{ inputs.artifact-path }}
       - name: Build
-        uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0 # v5.3.0
+        uses: docker/build-push-action@4f58ea79222b3b9dc2c8bbdd6debcef730109a75 # v6.9.0
         id: build
         with:
           push: false
@@ -340,7 +340,7 @@ jobs:
           eval '${{ inputs.test }}'
       - name: Push
         if: ${{ inputs.push == true }}
-        uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0 # v5.3.0
+        uses: docker/build-push-action@4f58ea79222b3b9dc2c8bbdd6debcef730109a75 # v6.9.0
         id: push
         with:
           push: ${{ inputs.push }}
