@@ -30,6 +30,7 @@
   - [Composite Actions](#composite-actions)
     - [Tagging](#tagging)
     - [Validate bucket URI](#validate-bucket-uri)
+    - [Copy to S3](#copy-to-s3-1)
   - [Other documentation](#other-documentation)
     - [Dependabot and Actions workflow imports](#dependabot-and-actions-workflow-imports)
     - [Versioning for container images](#versioning-for-container-images)
@@ -1248,6 +1249,34 @@ jobs:
         uses: GeoNet/Actions/.github/actions/validate-bucket-uri@main
         with:
           s3-bucket-uri: s3://my-bucket-to-validate/my-bucket-prefix
+```
+
+### Copy to S3
+
+STATUS: beta
+
+Copy (or sync) one or more files from GitHub Actions Artifacts to an S3 bucket.
+
+```yaml
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Upload test log to GitHub Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-coverage-results
+          path: |
+            /tmp/coverage.out
+      - name: Upload test log to S3
+        uses: GeoNet/Actions/.github/actions/copy-to-s3@main
+        with:
+          aws-role-arn-to-assume: my-role
+          artifact-name: test-coverage-results
+          artifact-path: ./coverage
+          s3-bucket-uri: s3://my-bucket/test-coverage-results/
 ```
 
 ## Other documentation
