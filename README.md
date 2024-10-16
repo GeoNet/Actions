@@ -31,6 +31,7 @@
     - [Tagging](#tagging)
     - [Validate bucket URI](#validate-bucket-uri)
     - [Copy to S3](#copy-to-s3-1)
+    - [Copy from S3](#copy-from-s3)
   - [Other documentation](#other-documentation)
     - [Dependabot and Actions workflow imports](#dependabot-and-actions-workflow-imports)
     - [Versioning for container images](#versioning-for-container-images)
@@ -1277,6 +1278,29 @@ jobs:
           artifact-name: test-coverage-results
           artifact-path: ./coverage
           s3-bucket-uri: s3://my-bucket/test-coverage-results/
+```
+
+### Copy from S3
+
+STATUS: beta
+
+Copy (or sync) one or more files from an S3 bucket to GitHub Actions Artifacts.
+
+```yaml
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download test log from S3
+        uses: GeoNet/Actions/.github/actions/copy-from-s3@main
+        with:
+          aws-role-arn-to-assume: my-role
+          artifact-name: test-coverage-results
+          artifact-path: ./coverage
+          s3-bucket-uri: s3://my-bucket/test-coverage-results/coverage.out
+          single-file: true
 ```
 
 ## Other documentation
