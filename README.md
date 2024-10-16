@@ -29,6 +29,7 @@
     - [AWS deploy](#aws-deploy)
   - [Composite Actions](#composite-actions)
     - [Tagging](#tagging)
+    - [Validate bucket URI](#validate-bucket-uri)
   - [Other documentation](#other-documentation)
     - [Dependabot and Actions workflow imports](#dependabot-and-actions-workflow-imports)
     - [Versioning for container images](#versioning-for-container-images)
@@ -1228,6 +1229,25 @@ jobs:
     uses: GeoNet/Actions/.github/workflows/reusable-docker-build.yml@main
     with:
       tag: ${{ needs.prepare.outputs.tag }}
+```
+
+### Validate bucket URI
+
+STATUS: beta
+
+Validate an S3 bucket URI by checking it is in the right format and contains only valid characters.
+
+```yaml
+on: [push]
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate bucket
+        uses: GeoNet/Actions/.github/actions/validate-bucket-uri@main
+        with:
+          s3-bucket-uri: s3://my-bucket-to-validate/my-bucket-prefix
 ```
 
 ## Other documentation
