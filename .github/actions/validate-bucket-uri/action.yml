@@ -1,0 +1,20 @@
+name: Validate S3 Bucket URI
+description: Validates an AWS S3 bucket URI.
+inputs:
+  s3-bucket-uri:
+    type: string
+    description: "The S3 bucket URI to validate"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Validate
+      shell: bash
+      env:
+        REGEXP: "^s3://[a-zA-Z0-9!_.*'()/-]+$"
+        S3_BUCKET_URI: ${{ inputs.s3-bucket-uri }}
+      run: |
+        if ! echo "$S3_BUCKET_URI" | grep -q -E $REGEXP; then
+          echo "error: not a valid S3 bucket URI '$S3_BUCKET_URI'" >/dev/stderr
+          exit 1
+        fi
