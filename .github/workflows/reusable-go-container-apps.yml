@@ -55,6 +55,10 @@ on:
         required: false
         description: |
           shell commands to setup the test environment
+      testUpload:
+        type: boolean
+        required: true
+        default: true
       golangciSetup:
         type: string
         required: false
@@ -146,6 +150,7 @@ jobs:
     with:
       setup: ${{ inputs.testSetup }}
       extraArgs: ${{ inputs.goTestExtraArgs }}
+      upload: ${{ inputs.testUpload }}
   go-vet:
     if: ${{ contains(fromJSON('["workflow_call", "workflow_dispatch", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
     uses: GeoNet/Actions/.github/workflows/reusable-go-vet.yml@main

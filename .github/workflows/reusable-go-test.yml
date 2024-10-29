@@ -14,7 +14,7 @@ on:
           extra args to pass `go test`
       upload:
         required: false
-        default: false
+        default: true
         type: boolean
         description: |
           set to true to push test coverage as an artifact
