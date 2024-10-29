@@ -607,7 +607,7 @@ jobs:
     uses: GeoNet/Actions/.github/workflows/reusable-go-test.yml@main
 ```
 
-test coverage results upload to job artifacts, found at the bottom of a job summary page.
+test coverage results can be uploaded to job artifacts, found at the bottom of a job summary page.
 
 ### Go vulnerability check
 
