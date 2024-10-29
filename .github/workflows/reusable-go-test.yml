@@ -12,6 +12,13 @@ on:
         type: string
         description: |
           extra args to pass `go test`
+      upload:
+        required: false
+        default: false
+        type: boolean
+        description: |
+          set to true to push test coverage as an artifact
+
 jobs:
   go-test:
     runs-on: ubuntu-latest
@@ -41,7 +48,7 @@ jobs:
           go tool cover -html=/tmp/coverage.out -o /tmp/coverage.html
       - name: Upload test log
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
-        if: always()
+        if: ${{ inputs.upload }}
         with:
           name: test-results
           path: |
