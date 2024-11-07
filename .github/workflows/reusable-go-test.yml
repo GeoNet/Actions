@@ -2,6 +2,17 @@ name: reusable go test
 on:
   workflow_call:
     inputs:
+      aws-role-arn-to-assume:
+        type: string
+        required: false
+        description: |
+          role to use to upload test results to s3 bucket,
+          see reusable-copy-to-s3 workflow for more detail.
+      s3-bucket:
+        type: string
+        required: false
+        description: |
+          the AWS S3 bucket name to upload test results to.
       setup:
         required: false
         type: string
@@ -50,3 +61,13 @@ jobs:
           if-no-files-found: error
           retention-days: 1
           overwrite: true
+      - name: Upload test log to S3
+        uses: GeoNet/Actions/.github/actions/copy-to-s3@caS3
+        if: ${{ inputs.aws-role-arn-to-assume && inputs.s3-bucket }}
+        with:
+          aws-role-arn-to-assume: ${{ inputs.aws-role-arn-to-assume }}
+          artifact-name: test-results
+          artifact-path: ./coverage
+          s3-bucket-uri: s3://${{inputs.s3-bucket}}/test-coverage-results/${{github.repository}}/go/
+    
+
