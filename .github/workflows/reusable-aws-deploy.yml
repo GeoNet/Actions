@@ -78,14 +78,14 @@ jobs:
             --query taskDefinition > task-definition.json
       - name: Update task definition
         id: task-def
-        uses: aws-actions/amazon-ecs-render-task-definition@5f07eab76e1851cbd4e07dea0f3ed53b304475bd # v1.3.0
+        uses: aws-actions/amazon-ecs-render-task-definition@469db592f4341616e992bf7f231e19b3ab9b4efa # v1.6.1
         with:
           task-definition: task-definition.json
           container-name: ${{ inputs.container }}
           image: ${{ inputs.image }}
       - name: Deploy task definition
         id: task-deploy
-        uses: aws-actions/amazon-ecs-deploy-task-definition@69e7aed9b8acdd75a6c585ac669c33831ab1b9a3 # v1.5.0
+        uses: aws-actions/amazon-ecs-deploy-task-definition@0e82244a9c6dac43d70151a94c67ebc4bab18fc5 # v2.2.0
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
           # if service is empty, task revision will be created, but not deployed
