@@ -38,7 +38,6 @@ jobs:
           eval '${{ inputs.setup }}'
       - name: golangci-lint
         uses: GeoNet/golangci-lint-action@1b9b0798df716be5ff7cebc26795b000939a4b41 # master
-        continue-on-error: true
         with:
           version: v1.63.4
           args: --timeout 30m -E gosec
