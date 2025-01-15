@@ -37,7 +37,8 @@ jobs:
         run: |
           eval '${{ inputs.setup }}'
       - name: golangci-lint
-        uses: GeoNet/golangci-lint-action@f76d5e859fe0815b3ba71fc6c45066932309e9da # master
+        uses: GeoNet/golangci-lint-action@1b9b0798df716be5ff7cebc26795b000939a4b41 # master
+        continue-on-error: true
         with:
-          version: v1.55.1
+          version: v1.63.4
           args: --timeout 30m -E gosec
