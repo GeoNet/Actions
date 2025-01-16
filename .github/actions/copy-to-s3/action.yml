@@ -1,0 +1,100 @@
+name: Copy to S3
+description: Copy file/s from GitHub Actions Artifacts to S3.
+inputs:
+  aws-region:
+    type: string
+    default: ap-southeast-2
+    required: false
+    description: |
+      the AWS region to use; e.g ap-southeast-2
+  aws-role-arn-to-assume:
+    type: string
+    required: true
+    description: |
+      an AWS role ARN to assume.
+      e.g: arn:aws:iam::ACCOUNT_ID:role/github-actions-ROLE_NAME
+  aws-role-duration-seconds:
+    type: number
+    required: false
+    default: 3600
+    description: |
+      the number of seconds to hold a session open for.
+  aws-role-session-name:
+    type: string
+    required: false
+    description: |
+      the name of the session to use for AssumeRole(WithWebIdentity)
+  use-sync:
+    type: boolean
+    default: false
+    required: false
+    description: |
+      whether it should use sync instead of cp (copy)
+  single-file:
+    type: boolean
+    default: false
+    required: false
+    description: |
+      single file copy
+  artifact-name:
+    type: string
+    required: true
+    description: |
+      the name of the GitHub Actions artifact to download
+  artifact-path:
+    type: string
+    required: true
+    description: |
+      the path to download the GitHub Actions artifact to
+  s3-bucket-uri:
+    type: string
+    required: true
+    description: |
+      the AWS S3 bucket URI to copy to
+runs:
+  using: "composite"
+  steps:
+    - name: Validate bucket
+      uses: GeoNet/Actions/.github/actions/validate-bucket-uri@caS3
+      with:
+        s3-bucket-uri: ${{ inputs.s3-bucket-uri }}
+    - name: Download artifact
+      uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+      with:
+          name: ${{ inputs.artifact-name }}
+          path: ${{ inputs.artifact-path }}
+    - name: Get session name
+      id: get-session-name
+      shell: bash
+      env:
+        REPO: ${{ github.repository }}
+      run: |
+        SESSION_NAME="$(echo "github-actions-copy-from-$REPO-to-s3" | sed 's,/,--,g' | tr '[[:upper:]]' '[[:lower:]]')"
+        if [ -n "$AWS_ROLE_SESSION_NAME" ]; then
+          SESSION_NAME="$AWS_ROLE_SESSION_NAME"
+        fi
+        echo "session-name=$SESSION_NAME" >> $GITHUB_OUTPUT
+    - name: Configure AWS Credentials
+      env:
+        REPO: ${{ github.repository }}
+      uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
+      with:
+        aws-region: ${{ inputs.aws-region }}
+        role-to-assume: ${{ inputs.aws-role-arn-to-assume }}
+        role-duration-seconds: ${{ inputs.aws-role-duration-seconds }}
+        role-session-name: ${{ steps.get-session-name.outputs.session-name }}
+    - name: Copy to S3
+      shell: bash
+      env:
+        LOCAL_SOURCE_DIR: ${{ inputs.artifact-path }}
+        S3_BUCKET_URI: ${{ inputs.s3-bucket-uri }}
+      run: |
+        if [ ${{ inputs.use-sync }} = true ]; then
+          aws s3 sync "$LOCAL_SOURCE_DIR" "$S3_BUCKET_URI"
+        else
+          ARGS=()
+          if [ ${{ inputs.single-file }} = false ]; then
+                ARGS+=(--recursive)
+          fi
+          aws s3 cp "${ARGS[@]}" "$LOCAL_SOURCE_DIR" "$S3_BUCKET_URI"
+        fi
