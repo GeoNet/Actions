@@ -44,5 +44,5 @@ jobs:
           PATHS: ${{ inputs.paths }}
         run: |
           for path in $PATHS; do
-            ESLINT_USE_FLAT_CONFIG=true $path/node_modules/.bin/eslint -c $path/eslint.config.mjs
+            ESLINT_USE_FLAT_CONFIG=true $path/node_modules/.bin/eslint -c $path/eslint.config.mjs $path
           done
