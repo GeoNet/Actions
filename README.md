@@ -1092,7 +1092,7 @@ jobs:
 
 ### ESLint
 
-STATUS: alpha
+STATUS: beta
 
 Used to run ESLint on one or more directories. The paths specified
 should have a package.json with eslint defined, alongside an eslint config
@@ -1111,6 +1111,7 @@ jobs:
       paths: |
         ./root/folder/one
         ./cool/root/folder/two
+      node-version: 22.x
 ```
 
 
