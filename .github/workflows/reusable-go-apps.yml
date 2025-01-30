@@ -23,6 +23,16 @@ on:
         type: string
         description: |
           extra args to pass `go test`
+      test-coverage-upload-role:
+        type: string
+        required: false
+        description: |
+          the AWS IAM role to use to upload test results to s3 bucket
+      test-coverage-upload-bucket:
+        type: string
+        required: false
+        description: |
+          the AWS S3 bucket name to upload test results to.
 jobs:
   go-build:
     if: ${{ contains(fromJSON('["workflow_call", "workflow_dispatch", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
@@ -44,6 +54,8 @@ jobs:
     with:
       setup: ${{ inputs.testSetup || inputs.buildSetup }}
       extraArgs: ${{ inputs.goTestExtraArgs }}
+      aws-role-arn-to-assume: ${{ inputs.test-coverage-upload-role }}
+      s3-bucket: ${{ inputs.test-coverage-upload-bucket }}
   go-vet:
     if: ${{ contains(fromJSON('["workflow_call", "workflow_dispatch", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
     uses: GeoNet/Actions/.github/workflows/reusable-go-vet.yml@main
