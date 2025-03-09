@@ -26,8 +26,8 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
       - name: Run TFLint
         run: tflint -f compact
-  tfsec:
-    name: tfsec
+  aquasecurity-trivy:
+    name: aquasecurity-trivy
     runs-on: ubuntu-latest
     steps:
       - if: ${{ startsWith(github.repository, 'GeoNet/') == false }}
@@ -35,10 +35,25 @@ jobs:
         run: |
           exit 1
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
-      - name: tfsec
-        uses: aquasecurity/tfsec-action@b466648d6e39e7c75324f25d83891162a721f2d6 # v1.0.3
+      - name: Aqua Security Trivy
+        uses: aquasecurity/trivy-action@18f2510ee396bbf400402947b394f2dd8c87dbb0 # 0.29.0
         with:
-          github_token: ${{ github.token }}
+          scan-type: 'config'
+          hide-progress: true
+          output: trivy.txt
+      - name: Publish Trivy Output to Summary
+        run: |
+          if [[ -f trivy.txt ]]; then
+            {
+              echo "### Security Output"
+              echo "<details><summary>Click to expand</summary>"
+              echo ""
+              echo '```terraform'
+              cat trivy.txt
+              echo '````'
+              echo "</details>"
+            } >> $GITHUB_STEP_SUMMARY
+          fi
   terraform:
     name: Terraform
     runs-on: ubuntu-latest
