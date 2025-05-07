@@ -2,6 +2,9 @@
 <!-- toc -->
 - [Actions](#actions)
   - [Workflows](#workflows)
+    - [Building](#building)
+    - [Implementing](#implementing)
+  - [Catalog](#catalog)
     - [Ko build](#ko-build)
     - [Docker build](#docker-build)
     - [Dockerfile lint](#dockerfile-lint)
@@ -90,6 +93,32 @@ jobs:
 for configuration see [`on.workflow_call.inputs` in .github/workflows/reusable-WORKFLOW-FILE-NAME.yml](.github/workflows/reusable-WORKFLOW-FILE-NAME.yml).
 
 -->
+
+### Building
+
+reusable workflows:
+
+- use _workflow_call_ and inputs to provide parameters to the workflow
+- use digests for implementing existing actions, such as `actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0`
+- try to build workflow steps to fail-fast
+
+reusable apps:
+
+- use the main branch for implementing other reusable workflows like `GeoNet/Actions/.github/workflows/reusable-gofmt.yml@main`
+
+GeoNet/Actions:
+
+- use the _on.pull_request_ with setting _branches_ to _main_
+
+repo implementation specific workflows:
+
+- when using OIDC based functions, like AWS IAM's AssumeRoleWithWebIdentity or container image signing with cosign ensure that _permissions.contents_ is set to _read_ and _permissions.id-token_ is set to _write_
+
+### Implementing
+
+- use the main branch for implementing reusable workflows like `GeoNet/Actions/.github/workflows/reusable-gofmt.yml@main`
+
+## Catalog
 
 ### Ko build
 
