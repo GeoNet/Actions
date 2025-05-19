@@ -5,15 +5,15 @@ outputs:
     description: |
       Short commit sha based on last commit of pull request, or the last merge commit
     value: ${{ steps.tags.outputs.relevant-sha }}
-  timestamp:
+  date:
     description: |
-      UTC time of when this action was run
-    value: ${{ steps.tags.outputs.timestamp }}
+      NZST date of when this action was run
+    value: ${{ steps.tags.outputs.date }}
   tag:
     description: |
-      Recommended container tag, using commit sha and timestamp
+      Recommended container tag, using commit sha and date
     value:
-      ${{ format('{0}-git{1}', steps.tags.outputs.timestamp, steps.tags.outputs.relevant-sha) }}
+      ${{ format('{0}-git{1}', steps.tags.outputs.date, steps.tags.outputs.relevant-sha) }}
 
 runs:
   using: "composite"
@@ -25,4 +25,4 @@ runs:
       shell: bash
       run: |
         echo "relevant-sha=$(git rev-parse --short $RELEVANT_SHA)" >> $GITHUB_OUTPUT
-        echo "timestamp=$(date -u +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
+        echo "date=$(TZ='Pacific/Auckland' date +'%Y%m%d')" >> $GITHUB_OUTPUT
