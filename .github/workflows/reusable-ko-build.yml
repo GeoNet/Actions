@@ -29,6 +29,11 @@ on:
             - latest,20230607,git-deadb33f
             - cooltag,v2.0.2
             - latest
+      deploymentTagOverride:
+        required: false
+        type: string
+        description: |
+          overrides the default deployment tag.
       paths:
         required: false
         type: string
@@ -107,6 +112,12 @@ jobs:
         run: |
           exit 1
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - id: default-deployment-tag
+        uses: GeoNet/Actions/.github/actions/tagging@main
+      - name: generate deployment tag # TODO can this be combined with default-deployment-tag step?
+        id: deployment-tag
+        run: |
+          echo "tag=${{ inputs.deploymentTagOverride == '' && steps.default-deployment-tag.outputs.tag || inputs.deploymentTagOverride }}" >> $GITHUB_OUTPUT
       - name: configure system
         run: |
           git config user.name 'github-actions[bot]'
@@ -127,7 +138,7 @@ jobs:
           KO_DOCKER_REPO: ghcr.io/${{ github.repository }}
           KO_CONFIG_PATH: ${{ inputs.configPath }}
           REGISTRY_OVERRIDE: ${{ inputs.registryOverride }}
-          TAGS: ${{ inputs.tags }}
+          TAGS: ${{ format('{0},{1}', inputs.tags, steps.deployment-tag.outputs.tag) }}
         run: |
           if [ -n "$REGISTRY_OVERRIDE" ]; then
             KO_DOCKER_REPO="$REGISTRY_OVERRIDE"
@@ -207,3 +218,4 @@ jobs:
           IMAGES: ${{ steps.build.outputs.images }}
         run: |
           echo -e "Built and pushed:\n$(echo "$IMAGES" | sed 's/,/\n/g' | sed 's/^/- /g')"
+          echo 'Tags: ${{ steps.run-info.outputs.tags }}'
