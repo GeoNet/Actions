@@ -1225,7 +1225,7 @@ jobs:
   prepare:
     runs-on: ubuntu-latest
     outputs:
-      tag: steps.tagging.outputs.tag
+      tag: ${{ steps.tagging.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
       - id: tagging
