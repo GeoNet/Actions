@@ -147,6 +147,11 @@ on:
         default: high
         description: |
           Minimum vulnerability severity that causes Anchore scan to fail the build.
+      go-version:
+        default: oldstable
+        type: string
+        description: |
+          Go version to use, see `actions/setup-go` for more information.
     secrets:
       GH_CI_USER_TOKEN:
         required: false
@@ -168,12 +173,17 @@ jobs:
         run: |
           exit 1
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
+        id: setup-go
         with:
-          go-version: stable
+          go-version: ${{ inputs.go-version }}
           check-latest: true
       - uses: GeoNet/setup-crane@00c9e93efa4e1138c9a7a5c594acd6c75a2fbf0c # main
         with:
           version: ${{ env.VERSION_CRANE }}
+      - name: Go docker versioning
+        id: go-image
+        run: |
+          echo "image-ref=$( crane ls --full-ref ghcr.io/geonet/base-images/golang | grep ${{steps.setup-go.outputs.go-version}})" >> $GITHUB_OUTPUT
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       - id: default-deployment-tag
         uses: GeoNet/Actions/.github/actions/tagging@main
@@ -337,7 +347,7 @@ jobs:
           context: ${{ inputs.context }}
           platforms: ${{ steps.run-info.outputs.platforms }}
           file: ${{ inputs.dockerfile }}
-          build-args: ${{ inputs.buildArgs }}
+          build-args: ${{ format('{0} CI_GO_IMAGE={1}', inputs.buildArgs, steps.go-image.outputs.image-ref) }}
           labels: |
             org.opencontainers.image.name=${{ inputs.imageName }}
             org.opencontainers.image.revision=${{ github.sha }}
@@ -367,7 +377,7 @@ jobs:
           context: ${{ inputs.context }}
           platforms: ${{ inputs.platforms }}
           file: ${{ inputs.dockerfile }}
-          build-args: ${{ inputs.buildArgs }}
+          build-args: ${{ format('{0} CI_GO_IMAGE={1}', inputs.buildArgs, steps.go-image.outputs.image-ref) }}
           labels: |
             org.opencontainers.image.name=${{ inputs.imageName }}
             org.opencontainers.image.revision=${{ github.sha }}

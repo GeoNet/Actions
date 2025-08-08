@@ -89,6 +89,11 @@ on:
         type: string
         description: |
           set a GOFLAGS environment variable
+      go-version:
+        default: oldstable
+        type: string
+        description: |
+          Go version to use, see `actions/setup-go` for more information.
     secrets:
       GH_CI_USER_TOKEN:
         required: false
@@ -115,7 +120,7 @@ jobs:
           gh auth status
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
         with:
-          go-version-file: go.mod
+          go-version: ${{ inputs.go-version }}
           cache-dependency-path: go.sum
           check-latest: true
       - name: setup
