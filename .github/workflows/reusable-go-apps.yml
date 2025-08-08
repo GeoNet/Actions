@@ -33,6 +33,11 @@ on:
         required: false
         description: |
           the AWS S3 bucket name to upload test results to.
+      go-version:
+        default: oldstable
+        type: string
+        description: |
+          Go version to use, see `actions/setup-go` for more information.
 jobs:
   go-build:
     if: ${{ contains(fromJSON('["workflow_call", "workflow_dispatch", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
@@ -40,14 +45,18 @@ jobs:
     with:
       setup: ${{ inputs.buildSetup }}
       paths: ${{ inputs.paths }}
+      go-version: ${{ inputs.go-version }}
   gofmt:
     if: ${{ contains(fromJSON('["workflow_call", "workflow_dispatch", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
     uses: GeoNet/Actions/.github/workflows/reusable-gofmt.yml@main
+    with:
+      go-version: ${{ inputs.go-version }}
   golangci-lint:
     if: ${{ contains(fromJSON('["workflow_call", "workflow_dispatch", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
     uses: GeoNet/Actions/.github/workflows/reusable-golangci-lint.yml@main
     with:
       setup: ${{ inputs.buildSetup }}
+      go-version: ${{ inputs.go-version }}
   go-test:
     if: ${{ contains(fromJSON('["workflow_call", "workflow_dispatch", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
     uses: GeoNet/Actions/.github/workflows/reusable-go-test.yml@main
@@ -56,16 +65,21 @@ jobs:
       extraArgs: ${{ inputs.goTestExtraArgs }}
       aws-role-arn-to-assume: ${{ inputs.test-coverage-upload-role }}
       s3-bucket: ${{ inputs.test-coverage-upload-bucket }}
+      go-version: ${{ inputs.go-version }}
   go-vet:
     if: ${{ contains(fromJSON('["workflow_call", "workflow_dispatch", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
     uses: GeoNet/Actions/.github/workflows/reusable-go-vet.yml@main
     with:
       setup: ${{ inputs.buildSetup }}
+      go-version: ${{ inputs.go-version }}
   govulncheck:
     if: ${{ contains(fromJSON('["workflow_call", "workflow_dispatch", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
     uses: GeoNet/Actions/.github/workflows/reusable-govulncheck.yml@main
     with:
       setup: ${{ inputs.buildSetup }}
+      go-version: ${{ inputs.go-version }}
   goimports:
     if: ${{ contains(fromJSON('["workflow_call", "workflow_dispatch", "push", "pull_request"]'), github.event_name) && startsWith(github.repository, 'GeoNet/') != false }}
     uses: GeoNet/Actions/.github/workflows/reusable-goimports.yml@main
+    with:
+      go-version: ${{ inputs.go-version }}

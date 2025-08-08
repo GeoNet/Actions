@@ -35,6 +35,7 @@
   - [Other documentation](#other-documentation)
     - [Dependabot and Actions workflow imports](#dependabot-and-actions-workflow-imports)
     - [Versioning for container images](#versioning-for-container-images)
+    - [Go Versioning in workflows](#go-versioning-in-workflows)
 <!-- /toc -->
 
 # Actions
@@ -1332,3 +1333,24 @@ crane digest IMAGE_REF
 ```
 
 or in the logs of the workflow run.
+
+### Go Versioning in workflows
+
+The default version used in the Go workflows is set to the preceding stable release ("oldstable"). This version will also
+be supplied as the build argument `CI_GO_IMAGE` for the resuable docker build workflow, allowing users to the ability to
+keep their containers in sync with the latest minor/patch release:
+
+```dockerfile
+ARG CI_GO_IMAGE
+FROM ${CI_GO_IMAGE}
+
+# ensure the only toolchain used to compile is the one provided by CI_GO_IMAGE
+ENV GOTOOLCHAIN=local
+```
+
+The Go version can be overridden if desired:
+
+```yaml
+with:
+    go-version: '1.25'
+```

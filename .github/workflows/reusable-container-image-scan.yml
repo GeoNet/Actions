@@ -13,6 +13,11 @@ on:
             - docker.io/library/nginx:stable
             - ghcr.io/bobymcbobs/sample-ko-monorepo/webthingy@sha256:7ec264f3bd6344ae7525e88a69a4e7f6e6b3eaf11549fb889e31a2861df27923
             - alpine:3.17
+      go-version:
+        default: oldstable
+        type: string
+        description: |
+          Go version to use, see `actions/setup-go` for more information.
 jobs:
   prepare:
     runs-on: ubuntu-latest
@@ -41,7 +46,7 @@ jobs:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
         with:
-          go-version: stable
+          go-version: ${{ inputs.go-version }}
           check-latest: true
       - uses: GeoNet/setup-crane@00c9e93efa4e1138c9a7a5c594acd6c75a2fbf0c # main
         with:
