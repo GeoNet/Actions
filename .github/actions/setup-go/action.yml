@@ -1,0 +1,32 @@
+name: Setup Go
+description: A simple wrapper around `actions/setup-go`, providing a centralised go version.
+
+inputs:
+  go-version:
+    type: string
+    required: false
+    description: The Go version to use. See `actions/setup-go` for more detail.
+
+outputs:
+  go-version:
+    description: The installed Go version. See `actions/setup-go` for more detail.
+    value: ${{ steps.setup-go.outputs.go-version }}
+
+runs:
+  using: composite
+  steps:
+    - name: Setup crane
+      uses: GeoNet/setup-crane@00c9e93efa4e1138c9a7a5c594acd6c75a2fbf0c # main
+      with:
+        version: v0.16.1
+    - name: Get default go version
+      id: get-default-version
+      shell: bash
+      run: |
+        echo "version=$(crane ls ghcr.io/geonet/base-images/golang | sort --version-sort --reverse | head -n 1 | cut -d'-' -f1)" >> $GITHUB_OUTPUT
+    - name: Setup go
+      id: setup-go
+      uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
+      with:
+        go-version: ${{ inputs.go-version || steps.get-default-version.outputs.version }}
+        cache-dependency-path: go.sum
