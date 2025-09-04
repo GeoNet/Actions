@@ -729,6 +729,7 @@ policies:
         - feat
         - fix
         - nfc
+        - docs
       scopes: [".*"]
 ```
 
@@ -743,6 +744,8 @@ notes:
 - the conventional types include the following types by default and are not needed to be specified
   - _feat_
   - _fix_
+  - _nfc_
+  - _docs_
 
 links:
 
