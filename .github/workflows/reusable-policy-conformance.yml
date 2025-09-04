@@ -29,6 +29,7 @@ on:
                     - feat
                     - fix
                     - nfc
+                    - docs
                   scopes: [".*"]
 jobs:
   conform:
