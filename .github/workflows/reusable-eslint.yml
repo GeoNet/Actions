@@ -36,7 +36,7 @@ jobs:
           PATHS: ${{ inputs.paths }}
         run: |
           for path in $PATHS; do
-            npm install --prefix $path
+            npm install-clean --prefix $path
           done
       - name: Run ESLint
         id: eslint
