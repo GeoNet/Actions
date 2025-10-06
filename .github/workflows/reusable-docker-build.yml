@@ -135,6 +135,18 @@ on:
         description: |
           shell commands to test the built image.
           use the special variables '$IMAGE' and '$PUSH' to use the locally built CI image for testing
+      scan-fail-build:
+        type: boolean
+        required: false
+        default: false
+        description: |
+          Fail the build if Anchore scan finds vulnerabilities at or above the severity-cutoff.
+      scan-severity-cutoff:
+        type: string
+        required: false
+        default: high
+        description: |
+          Minimum vulnerability severity that causes Anchore scan to fail the build.
     secrets:
       GH_CI_USER_TOKEN:
         required: false
@@ -339,11 +351,11 @@ jobs:
         run: |
           eval '${{ inputs.test }}'
       - name: Scan built image with Anchore
-        uses: anchore/scan-action@f6601287cdb1efc985d6b765bbf99cb4c0ac29d8
+        uses: anchore/scan-action@1638637db639e0ade3258b51db49a9a137574c3e # v6.5.1
         with:
           image: ${{ steps.run-info.outputs.image-with-tag-for-test }}
-          fail-build: true
-          severity-cutoff: high
+          fail-build: ${{ inputs.scan-fail-build }}
+          severity-cutoff: ${{ inputs.scan-severity-cutoff }}
           output-format: table
       - name: Push
         if: ${{ inputs.push == true }}
