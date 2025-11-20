@@ -135,6 +135,11 @@ on:
         description: |
           shell commands to test the built image.
           use the special variables '$IMAGE' and '$PUSH' to use the locally built CI image for testing
+      scan:
+        type: boolean
+        default: true
+        description: |
+          Run a image scan.
       scan-fail-build:
         type: boolean
         required: false
@@ -361,6 +366,7 @@ jobs:
         run: |
           eval '${{ inputs.test }}'
       - name: Scan built image with Anchore
+        if: ${{ inputs.scan == 'true' }}
         uses: anchore/scan-action@1638637db639e0ade3258b51db49a9a137574c3e # v6.5.1
         with:
           image: ${{ steps.run-info.outputs.image-with-tag-for-test }}
