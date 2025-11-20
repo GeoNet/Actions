@@ -30,6 +30,7 @@ on:
                     - fix
                     - nfc
                     - docs
+                    - build
                   scopes: [".*"]
 jobs:
   conform:
