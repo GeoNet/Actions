@@ -188,7 +188,8 @@ jobs:
       - name: Go docker versioning
         id: go-image
         run: |
-          echo "image-ref=$( crane ls --full-ref ghcr.io/geonet/base-images/golang | grep ${{steps.setup-go.outputs.go-version}})" >> $GITHUB_OUTPUT
+          # only get golang version we want, and select alpine latest version by default
+          echo "image-ref=$( crane ls --full-ref ghcr.io/geonet/base-images/golang | grep ${{steps.setup-go.outputs.go-version}} | sort -V | tail -n 1)" >> $GITHUB_OUTPUT
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       - id: default-deployment-tag
         uses: GeoNet/Actions/.github/actions/tagging@main
