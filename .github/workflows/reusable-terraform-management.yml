@@ -1,6 +1,12 @@
 name: Terraform management
 on:
-  workflow_call: {}
+  workflow_call:
+    inputs:
+      path:
+        required: false
+        type: string
+        default: "./"
+
 jobs:
   tflint:
     name: tflint
@@ -25,7 +31,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
       - name: Run TFLint
-        run: tflint -f compact
+        run: |
+          tflint -f compact --chdir="${{ inputs.path }}"
   tfsec:
     name: tfsec
     runs-on: ubuntu-latest
@@ -39,6 +46,7 @@ jobs:
         uses: aquasecurity/tfsec-action@b466648d6e39e7c75324f25d83891162a721f2d6 # v1.0.3
         with:
           github_token: ${{ github.token }}
+          working_directory: ${{ inputs.path }}
   terraform:
     name: Terraform
     runs-on: ubuntu-latest
@@ -51,10 +59,13 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@a1502cd9e758c50496cc9ac5308c4843bcd56d36 # v3.0.0
       - name: Terraform Init
-        run: terraform init
+        run: terraform -chdir="${{ inputs.path }}" init -backend=false
       - name: Terraform Format
         id: format
-        run: terraform fmt -check -diff=true -recursive
+        run:
+          # TODO the input path and -recursive flag are odd together -
+          # this is simply to maintain backward compatibility for now
+          terraform -chdir="${{ inputs.path }}" fmt -check -diff=true -recursive
       - name: Terraform Validate
         id: validate
-        run: terraform validate -no-color
+        run: terraform -chdir="${{ inputs.path }}" validate -no-color
