@@ -37,6 +37,10 @@ jobs:
           go-version: ${{ inputs.go-version }}
           cache-dependency-path: go.sum
           check-latest: true
+      - name: setup
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          eval '${{ inputs.setup }}'
       - id: run-info
         name: collect job run info
         working-directory: ${{ inputs.working-directory }}
@@ -47,10 +51,6 @@ jobs:
             PATHS="$(go list -json ./... | jq -r -s '.[] | select (.Name == "main") | .ImportPath' | xargs)"
             echo "paths="$PATHS"" >> $GITHUB_OUTPUT
           fi
-      - name: setup
-        working-directory: ${{ inputs.working-directory }}
-        run: |
-          eval '${{ inputs.setup }}'
       - id: build
         name: build
         working-directory: ${{ inputs.working-directory }}
