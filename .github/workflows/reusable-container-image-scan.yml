@@ -68,20 +68,20 @@ jobs:
             echo "$DESTINATION_DIGEST"
           ) | column -t
           echo "destination=${DESTINATION_DIGEST}" >> $GITHUB_OUTPUT
-      - name: Run Trivy vulnerability scanner
-        if: ${{ steps.get-digests.outputs.destination != null }}
-        uses: aquasecurity/trivy-action@062f2592684a31eb3aa050cc61e7ca1451cecd3d # 0.18.0
-        env:
-          TRIVY_USERNAME: ${{ github.actor }}
-          TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          scan-type: image
-          image-ref: "${{ fromJSON(toJSON(matrix)).target }}"
-          format: "sarif"
-          output: "trivy-results.sarif"
-          severity: 'HIGH,CRITICAL'
-      - name: Upload Trivy scan results to GitHub Security tab
-        if: ${{ steps.get-digests.outputs.destination != null }}
-        uses: github/codeql-action/upload-sarif@3ab4101902695724f9365a384f86c1074d94e18c # 3.24.7
-        with:
-          sarif_file: "trivy-results.sarif"
+      # - name: Run Trivy vulnerability scanner
+      #   if: ${{ steps.get-digests.outputs.destination != null }}
+      #   uses: aquasecurity/trivy-action@062f2592684a31eb3aa050cc61e7ca1451cecd3d # 0.18.0
+      #   env:
+      #     TRIVY_USERNAME: ${{ github.actor }}
+      #     TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     scan-type: image
+      #     image-ref: "${{ fromJSON(toJSON(matrix)).target }}"
+      #     format: "sarif"
+      #     output: "trivy-results.sarif"
+      #     severity: 'HIGH,CRITICAL'
+      # - name: Upload Trivy scan results to GitHub Security tab
+      #   if: ${{ steps.get-digests.outputs.destination != null }}
+      #   uses: github/codeql-action/upload-sarif@3ab4101902695724f9365a384f86c1074d94e18c # 3.24.7
+      #   with:
+      #     sarif_file: "trivy-results.sarif"

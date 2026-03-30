@@ -37,8 +37,8 @@ jobs:
         run: |
           FAILURES=false
           for WORKFLOW in $(find .github/workflows -name 'reusable*' | xargs); do
-            if ! grep -q "$WORKFLOW" README.md; then
-              echo "Not found in README: $WORKFLOW"
+            if ! grep -q "$WORKFLOW" USAGE.md; then
+              echo "Not found in USAGE.md: $WORKFLOW"
               FAILURES=true
             fi
           done
