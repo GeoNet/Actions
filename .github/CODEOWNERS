@@ -2,3 +2,9 @@
 #
 # Reference: https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/about-code-owners
 #
+# Ensure CODEOWNERS changes are reviewed by an admin
+.github/CODEOWNERS    @GeoNet/Admin
+
+# Ensure all pull requests get a minimum set of reviewers assigned for dependabot
+.github/**/*.yml    @GeoNet/platform-team
+.github/**/*.yaml    @GeoNet/platform-team

@@ -4,5 +4,6 @@ updates:
     directory: "/"
     commit-message:
       prefix: "fix"
+      prefix-development: "fix"
     schedule:
       interval: "weekly"
