@@ -368,7 +368,7 @@ jobs:
           eval '${{ inputs.test }}'
       - name: Scan built image with Anchore
         if: ${{ inputs.scan == 'true' }}
-        uses: anchore/scan-action@1638637db639e0ade3258b51db49a9a137574c3e # v6.5.1
+        uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7.4.0
         with:
           image: ${{ steps.run-info.outputs.image-with-tag-for-test }}
           fail-build: ${{ inputs.scan-fail-build }}
