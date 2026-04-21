@@ -54,12 +54,12 @@ Use the full-length commit SHA.
 
 ```yaml
 # UNSAFE: tag can be moved
-- uses: actions/checkout@v4
+- uses: actions/checkout@v4 # unsafe: tag can be removed
 - uses: some-org/some-action@main   # branch refs are worst of all
 
 # SAFE: pinned to immutable SHA
-- uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
-- uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af  # v4.1.0
+- uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+- uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
 ```
 
 - Principle of least privilege for access to GITHUB_TOKEN and GitHub Secrets values
