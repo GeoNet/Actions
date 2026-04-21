@@ -216,7 +216,7 @@ jobs:
     outputs:
       matrix: ${{ steps.set.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - uses: GeoNet/yq@bbe305500687a5fe8498d74883c17f0f06431ac4 # master
       - id: set
         run: |
@@ -287,7 +287,7 @@ jobs:
   prepare:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - run: |
           mkdir -p ./apps/cool-ng/assets
           echo 'hello!' > ./apps/cool-ng/assets/index.html
@@ -1003,7 +1003,7 @@ jobs:
   generate-cool-numbers:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: generate
         run: |
           mkdir -p ./outputs/
@@ -1062,7 +1062,7 @@ jobs:
     needs: copy-from-s3
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: cool-numbers
@@ -1227,7 +1227,7 @@ jobs:
     outputs:
       tag: ${{ steps.tagging.outputs.tag }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - id: tagging
         uses: GeoNet/Actions/.github/actions/tagging@main
   build:
