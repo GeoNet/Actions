@@ -30,19 +30,44 @@ jobs:
       - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
         with:
           node-version: ${{ inputs.node-version }}
+      - name: Enable Corepack
+        run: |
+          corepack enable
       - name: Install Node modules
         id: install-node-modules
         env:
           PATHS: ${{ inputs.paths }}
         run: |
+          set -euo pipefail
+      
           for path in $PATHS; do
-            npm install-clean --prefix $path
+            if [ -f "$path/pnpm-lock.yaml" ]; then
+              echo "Using pnpm ($path)"
+              (
+                cd $path
+                pnpm install --frozen-lockfile              
+              )
+            else
+              echo "Using npm ($path)"
+              npm install-clean --prefix $path
+            fi
           done
       - name: Run ESLint
         id: eslint
         env:
           PATHS: ${{ inputs.paths }}
         run: |
+          set -euo pipefail
+      
           for path in $PATHS; do
-            ESLINT_USE_FLAT_CONFIG=true $path/node_modules/.bin/eslint -c $path/eslint.config.mjs $path
+            if [ -f "$path/pnpm-lock.yaml" ]; then
+              echo "Using eslint with pnpm ($path)"
+              (
+                cd $path
+                ESLINT_USE_FLAT_CONFIG=true pnpm exec eslint -c eslint.config.mjs .
+              )
+            else
+              echo "Using eslint with npm ($path)"
+              ESLINT_USE_FLAT_CONFIG=true $path/node_modules/.bin/eslint -c $path/eslint.config.mjs $path
+            fi
           done
