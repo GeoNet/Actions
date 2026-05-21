@@ -31,6 +31,11 @@ on:
                     - nfc
                     - docs
                   scopes: [".*"]
+      message:
+        type: string
+        required: false
+        default: ""
+
 jobs:
   conform:
     runs-on: ubuntu-latest
@@ -58,7 +63,17 @@ jobs:
       - name: conform
         env:
           INPUT_TOKEN: ${{ github.token }}
+          INPUT_MESSAGE: ${{ inputs.message }}
         run: |
+          if [ -z "$INPUT_MESSAGE" ]; then
+            # check commit history
+            CONFORM_ARGS="--commit-ref=refs/remotes/origin/main"
+          else
+            # check message only
+            echo "$INPUT_MESSAGE" > message.txt
+            CONFORM_ARGS="--commit-msg-file=message.txt"
+          fi
+
           docker run \
             -e "ACTIONS_CACHE_URL" \
             -e "ACTIONS_RUNTIME_TOKEN" \
@@ -118,4 +133,4 @@ jobs:
             -v "/home/runner/work/_temp/_runner_file_commands":"/github/file_commands" \
             --workdir /github/workspace \
             ghcr.io/geonet/base-images/siderolabs-conform:v0.1.0-alpha.27 \
-            enforce --commit-ref="refs/remotes/origin/main" --reporter=github
+            enforce $CONFORM_ARGS --reporter=github
