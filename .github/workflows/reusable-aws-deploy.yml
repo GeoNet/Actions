@@ -37,13 +37,21 @@ on:
         type: string
         description: |
           name of task definition
+      service-managed-ebs-volume-name:
+        required: false
+        type: string
+        description: "the name of the volume, to be manage in the ECS service. This value must match the volume name from the Volume object in the task definition, that was configuredAtLaunch"
+      service-managed-ebs-volume:
+        required: false
+        type: string
+        description: "a JSON object defining the configuration settings for the EBS Service volume that was ConfiguredAtLaunch. You can configure size, volumeType, IOPS, throughput, snapshot and encryption in ServiceManagedEBSVolumeConfiguration. Currently, the only supported volume type is an Amazon EBS volume"
       deployment-type:
         required: false
         type: string
         description: |
           type of deployment, valid values are
           ecs, eventbridge, or empty for no deployment
-        default: ''
+        default: ""
       deployment-tag-param-name:
         required: false
         type: string
@@ -92,6 +100,8 @@ jobs:
           service: ${{ inputs.deployment-type == 'ecs' && inputs.service || '' }}
           cluster: ${{ inputs.deployment-type == 'ecs' && inputs.cluster || '' }}
           wait-for-service-stability: true
+          service-managed-ebs-volume-name: ${{ inputs.service-managed-ebs-volume-name }}
+          service-managed-ebs-volume: ${{ inputs.service-managed-ebs-volume }}
       - name: Update EventBridge target
         if: inputs.deployment-type == 'eventbridge'
         run: |
