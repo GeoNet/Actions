@@ -198,7 +198,7 @@ jobs:
         run: |
           echo "tag=${{ inputs.deploymentTagOverride == '' && steps.default-deployment-tag.outputs.tag || inputs.deploymentTagOverride }}" >> $GITHUB_OUTPUT
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@68827325e0b33c7199eb31dd4e31fbe9023e06e3 # v3.0.0
+        uses: docker/setup-qemu-action@06116385d9baf250c9f4dcb4858b16962ea869c3 # v4.1.0
         with:
           image: ghcr.io/geonet/base-images/binfmt:latest
       - name: Set up Docker Buildx
