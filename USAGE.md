@@ -27,6 +27,7 @@
     - [Clean container versions](#clean-container-versions)
     - [ESLint](#eslint)
     - [AWS deploy](#aws-deploy)
+    - [Gatekeeper](#gatekeeper)
   - [Composite Actions](#composite-actions)
     - [Tagging](#tagging)
     - [Validate bucket URI](#validate-bucket-uri)
@@ -1207,6 +1208,24 @@ The terraform module `ecs_docker_task_ng` can be used to configure services for 
 
 Some example repos using this workflow: `DevTools` and `gloria`.
 
+### Gatekeeper
+
+STATUS: alpha
+
+This reusable workflow evaluates Kubernetes overlay manifests against pre-defined constraint templates before applying the deployment to a cluster
+
+Example:
+
+\```yaml
+uses: GeoNet/kube-infra/.github/workflows/reusable-gatekeeper.yml@main
+with:
+  aws-dev-role-arn: "arn:aws:iam::123456789012:role/dev-role"
+  caller-repo-name: "kube-infra"
+secrets:
+  GEONETCI_EKS_WORKFLOW: ${{ secrets.GEONETCI_EKS_WORKFLOW }}
+\```
+
+The gator binary is used for the evaluation. The constraint templates are defined in: ```https://github.com/GeoNet/kube-infra/tree/main/infrastructure/gatekeeper/constraint-templates```
 
 ## Composite Actions
 
