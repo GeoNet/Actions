@@ -1,0 +1,238 @@
+name: Reusable Gatekeeper Policy Enforcer
+
+# Required by validation: startsWith(github.repository, 'GeoNet/') == false
+
+on:
+  workflow_call:
+    inputs:
+      gator-version:
+        required: false
+        type: string
+        default: "v3.22.2"
+        description: "Version of Gatekeeper Gator binary"
+      aws-role-dev-arn:
+        required: true
+        type: string
+      aws-role-prod-arn:
+        required: true
+        type: string
+      kube-infra-ref:
+        required: false
+        type: string
+        default: 'main' #accepted values are "main" and "development"
+      caller-repo-name:
+        required: true
+        type: string
+        description: "Must be one of 'kube-infra', 'kube-platform-apps', or 'kube-geonet-apps'"
+      aws-region:
+        required: false
+        type: string
+        default: "ap-southeast-2"
+    secrets:
+      GEONET_GH_CLIENT_ID:
+        required: true
+      GEONET_GH_APP_PRIVATE_KEY:
+        required: true
+
+jobs:
+  validate-caller-repos:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate kube-infra branch
+        run: |
+          if [[ "${{ inputs.kube-infra-ref }}" != "main" && "${{ inputs.kube-infra-ref }}" != "development" ]]; then
+            echo "Invalid kube-infra-ref branch: ${{ inputs.kube-infra-ref }} (allowed: main, development)" >&2
+            exit 1
+          fi
+
+      - name: Validate Repository Organization
+        run: |
+          # Ensure workflow runs only inside GeoNet org
+          if [[ "${{ github.repository }}" != GeoNet/* ]]; then
+            echo "Error: This workflow must run inside GeoNet organization." >&2
+            exit 1
+          fi
+
+          CALLER="${{ inputs.caller-repo-name }}"
+          ACTUAL_REPO="${{ github.repository }}"
+
+          # Map caller input to expected repo
+          case "$CALLER" in
+            kube-platform-apps)
+              EXPECTED_REPO="GeoNet/kube-platform-apps"
+              ;;
+            kube-infra)
+              EXPECTED_REPO="GeoNet/kube-infra"
+              ;;
+            kube-geonet-apps)
+              EXPECTED_REPO="GeoNet/kube-geonet-apps"
+              ;;
+            *)
+              echo "Error: Unknown caller repo: $CALLER" >&2
+              exit 1
+            ;;
+          esac
+
+          # Validate actual repo matches expected repo
+          if [[ "$ACTUAL_REPO" != "$EXPECTED_REPO" ]]; then
+            echo "Error: Caller mismatch. Expected $EXPECTED_REPO but got $ACTUAL_REPO" >&2
+            exit 1
+          fi
+
+          echo "Repository validation passed for $CALLER"
+
+  enumerate-dev-clusters:
+    needs: validate-caller-repos
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    outputs:
+      cluster_list: ${{ steps.get-clusters.outputs.matrix }}
+    steps:
+      - name: Configure Dev AWS Credentials
+        uses: aws-actions/configure-aws-credentials@254c19bd240aabef8777f48595e9d2d7b972184b # v6.2.1
+        with:
+          role-to-assume: ${{ inputs.aws-role-dev-arn }}
+          aws-region: ${{ inputs.aws-region }}
+
+      - name: Enumerate Dev EKS Clusters
+        id: get-clusters
+        run: |
+          CLUSTER_JSON=$(aws eks list-clusters \
+            --region "${{ inputs.aws-region }}" \
+            --query "clusters" \
+            --output json | jq -c '.')
+          echo "matrix=${CLUSTER_JSON}" >> $GITHUB_OUTPUT
+
+  enumerate-prod-clusters:
+    needs: validate-caller-repos
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    outputs:
+      cluster_list: ${{ steps.get-clusters.outputs.matrix }}
+    steps:
+      - name: Configure Prod AWS Credentials
+        uses: aws-actions/configure-aws-credentials@254c19bd240aabef8777f48595e9d2d7b972184b # v6.2.1
+        with:
+          role-to-assume: ${{ inputs.aws-role-prod-arn }}
+          aws-region: ${{ inputs.aws-region }}
+
+      - name: Enumerate Prod EKS Clusters
+        id: get-clusters
+        run: |
+          CLUSTER_JSON=$(aws eks list-clusters \
+            --region "${{ inputs.aws-region }}" \
+            --query "clusters" \
+            --output json | jq -c '.')
+          echo "matrix=${CLUSTER_JSON}" >> $GITHUB_OUTPUT
+
+  gatekeeper-enforce-dev:
+    needs:
+      - validate-caller-repos
+      - enumerate-dev-clusters
+
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        cluster: ${{ fromJson(needs.enumerate-dev-clusters.outputs.cluster_list) }}
+
+    steps:
+      - name: Checkout Caller Repo
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          path: caller-repo
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ secrets.GEONET_GH_CLIENT_ID }}
+          private-key: ${{ secrets.GEONET_GH_APP_PRIVATE_KEY }}
+          owner: GeoNet
+          repositories: kube-infra
+
+      - name: Checkout Kube-Infra Repo
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          repository: GeoNet/kube-infra
+          path: kube-infra
+          ref: ${{ inputs.kube-infra-ref }}
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Show kube-infra ref
+        run: |
+          echo "Using kube-infra branch: ${{ inputs.kube-infra-ref }}"
+
+      - name: Configure Dev AWS Credentials
+        uses: aws-actions/configure-aws-credentials@254c19bd240aabef8777f48595e9d2d7b972184b # v6.2.1
+        with:
+          role-to-assume: ${{ inputs.aws-role-dev-arn }}
+          aws-region: ${{ inputs.aws-region }}
+
+      - name: Build and Enforce Dev
+        run: |
+          kube-infra/scripts/gatekeeper-enforce.sh \
+            dev \
+            "${{ matrix.cluster }}" \
+            "${{ inputs.caller-repo-name }}" \
+            "${{ inputs.gator-version }}"
+
+  gatekeeper-enforce-prod:
+    needs:
+      - validate-caller-repos
+      - enumerate-prod-clusters
+
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        cluster: ${{ fromJson(needs.enumerate-prod-clusters.outputs.cluster_list) }}
+
+    steps:
+      - name: Checkout Caller Repo
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          path: caller-repo
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ secrets.GEONET_GH_CLIENT_ID }}
+          private-key: ${{ secrets.GEONET_GH_APP_PRIVATE_KEY }}
+          owner: GeoNet
+          repositories: kube-infra
+  
+      - name: Checkout Kube-Infra Repo
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          repository: GeoNet/kube-infra
+          path: kube-infra
+          ref: ${{ inputs.kube-infra-ref }}
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Show kube-infra ref
+        run: |
+          echo "Using kube-infra branch: ${{ inputs.kube-infra-ref }}"
+
+      - name: Configure Prod AWS Credentials
+        uses: aws-actions/configure-aws-credentials@254c19bd240aabef8777f48595e9d2d7b972184b # v6.2.1
+        with:
+          role-to-assume: ${{ inputs.aws-role-prod-arn }}
+          aws-region: ${{ inputs.aws-region }}
+
+      - name: Build and Enforce Prod
+        run: |
+          kube-infra/scripts/gatekeeper-enforce.sh \
+            prod \
+            "${{ matrix.cluster }}" \
+            "${{ inputs.caller-repo-name }}" \
+            "${{ inputs.gator-version }}"
