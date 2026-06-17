@@ -109,7 +109,7 @@ jobs:
       - name: Save deployment information
         if: inputs.deployment-type != ''
         run: |
-          IMAGE_TAG=$(echo ${{ inputs.image }} | cut -d':' -f 2)
+          IMAGE_TAG=$(echo ${{ inputs.image }} | cut -d':' -f 2 | cut -d'@' -f 1)
           aws ssm put-parameter \
             --name ${{ inputs.deployment-tag-param-name }} \
             --value $(jq -cn --arg image-tag $IMAGE_TAG --arg task-arn ${{ steps.task-deploy.outputs.task-definition-arn }} '$ARGS.named') \
