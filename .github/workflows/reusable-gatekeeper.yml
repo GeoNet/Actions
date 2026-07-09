@@ -102,7 +102,7 @@ jobs:
           CLUSTER_JSON=$(aws eks list-clusters \
             --region "${{ inputs.aws-region }}" \
             --query "clusters" \
-            --output json | jq -c '.')
+            --output json | jq -c '[.[] | select(. | match("^tf-dev-"))]')
           echo "matrix=${CLUSTER_JSON}" >> $GITHUB_OUTPUT
 
   enumerate-prod-clusters:
@@ -126,7 +126,7 @@ jobs:
           CLUSTER_JSON=$(aws eks list-clusters \
             --region "${{ inputs.aws-region }}" \
             --query "clusters" \
-            --output json | jq -c '.')
+            --output json | jq -c '[.[] | select(. | match("^tf-prod-"))]')
           echo "matrix=${CLUSTER_JSON}" >> $GITHUB_OUTPUT
 
   gatekeeper-enforce-dev:
