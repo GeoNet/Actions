@@ -3,5 +3,7 @@ lockfile = true
 
 [tools]
 actionlint = "1.7.12"
-go = "1.26.2"
+go = "1.26.5"
+pinact = "4.1.0"
 shellcheck = "0.11.0"
+zizmor = "1.26.1"
