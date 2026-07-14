@@ -19,26 +19,13 @@ jobs:
       - uses: GeoNet/terraform-linters-setup-tflint@07d1d6c7d9bb58ace1a3a6620c6d324905931dfe # master
         name: Setup TFLint
         with:
-          tflint_version: v0.44.1
+          tflint_version: v0.63.1
       - name: Init TFLint
         run: tflint --init
         env:
           GITHUB_TOKEN: ${{ github.token }}
       - name: Run TFLint
         run: tflint -f compact
-  # tfsec:
-  #   name: tfsec
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - if: ${{ startsWith(github.repository, 'GeoNet/') == false }}
-  #       name: require GeoNet org
-  #       run: |
-  #         exit 1
-      # - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-  #     - name: tfsec
-  #       uses: aquasecurity/tfsec-action@b466648d6e39e7c75324f25d83891162a721f2d6 # v1.0.3
-  #       with:
-  #         github_token: ${{ github.token }}
   terraform:
     name: Terraform
     runs-on: ubuntu-latest
