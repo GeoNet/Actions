@@ -1,4 +1,6 @@
 name: reusable go test
+env:
+  VERSION_CRANE: v0.16.1
 on:
   workflow_call:
     inputs:
@@ -28,6 +30,22 @@ on:
         type: string
         description: |
           Go version to use, see `actions/setup-go` for more information.
+      registry:
+        required: false
+        type: string
+        description: |
+          ECR registry
+      aws-region:
+        type: string
+        required: false
+        description: |
+          the AWS region to use; e.g ap-southeast-2
+      aws-role-arn-to-assume-ecr:
+        type: string
+        required: false
+        description: |
+          an AWS role ARN to assume.
+          e.g: arn:aws:iam::ACCOUNT_ID:role/github-actions-ROLE_NAME
 jobs:
   go-test:
     runs-on: ubuntu-latest
@@ -42,6 +60,19 @@ jobs:
           go-version: ${{ inputs.go-version }}
           cache-dependency-path: go.sum
           check-latest: true
+      - uses: GeoNet/setup-crane@00c9e93efa4e1138c9a7a5c594acd6c75a2fbf0c # main
+        with:
+          version: ${{ env.VERSION_CRANE }}
+      - name: Configure AWS Credentials
+        if: ${{ inputs.aws-region != '' && inputs.aws-role-arn-to-assume-ecr != '' }}
+        uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # v6.1.1
+        with:
+          aws-region: ${{ inputs.aws-region }}
+          role-to-assume: ${{ inputs.aws-role-arn-to-assume-ecr }}
+      - name: login to ECR
+        if: ${{ inputs.aws-region != '' &&  inputs.registry != '' }}
+        run: |
+          aws ecr get-login-password --region ${{ inputs.aws-region }} | crane auth login ${{ inputs.registry }} -u AWS --password-stdin
       - name: setup
         run: |
           eval '${{ inputs.setup }}'
