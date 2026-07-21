@@ -130,6 +130,7 @@ jobs:
           echo "matrix=${CLUSTER_JSON}" >> $GITHUB_OUTPUT
 
   gatekeeper-enforce-dev:
+    if: github.actor != 'dependabot[bot]'
     needs:
       - validate-caller-repos
       - enumerate-dev-clusters
@@ -184,6 +185,7 @@ jobs:
             "${{ inputs.gator-version }}"
 
   gatekeeper-enforce-prod:
+    if: github.actor != 'dependabot[bot]'
     needs:
       - validate-caller-repos
       - enumerate-prod-clusters
