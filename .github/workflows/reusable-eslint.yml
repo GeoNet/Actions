@@ -39,13 +39,13 @@ jobs:
           PATHS: ${{ inputs.paths }}
         run: |
           set -euo pipefail
-      
+
           for path in $PATHS; do
             if [ -f "$path/pnpm-lock.yaml" ]; then
               echo "Using pnpm ($path)"
               (
                 cd $path
-                pnpm install --frozen-lockfile              
+                pnpm install --frozen-lockfile
               )
             else
               echo "Using npm ($path)"
@@ -58,7 +58,7 @@ jobs:
           PATHS: ${{ inputs.paths }}
         run: |
           set -euo pipefail
-      
+
           for path in $PATHS; do
             if [ -f "$path/pnpm-lock.yaml" ]; then
               echo "Using eslint with pnpm ($path)"
