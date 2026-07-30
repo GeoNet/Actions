@@ -18,6 +18,13 @@ on:
           running eslint.
           See https://github.com/actions/setup-node?tab=readme-ov-file#supported-version-syntax
           for syntax.
+      ignore-errors:
+        type: boolean
+        default: false
+        description: |
+          Ignore linting errors. Useful when migrating projects to use linting for the first time,
+          allowing errors to be handled over time.
+
 jobs:
   eslint:
     runs-on: ubuntu-latest
@@ -54,6 +61,7 @@ jobs:
           done
       - name: Run ESLint
         id: eslint
+        continue-on-error: ${{ inputs.ignore-errors }}
         env:
           PATHS: ${{ inputs.paths }}
         run: |
