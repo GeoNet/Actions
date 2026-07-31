@@ -10,7 +10,6 @@ on:
           configuration file (eslint.config.mjs) exist.
           e.g.: my/root/one my/cool/root/two
       node-version:
-        required: false
         type: string
         default: "21.x"
         description: |
