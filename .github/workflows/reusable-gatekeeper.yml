@@ -23,7 +23,7 @@ on:
       caller-repo-name:
         required: true
         type: string
-        description: "Must be one of 'kube-infra', 'kube-platform-apps', or 'kube-geonet-apps'"
+        description: "Must be one of 'kube-infra', 'kube-platform-apps', or 'kube-geonet-apps', or 'kube-collection-apps'"
       aws-region:
         required: false
         type: string
@@ -66,6 +66,9 @@ jobs:
               ;;
             kube-geonet-apps)
               EXPECTED_REPO="GeoNet/kube-geonet-apps"
+              ;;
+            kube-collection-apps)
+              EXPECTED_REPO="GeoNet/kube-collection-apps"
               ;;
             *)
               echo "Error: Unknown caller repo: $CALLER" >&2
