@@ -94,7 +94,7 @@ jobs:
       cluster_list: ${{ steps.get-clusters.outputs.matrix }}
     steps:
       - name: Configure Dev AWS Credentials
-        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
+        uses: aws-actions/configure-aws-credentials@cbe3b392738ccf3f987d68400dafcf4b0624a56c # v6.2.4
         with:
           role-to-assume: ${{ inputs.aws-role-dev-arn }}
           aws-region: ${{ inputs.aws-region }}
@@ -118,7 +118,7 @@ jobs:
       cluster_list: ${{ steps.get-clusters.outputs.matrix }}
     steps:
       - name: Configure Prod AWS Credentials
-        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
+        uses: aws-actions/configure-aws-credentials@cbe3b392738ccf3f987d68400dafcf4b0624a56c # v6.2.4
         with:
           role-to-assume: ${{ inputs.aws-role-prod-arn }}
           aws-region: ${{ inputs.aws-region }}
@@ -174,7 +174,7 @@ jobs:
           echo "Using kube-infra branch: ${{ inputs.kube-infra-ref }}"
 
       - name: Configure Dev AWS Credentials
-        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
+        uses: aws-actions/configure-aws-credentials@cbe3b392738ccf3f987d68400dafcf4b0624a56c # v6.2.4
         with:
           role-to-assume: ${{ inputs.aws-role-dev-arn }}
           aws-region: ${{ inputs.aws-region }}
@@ -229,7 +229,7 @@ jobs:
           echo "Using kube-infra branch: ${{ inputs.kube-infra-ref }}"
 
       - name: Configure Prod AWS Credentials
-        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
+        uses: aws-actions/configure-aws-credentials@cbe3b392738ccf3f987d68400dafcf4b0624a56c # v6.2.4
         with:
           role-to-assume: ${{ inputs.aws-role-prod-arn }}
           aws-region: ${{ inputs.aws-region }}
