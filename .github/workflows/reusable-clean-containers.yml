@@ -10,9 +10,10 @@ on:
           starts with repository name e.g. base-images/centos
       ignored-regex:
         type: string
-        required: true
+        required: false
+        default: "^$"
         description: |
-          regex which is applied against image tags to ignore/keep those versions
+          optional regex which is applied against image name. The default matches nothing, so no versions are ignored
       number-kept:
         type: number
         required: true
