@@ -33,6 +33,7 @@ on:
                   scopes: [".*"]
 jobs:
   conform:
+    if: github.actor != 'geonet-renovate[bot]' && github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
       - if: ${{ startsWith(github.repository, 'GeoNet/') == false }}
