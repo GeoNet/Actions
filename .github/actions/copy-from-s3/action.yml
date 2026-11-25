@@ -72,7 +72,7 @@ runs:
     - name: Configure AWS Credentials
       env:
         REPO: ${{ github.repository }}
-      uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
+      uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
       with:
         aws-region: ${{ inputs.aws-region }}
         role-to-assume: ${{ inputs.aws-role-arn-to-assume }}
@@ -94,7 +94,7 @@ runs:
           aws s3 cp "${ARGS[@]}" "$S3_BUCKET_URI" "$LOCAL_DESTINATION_DIR"
         fi
     - name: Upload to GitHub Actions artifacts
-      uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       with:
         name: ${{ inputs.artifact-name }}
         path: ${{ inputs.artifact-path }}
